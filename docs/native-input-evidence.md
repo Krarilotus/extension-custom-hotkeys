@@ -42,7 +42,10 @@ The diagnostic's successful product callback was at priority 0; its additional
 raw observer was at -100001. Subsequent source audit found that graphics
 continue-out-of-focus mode consumes/rewrites focus messages, so the production
 listener now requests -110000 and requires a returned priority below -100000.
-That final priority change still needs its own native focus-transition check.
+PID15848 subsequently verified installation at -110000 and normal native input
+forwarding. Attempts to minimize via caption coordinates and the exposed native
+control did not minimize the window or emit focus-loss events; focus-transition
+acceptance therefore remains unperformed.
 No second Windows hook or graphics source change was introduced.
 
 Earlier failed probe launches are retained in the task records: missing LuaJIT
@@ -53,7 +56,7 @@ Lua source and is tracked in
 The documented C exports provided the verified continuation path.
 
 All games were closed normally and process absence checked before releasing
-each desktop slot. Last diagnostic PID 30528 exited; slot released 14:01:24 CEST.
+each desktop slot. Last diagnostic PID 15848 exited; slot released 14:10:54 CEST.
 Raw logs, build/config checksums and samplers remain under the task's
 `Roadmap/Investigations/Custom-Hotkeys/native-evidence/` directory. Diagnostic
 logging adds overhead; no native performance claim follows from this run.
