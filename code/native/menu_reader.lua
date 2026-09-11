@@ -24,8 +24,13 @@ function M:read(menuAddress, state)
   local rows={}
   for _,index in ipairs(active) do
     local r=array[index-1]
-    local x=n(menu[0].xPosition)+n(r.position.position.x)
-    local y=n(menu[0].yPosition)+n(r.position.position.y)
+    -- Native input and rendering use each item's owner, which may differ from
+    -- the active registry Menu when multiple Menu objects share the array.
+    local owner=r.menuPointer
+    if owner==nil or owner[0].menuItemArray~=array then return nil,'menu.owner' end
+    if n(owner[0].currentBuildMenuButtonShift_0x14)~=0 then return nil,'menu.shifted' end
+    local x=n(owner[0].xPosition)+n(r.position.position.x)
+    local y=n(owner[0].yPosition)+n(r.position.position.y)
     local width,height=n(r.itemWidth),n(r.itemHeight)
     local action=n(ffi.cast('uintptr_t',r.menuItemActionHandler.simple))
     -- 0x440410 only clears the interaction return flag. Its rectangle is the

@@ -41,5 +41,12 @@ sticky flag. This is a remaining view-workflow requirement.
 
 Component checks cover orientation wrap, both zoom states, busy/right-held and
 pending-rotation rejection, text/modal/replay/authority guards, and the corrected
-native conflicts. Native transformation and orientation-target acceptance remain
-pending. This document does not establish a complete original/layout inventory.
+native conflicts. In the isolated SHC1.41/UCP3.0.7 diagnostic PID20256,
+rotation changed0 to2 and zoom0 to1 with visible native transformations;
+pending rotation returned to8 and all four pan hold flags stayed0. Receipts
+`view-20256-build.json`, `view-20256.log` and the before/rotated/zoom samples
+are under the workspace's Custom-Hotkeys/native-evidence directory. That build
+used f6a9c2d production code with task-only F-key calls because the backend
+supplies scan0. These are native adapter checks, not physical-binding or
+keyboard-only acceptance. Orientation-target acceptance remains pending.
+This document does not establish a complete original/layout inventory.
