@@ -3,12 +3,15 @@ local Controller=require('code/editor')
 local Text=require('code/text_edit')
 local Encoding=require('code/native/encoding')
 local Binding=require('code/binding')
+local Layout=require('code/text_layout')
+local NativeText=require('code/native/text')
 local M={}
 M.__index=M
 local rows=7
 function M.new(profiles,catalog,router,scene,platform,labels)
   local self=setmetatable({profiles=profiles,catalog=catalog,router=router,scene=scene,
-    platform=platform,labels=labels,opened=false,focus=1,pins={},codepage=1252},M)
+    platform=platform,labels=labels,opened=false,focus=1,pins={},textCache={},keyNames={},
+    codepage=require('code/native/text').codepage()},M)
   local manager=remote.interface.manager
   self.menuID=manager.getAvailableMenuID(2040)
   self.modalID=manager.getAvailableModalMenuID(2041)
@@ -35,8 +38,9 @@ function M.new(profiles,catalog,router,scene,platform,labels)
   button(101,20,48,300,'profile');button(102,328,48,32,'<');button(103,368,48,32,'>')
   button(104,408,48,212,'new');button(105,20,86,430,'search');button(106,458,86,162,'groups')
   for row=1,rows do button(row,20,128+(row-1)*26,600,'') end
-  button(107,20,324,140,'capture');button(108,168,324,140,'clear')
-  button(109,316,324,148,'reset');button(110,472,324,148,'resetProfile')
+  button(107,20,324,112,'capture');button(115,140,324,104,'swap')
+  button(108,252,324,104,'clear');button(109,364,324,120,'reset')
+  button(110,492,324,128,'resetProfile')
   button(111,20,362,36,'<');button(112,64,362,36,'>')
   button(113,328,362,140,'apply');button(114,480,362,140,'cancel')
   items[#items+1]={menuItemType=0x66}
@@ -103,6 +107,7 @@ function M:activate(id)
     local current=1;for i,g in ipairs(groups) do if g==e.group then current=i end end
     e:filter(e.query,groups[current%#groups+1] or nil)
   elseif id==107 then e:capture()
+  elseif id==115 then e:reassign()
   elseif id==108 then e:clear()
   elseif id==109 then e:resetAction()
   elseif id==110 then e:resetProfile()
@@ -163,16 +168,40 @@ function M:input(event)
 end
 function M:bindingName(binding)
   if not binding then return self.labels('unbound') end
+  if self.nameLayout~=self.platform.layout then self.nameLayout=self.platform.layout;self.keyNames={} end
+  local key=binding.scan..':'..tostring(binding.extended)..':'..binding.mods
+  if self.keyNames[key] then return self.keyNames[key] end
   local name=self.platform:keyName(binding) or '?'
   if binding.mods%2==1 then name='Ctrl+'..name end
   if math.floor(binding.mods/2)%2==1 then name='Shift+'..name end
   if binding.mods>=4 then name='Alt+'..name end
+  self.keyNames[key]=name
   return name
 end
-function M:draw(text,x,y,color,font)
-  local encoded=Encoding.display(text,self.codepage) or '?'
+function M:drawEncoded(encoded,x,y,color,font)
   game.Rendering.renderTextToScreenConst(game.Rendering.textManager,encoded,x,y,0,
     color or 0xB8EEFB,font or 0x12,false,0)
+end
+function M:layout(slot,text,width,font,edit)
+  font=font or 0x12
+  local cached=self.textCache[slot]
+  local caret,anchor=edit and edit.caret,edit and edit.anchor
+  if cached and cached.text==text and cached.width==width and cached.font==font
+      and cached.caret==caret and cached.anchor==anchor then return cached.result end
+  local encoded=Encoding.display(text,self.codepage) or '?'
+  local measure=function(value) return NativeText.width(value,font) end
+  local result
+  if edit then
+    -- Only representable single-byte text reaches the native fonts. Character
+    -- offsets therefore match encoded offsets; clamp on conversion failure.
+    result=Layout.field(encoded,caret,anchor,width,measure)
+  else result={text=Layout.fit(encoded,width,measure)} end
+  self.textCache[slot]={text=text,width=width,font=font,caret=caret,anchor=anchor,result=result}
+  return result
+end
+function M:draw(text,x,y,color,font,width,slot)
+  local result=self:layout(slot or 'title',text,width or 608,font)
+  self:drawEncoded(result.text,x,y,color,font)
 end
 function M:renderButton(id)
   if not self.opened then return end
@@ -186,19 +215,27 @@ function M:renderButton(id)
       selected=i==self.focus;break end end
     if id==101 then label=self.labels('profile')..': '..v.active end
     if id==105 then label=self.labels('search')..': '..e.query end
-    if id==106 then label=self.labels('groups')..': '..(e.group or self.labels('all')) end
+    if id==106 then label=self.labels('groups')..': '..(e.group and self.labels('group.'..e.group) or self.labels('all')) end
     if self.text and ((id==104 and self.text.kind=='profile') or (id==105 and self.text.kind=='search')) then
-      label=self.text.edit:value()..'|';selected=true
+      label=self.text.edit:value();selected=true
     end
   end
-  if label=='' then return end
+  local editing=self.text and ((id==104 and self.text.kind=='profile')
+    or (id==105 and self.text.kind=='search')) and self.text.edit or nil
+  if label=='' and not editing then return end
   local s=game.Rendering.ButtonState
   local old=game.Rendering.pDrawBufferChoiceValue[0]
   game.Rendering.pDrawBufferChoiceValue[0]=0
   local ok,err=pcall(function()
     game.Rendering.drawBlendedBlackBox(game.Rendering.pencilRenderCore,s.x,s.y,
       s.x+s.width,s.y+s.height,selected and 8 or 0x14)
-    self:draw(label,s.x+6,s.y+5,selected and 0xFFFFFF or 0xB8EEFB)
+    local result=self:layout(id,label,s.width-12,0x12,editing)
+    if result.selectionEnd then
+      game.Rendering.drawBlendedBlackBox(game.Rendering.pencilRenderCore,
+        s.x+6+result.selectionStart,s.y+3,s.x+6+result.selectionEnd,s.y+s.height-3,4)
+    end
+    self:drawEncoded(result.text,s.x+6,s.y+5,selected and 0xFFFFFF or 0xB8EEFB)
+    if result.caret then self:drawEncoded('|',s.x+6+result.caret,s.y+5,0xFFFFFF) end
   end)
   game.Rendering.pDrawBufferChoiceValue[0]=old
   if not ok then error(err) end
@@ -210,8 +247,11 @@ function M:render(x,y,width,height)
   local e=self.controller
   local message=self.text and self.labels('editing') or (e.capturing and self.labels('press'))
   local err=self.error or e.error
-  if err then message=self.labels(err:find('conflict',1,true) and 'conflict' or 'invalid') end
-  if message then self:draw(message,x+20,y+407,0xCCFAFF) end
-  self:draw(tostring(e.selected)..' / '..tostring(#e.rows),x+118,y+368)
+  if err then
+    message=self.labels(err:find('conflict',1,true) and 'conflict' or 'invalid')
+    if e.reassignment then message=message..' '..self.labels(e.reassignment.other) end
+  end
+  if message then self:draw(message,x+20,y+407,0xCCFAFF,nil,width-40,'message') end
+  self:draw(tostring(e.selected)..' / '..tostring(#e.rows),x+118,y+368,nil,nil,200,'count')
 end
 return M

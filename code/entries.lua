@@ -30,4 +30,8 @@ for _,action in ipairs({{'menu.focus.armory',30,4},{'menu.open.armory',30,1},
   entries[#entries+1]={id=action[1],contexts=world,states={'live-sp'},command=action[1]:sub(1,5)=='unit.',
     default={scan=action[2],extended=false,mods=action[3]}}
 end
+for _,control in ipairs(require('code/controls')) do
+  entries[#entries+1]={id=control.id,contexts={'game.build'},states={'live-sp'},
+    command=true,default=false}
+end
 return entries

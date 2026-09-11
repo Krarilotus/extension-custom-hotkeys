@@ -34,7 +34,7 @@ function M:activate(context)
   local x,y=self.adapter.point(expected)
   if not x or not self.cursor:moveTo(x,y,context) then return false end
   local address=self.address
-  local kind,parameter,action=expected.kind,expected.parameter,expected.action
+  local kind,parameter,action,help=expected.kind,expected.parameter,expected.action,expected.help
   return self.cursor:click('left',context,function(now)
     local current=self.adapter.controls(now)
     if not current then return false end
@@ -42,11 +42,29 @@ function M:activate(context)
       if row.address==address then
         local currentX,currentY=self.adapter.point(row)
         return currentX==x and currentY==y and row.kind==kind
-          and row.parameter==parameter and row.action==action
+          and row.parameter==parameter and row.action==action and row.help==help
       end
     end
     return false
   end,function() return not self.adapter.hit or self.adapter.hit(address)==true end)
+end
+function M:activateMatching(selector,context)
+  if self.cursor.pending then return false end
+  local rows=self:current(context)
+  if not rows then return false end
+  local found
+  for _,row in ipairs(rows) do
+    if row.action==selector.action and row.parameter==selector.parameter
+        and (selector.help==nil or row.help==selector.help)
+        and row.kind==(selector.kind or 3) then
+      -- Ambiguous controls are not resolved by arbitrary traversal order.
+      if found then return false end
+      found=row.address
+    end
+  end
+  if not found then return false end
+  self.address=found
+  return self:activate(context)
 end
 function M:cancel() self.address=nil;self.context=nil;self.cursor:cancel() end
 return M

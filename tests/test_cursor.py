@@ -84,3 +84,22 @@ def test_native_hover_must_accept_aim_before_press(lua):
       assert(#changes==1 and changes[1][2])
       raw.text=true;cursor:beforeFrame();assert(cancelled==1 and #changes==1)
     ''')
+
+
+def test_semantic_control_requires_unique_active_identity_and_rechecks_help(lua):
+    setup(lua)
+    lua.execute('''
+      local selector={action=200,parameter=51,help=65578}
+      rows={{address=10,x=20,y=30,kind=3,parameter=51,action=200,help=65578},
+        {address=11,x=70,y=30,kind=3,parameter=51,action=200,help=65600}}
+      nav=Navigation.new({controls=function() return rows end,
+        point=function(r) return r.x,r.y end},cursor)
+      assert(nav:activateMatching(selector,current))
+      assert(nav.address==10 and #changes==0)
+      rows[1].help=65600;cursor:beforeFrame();assert(not cursor.pending and #changes==0)
+      assert(not nav:activateMatching(selector,current))
+      rows[1].help=65578;rows[2].help=65578
+      assert(not nav:activateMatching(selector,current) and #changes==0)
+      rows[2]=nil;assert(nav:activateMatching(selector,current))
+      rows={};cursor:beforeFrame();assert(not cursor.pending and #changes==0)
+    ''')

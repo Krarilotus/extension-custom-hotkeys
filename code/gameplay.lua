@@ -20,11 +20,15 @@ function M.resolve(s,ownedModal)
       or not integer(s.unit,0,2499) or s.unit~=s.nextUnit
       or not integer(s.placement,0,65535) or not integer(s.rotation,0,6) or s.rotation%2~=0
       or not integer(s.cameraX,-1000000,1000000) or not integer(s.cameraY,-1000000,1000000)
-      or not integer(s.zoom,0,1) or not integer(s.patrol,0,1) then return nil end
+      or not integer(s.zoom,0,1) or not integer(s.patrol,0,1)
+      or not integer(s.unitMode,-2147483648,2147483647)
+      or not integer(s.unitModeAux,-2147483648,2147483647) then return nil end
   return {owner=s.screen==14 and 'game.build' or 'game.status',state='live-sp',authority=true,
     selection=table.concat({s.player,s.building,s.unit,s.tribe,s.selectedCount,s.selectedLast},':')..':'..s.selectionBits,
     -- Camera position changes during a local pan hold. Queued world clicks
     -- carry their own projection guard; a pan must not cancel itself.
-    targeting=table.concat({s.placement,s.rotation,s.zoom,s.patrol},':')}
+    -- These native mode values are identity, not permission to invoke an
+    -- action. A changed mode invalidates any gesture aimed in the old mode.
+    targeting=table.concat({s.placement,s.rotation,s.zoom,s.patrol,s.unitMode,s.unitModeAux},':')}
 end
 return M

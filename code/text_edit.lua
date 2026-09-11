@@ -16,6 +16,7 @@ local function characters(text)
   end
   return result
 end
+function M.valid(value) return type(value)=='string' and characters(value)~=nil end
 function M.new(value,limit)
   return setmetatable({chars=assert(characters(value)),caret=0,anchor=0,limit=limit or 120},M)
 end

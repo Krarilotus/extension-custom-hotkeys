@@ -11,6 +11,7 @@ end
 
 local function name(value)
   return type(value) == 'string' and #value > 0 and #value <= 120
+    and require('code/text_edit').valid(value)
     and not value:find('[%z\1-\31\127]') and value:find('%S') ~= nil
 end
 

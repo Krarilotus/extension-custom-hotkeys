@@ -18,6 +18,7 @@ end
 function M:filter(query, group)
   if type(query) ~= 'string' or #query > 120 then return nil,'editor.search' end
   self.query,self.group=query,group
+  self.reassignment=nil
   local needle=self.fold(query)
   self.rows={}
   for _,action in ipairs(self.catalog.ordered) do
@@ -35,6 +36,7 @@ end
 function M:navigate(delta)
   if self.closed or self.capturing or #self.rows==0 then return false end
   if type(delta)~='number' or delta~=math.floor(delta) then return false end
+  self.reassignment=nil
   self.selected=math.max(1,math.min(#self.rows,self.selected+delta))
   if self.selected<self.first then self.first=self.selected end
   if self.selected>=self.first+self.pageSize then self.first=self.selected-self.pageSize+1 end
@@ -49,6 +51,7 @@ end
 
 function M:perform(operation,...)
   if self.closed or self.capturing then return nil,'editor.busy' end
+  self.reassignment=nil
   local ok,err,detail=operation(self.profiles,...)
   self.error,self.detail=err,detail
   self.cachedView=nil
@@ -68,7 +71,15 @@ function M:capture()
     self.cachedView=nil
     if binding then
       self.capturing=false
-      self:perform(self.profiles.bind,action,binding)
+      local draft=self.profiles.draft
+      local previous=draft.profiles[draft.active].bindings[action]
+      local ok,problem,detail=self:perform(self.profiles.bind,action,binding)
+      if not ok and (problem=='binding.conflict' or problem=='binding.native-conflict')
+          and type(detail)=='table' then
+        local other=detail[1]==action and detail[2] or (detail[2]==action and detail[1])
+        if other then self.reassignment={action=action,binding=binding,other=other,
+          replacement=previous,draft=draft} end
+      end
     elseif err=='capture.cancel' then
       self.capturing=false
       self.error,self.detail=nil,nil
@@ -81,7 +92,17 @@ function M:cancelCapture()
   self.router:barrier()
   self.capturing=false
   self.error,self.detail=nil,nil
+  self.reassignment=nil
   self.cachedView=nil
+end
+
+-- A failed capture offers an explicit atomic swap. Native conflicts still
+-- require a usable replacement, and any third collision rejects both edits.
+function M:reassign()
+  local candidate=self.reassignment
+  if not candidate or candidate.draft~=self.profiles.draft then return false end
+  return self:perform(self.profiles.reassign,candidate.action,candidate.binding,
+    candidate.other,candidate.replacement)
 end
 
 function M:clear()

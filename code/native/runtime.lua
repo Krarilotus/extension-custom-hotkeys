@@ -16,6 +16,8 @@ function M.start(entries,language)
   local platform=Platform.new(tonumber(ffi.cast('int32_t *',0xf983e4)[0]))
   local scene=Scene.new(platform)
   local catalog=Catalog.new(entries,require('code/originals'))
+  local controls={}
+  for _,control in ipairs(require('code/controls')) do controls[control.id]=control end
   local view,cursor,navigation,targeting,camera,worldActions
   local router=Router.new(catalog,Catalog.defaults(catalog),{
     resolve=function() return scene:resolve(view) end,
@@ -26,6 +28,7 @@ function M.start(entries,language)
       if id=='menu.activate' or id=='game.menu.activate' then return navigation:activate(context) end
       if id:sub(1,7)=='target.' then return targeting:dispatch(id,context) end
       if id:sub(1,11)=='camera.pan.' then cursor:cancel();return camera:start(id,context) end
+      if controls[id] then return navigation:activateMatching(controls[id],context) end
       return worldActions:dispatch(id,context)
     end,
     canRecover=function(c) return c and (c.owner:sub(1,5)=='menu.' or c.owner=='game.build' or c.owner=='game.status') end,
@@ -37,7 +40,8 @@ function M.start(entries,language)
     save=function(_,document) return remote.interface.saveProfiles(document) end}
   local profiles,err=Profiles.new(catalog,store,router)
   assert(profiles,err)
-  view=View.new(profiles,catalog,router,scene,platform,require('code/locale').new(language))
+  view=View.new(profiles,catalog,router,scene,platform,require('code/locale').new(language,
+    require('code/native/text').label))
   camera=require('code/native/camera').new(platform,router)
   worldActions=require('code/native/world_actions').new(scene,view)
   local pointer=require('code/native/pointer').new(platform,scene)
@@ -94,7 +98,7 @@ function M.start(entries,language)
     game.Rendering.pDrawBufferChoiceValue[0]=0
     local ok,problem=pcall(function()
       game.Rendering.drawBlendedBlackBox(game.Rendering.pencilRenderCore,s.x,s.y,s.x+s.width,s.y+s.height,0x14)
-      view:draw(view.labels('title'),s.x+6,s.y+5)
+      view:draw(view.labels('title'),s.x+6,s.y+5,nil,nil,s.width-12,'main-entry')
     end)
     game.Rendering.pDrawBufferChoiceValue[0]=old
     if not ok then log(ERROR,tostring(problem)) end

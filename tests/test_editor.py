@@ -36,6 +36,29 @@ def test_capture_conflict_keeps_existing_binding(lua):
     ''')
 
 
+def test_explicit_conflict_swap_is_draft_only_and_invalidated_by_other_edits(lua):
+    setup(lua)
+    lua.execute('''
+      editor:choose(2);current.owner='hotkeys.capture'
+      assert(editor:capture());router:handle(event(30))
+      assert(editor.reassignment.other=='camera.left')
+      assert(editor:reassign())
+      local draft=profiles.draft.profiles.Default.bindings
+      assert(draft['unit.move'].scan==30 and draft['camera.left'].scan==50)
+      assert(profiles.committed.profiles.Default.bindings['unit.move'].scan==50)
+      assert(#calls==0 and not editor.reassignment)
+      editor:cancel()
+    ''')
+    setup(lua)
+    lua.execute('''
+      editor:choose(2);current.owner='hotkeys.capture'
+      assert(editor:capture());router:handle(event(30,'up'));router:handle(event(30))
+      assert(editor.reassignment)
+      assert(editor:clear());assert(not editor:reassign())
+      assert(profiles.draft.profiles.Default.bindings['camera.left'].scan==30)
+    ''')
+
+
 def test_mouse_row_choice_clear_reset_and_apply_use_same_transaction(lua):
     setup(lua)
     lua.execute('''

@@ -19,6 +19,10 @@ function M.resolve(s,ownedModal)
   s.placement=read(0x1fe7aec);s.rotation=read(0x1fe7aa4)
   s.cameraX=read(0x21aec50);s.cameraY=read(0x21aec54);s.zoom=read(0x21aec68)
   s.patrol=read(0x1667f94)
+  -- Native unit-action handler 0x446920 changes both interaction fields.
+  -- Neither is implied by the selected units or patrol; their exact relationship
+  -- outside that handler is not assumed by this read-only identity check.
+  s.unitMode=read(0x1387f48);s.unitModeAux=read(0x1387f4c)
   s.tribe=read(0x1667f78)
   return Resolve.resolve(s,ownedModal)
 end

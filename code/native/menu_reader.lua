@@ -35,6 +35,7 @@ function M:read(menuAddress, state)
       rows[#rows+1]={index=index,address=n(ffi.cast('uintptr_t',array+index-1)),
         x=x,y=y,width=width,height=height,parameter=n(r.callbackParameter.parameter),
         action=action,
+        help=n(ffi.cast('uint32_t *',ffi.cast('uint8_t *',array+index-1)+0x2c)[0]),
         control=n(r.ucId_0x30),kind=n(r.menuItemType)%0x800000}
     end
   end

@@ -18,8 +18,11 @@ artifact and verified reviewed merge. Work in progress remains draft.
 The current branch contains the binding router, persistent profiles, native
 profile editor and Windows input transport. Native menu navigation moves the
 visible cursor and activates eligible controls through the original input path.
-The complete gameplay action catalog and adapters are still being implemented. There is no installable
-Custom Hotkeys artifact yet. Test actions are fixtures, not supported gameplay.
+Gameplay adapters include bounded visible targeting, local camera pan,
+displaced armory/signpost/stance actions and107 native build/unit control
+selectors. The complete action catalog and native acceptance are still being
+implemented; an Industry selector activation failure remains under investigation.
+There is no installable Custom Hotkeys artifact yet.
 
 Run `python -m pip install -r tests/requirements.txt` and
 `python -m pytest tests -q`. The same component cases run in Lua 5.4 and LuaJIT;
@@ -30,3 +33,6 @@ See [component contracts](docs/components.md) and the
 Native development evidence covers [profile editing](docs/native-editor-evidence.md)
 and [menu navigation](docs/native-navigation-evidence.md); neither is a complete
 keyboard-only acceptance pass.
+Additional evidence covers [world actions](docs/native-world-actions-evidence.md),
+[building placement](docs/native-building-evidence.md) and the
+[language/encoding contract](docs/localization.md), with their remaining gates.

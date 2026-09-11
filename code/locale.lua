@@ -17,6 +17,13 @@ local de={title='Eigene Tastenkürzel',profile='Profil',new='Neues Profil',searc
   ['menu.previous']='Vorheriges Bedienelement', ['menu.activate']='Bedienelement aktivieren',
   ['menu.back']='Zurück', ['editor.capture']='Gewähltes Tastenkürzel ändern'}
 local M={}
+en.swap='Swap keys';de.swap='Tauschen'
+en.open='Open: ';en.choose='Choose: ';de.open='Öffnen: ';de.choose='Wählen: '
+for group,names in pairs({hotkeys={'Hotkeys','Tastenkürzel'},menu={'Menus','Menüs'},
+  game={'Game','Spiel'},target={'Targeting','Zielen'},camera={'Camera','Kamera'},
+  unit={'Units','Einheiten'},build={'Construction','Bauen'}}) do
+  en['group.'..group]=names[1];de['group.'..group]=names[2]
+end
 for id,names in pairs({
   ['menu.focus.armory']={'Focus and open armory','Waffenkammer zeigen und öffnen'},
   ['menu.open.armory']={'Open armory panel','Waffenkammer öffnen'},
@@ -39,8 +46,29 @@ for key,names in pairs({up={'up','oben'},down={'down','unten'},left={'left','lin
   en['target.fine.'..key]='Move target '..names[1]..' precisely'
   de['target.fine.'..key]='Zielcursor fein nach '..names[2]
 end
-function M.new(language)
+function M.new(language,nativeText)
+  language=type(language)=='string' and language:lower() or 'english'
   local chosen=language=='german' and de or en
-  return function(key) return chosen[key] or en[key] or key end
+  if language=='french' or language=='italian' or language=='spanish' or language=='polish' then
+    chosen=require('code/locales/'..language)
+    for i,direction in ipairs({'up','down','left','right'}) do
+      chosen['camera.pan.'..direction]=chosen.pan..chosen.directions[i]
+      chosen['target.'..direction]=chosen.target..chosen.directions[i]
+      chosen['target.fine.'..direction]=chosen.fine..chosen.directions[i]
+    end
+  end
+  local controls,cache={},{}
+  for _,control in ipairs(require('code/controls')) do controls[control.id]=control end
+  return function(key)
+    if cache[key] then return cache[key] end
+    local control=controls[key]
+    if control then
+      local label=nativeText and nativeText(control.textGroup,control.text)
+      label=label or key:match('([^.]+)$'):gsub('-',' ')
+      local prefix=control.verb=='open' and chosen.open or chosen.choose
+      cache[key]=prefix..label
+    else cache[key]=chosen[key] or en[key] or key end
+    return cache[key]
+  end
 end
 return M

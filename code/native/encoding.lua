@@ -20,6 +20,7 @@ local function convert(text,source,target)
   return ffi.string(output,bytes)
 end
 function M.display(text,codepage) return convert(text,65001,codepage) end
+function M.read(text,codepage) return convert(text,codepage,65001) end
 function M.character(value)
   if type(value)~='number' or value<32 or value>255 or value==127 then return nil end
   return convert(string.char(value),kernel.GetACP(),65001)
