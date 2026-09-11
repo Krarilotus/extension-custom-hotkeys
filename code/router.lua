@@ -104,6 +104,14 @@ function M:handle(event)
     return (held ~= nil and (held.consumed or held.blocked)) or self.charBlocked[physical] == true
   end
   if event.kind ~= 'down' then return false end
+  -- Windows may deliver the release to another focused window. Only a fresh
+  -- native down (previous-state bit clear) may retire a quarantined gesture.
+  -- Repeated downs still belong to the old gesture across every barrier.
+  if held and held.blocked and event.repeated == false then
+    self:cancelHold(held)
+    self.held[physical] = nil
+    held = nil
+  end
   if held then
     return held.consumed or held.blocked
   end

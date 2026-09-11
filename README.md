@@ -16,7 +16,7 @@ recorder replay/state-restore acceptance, localization, an installable tested
 artifact and verified reviewed merge. Work in progress remains draft.
 
 The current branch contains the binding router, profile transactions, a storage
-component and editor controller. Native adapters, the actual in-game view and
+component, editor controller and Windows input transport. Native action adapters, the actual in-game view and
 the complete action catalog are still being implemented. There is no installable
 Custom Hotkeys artifact yet. Test actions are fixtures, not supported gameplay.
 

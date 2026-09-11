@@ -30,3 +30,14 @@ def test_sparse_or_malformed_extension_list_cannot_hide_legacy(lua):
       assert(not P.check({}, {legacy={name='ucp2-legacy',version='2.15.0'}}))
       assert(not P.check({}, {[0]={name='ucp2-legacy',version='2.15.0'}}))
     ''')
+
+
+def test_recorder_requires_verified_public_input_ownership_contract(lua):
+    lua.execute('''
+      local P=require('code/preflight')
+      for _,version in ipairs({'0.48.4','0.50.3','99.0.0'}) do
+        local ok,err=P.check({},{{name='recorder',version=version}})
+        assert(not ok and err=='activation.recorder-api')
+      end
+      assert(P.check({},{{name='unrelated-extension',version='1.0.0'}}))
+    ''')

@@ -29,6 +29,9 @@ def lua(request):
         return {scan=scan, kind=kind or 'down', mods=mods or 0, extended=false,
           repeated=false, altgr=false, win=false, composing=false}
       end
+      function repeat_event(scan, mods)
+        local e=event(scan,'down',mods); e.repeated=true; return e
+      end
       function fixture()
         catalog = Catalog.new({
           {id='camera.left', contexts={'game'}, states={'live-sp','live-mp'},

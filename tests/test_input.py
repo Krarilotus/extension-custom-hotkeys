@@ -71,7 +71,7 @@ def test_forwarded_text_hold_is_quarantined_after_focus_transition(lua):
       assert(not router:handle(event(50)))
       assert(not router:handle(event(50,'char')))
       current.text=false; current.generation=2
-      assert(router:handle(event(50)))
+      assert(router:handle(repeat_event(50)))
       assert(router:handle(event(50,'char')))
       assert(not router:handle(event(50,'up')))
       assert(#calls==0)
@@ -88,7 +88,7 @@ def test_held_keys_never_cross_state_boundaries(lua, transition):
     lua.execute(f'''
       assert(router:handle(event(50))); assert(#calls==1)
       {transition}
-      router:handle(event(50)); router:handle(event(50,'char'))
+      router:handle(repeat_event(50)); router:handle(event(50,'char'))
       assert(router:handle(event(50,'up'))); assert(#calls==1)
     ''')
 
@@ -111,7 +111,7 @@ def test_profile_change_quarantines_held_key(lua):
       local bindings=Catalog.defaults(catalog)
       bindings['unit.move']=key(30); bindings['camera.left']=key(50)
       assert(router:apply(bindings))
-      router:handle(event(50)); assert(#calls==1)
+      router:handle(repeat_event(50)); assert(#calls==1)
       router:handle(event(50,'up')); router:handle(event(50))
       assert(#calls==2 and calls[2]=='camera.left')
     ''')
@@ -124,7 +124,7 @@ def test_capture_cannot_activate_following_dialog(lua):
       router:startCapture(function(value) captured=value; current=facts() end)
       assert(router:handle(event(50)))
       assert(captured.scan==50 and #calls==0)
-      assert(router:handle(event(50))); assert(router:handle(event(50,'up')))
+      assert(router:handle(repeat_event(50))); assert(router:handle(event(50,'up')))
       assert(#calls==0)
       router:handle(event(50)); assert(#calls==1)
     ''')

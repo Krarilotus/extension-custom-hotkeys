@@ -18,8 +18,10 @@ disables dispatch. It is a contract validator, **not the native resolver**.
 suppresses its queued character messages and cancels local holds on barriers.
 It rechecks context immediately before native dispatch. Reentrant routing is
 consumed; uncertain native dispatch is never retried through the original key.
-Capture is exclusive and cancels when its owner loses focus. Native held-state
-reconciliation after missing key-up remains part of the platform adapter audit.
+Capture is exclusive and cancels when its owner loses focus. A quarantined key
+can recover after a missing release only when Windows reports a fresh down with
+its previous-state bit clear. Tests for held transitions set that bit; duplicate
+fresh downs without a barrier still cannot submit a second activation.
 
 `messages.lua` preserves the next WndProc's arguments and return value. It uses
 the supplied winProcHandler chain callback; it does not call GetMainProc or
@@ -34,6 +36,26 @@ Legacy ON failed before any enable call. This establishes the Lua load-order
 contract only. Runtime integration, live byte checks and additional overlapping
 Legacy options still need verification. Never attempt Legacy's unimplemented
 runtime disable.
+
+`native/win32.lua` checks the actual HWND's process/thread, foreground and focus;
+reads queue-synchronized modifier down bits; preserves Right Alt/AltGr and IME;
+and obtains distinct layout-specific key labels as UTF-8. The eventual view must
+convert them to the verified game encoding. `native/interface.lua` uses UCP's
+library service to resolve the documented winProcHandler C exports, avoiding the
+table-return proxy failure tracked in
+[framework issue #147](https://github.com/UnofficialCrusaderPatch/UnofficialCrusaderPatch3/issues/147).
+
+`native/chain.lua` pins one x86 stdcall callback in a dedicated LuaJIT state with
+tracing disabled. It observes focus messages before graphicsApiReplacer, whose
+continue-out-of-focus mode may consume them. Non-keyboard messages retain their
+parameters and normal graphics conversion. It forwards the actual registered
+priority and never retries an uncertain downstream native call.
+
+These adapters have been exercised in a task-only native diagnostic with an
+empty action catalog, not integrated with accepted gameplay actions or the
+editor. See [native evidence and limitations](native-input-evidence.md).
+Recorder activation currently fails closed pending its public input ownership
+and lifecycle contract; native SP mode must not authorize live replay actions.
 
 `profiles.lua` keeps edits in a draft and changes the active profile only after
 persistence succeeds. Launcher bindings bootstrap a missing store; an existing
