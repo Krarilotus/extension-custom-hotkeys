@@ -1,5 +1,6 @@
 local ffi=require('ffi')
 local Options=require('code/options_context')
+local Load=require('code/load_context')
 local M={}
 M.__index=M
 local function read(address) return tonumber(ffi.cast('int32_t *',address)[0]) end
@@ -11,7 +12,7 @@ function M.new(platform)
   return setmetatable({platform=platform,generation=0},M)
 end
 function M:snapshot()
-  return {screen=read(0x1fe7d1c),tab=read(0x1fe7d20),subtab=read(0x1fe7d24),
+  local s={screen=read(0x1fe7d1c),tab=read(0x1fe7d20),subtab=read(0x1fe7d24),
     delay=read(0x1fe7d14),newPlayer=read(0x1fe7e64),mode=read(0x1fe7d78),
     modal=read(0x1fe7cbc),modal2=read(0x24036a4),modal3=read(0x1667f24),
     activeModalID=read(0x1fe7c94),activeModalMenu=read(0x1fe7cb4),
@@ -22,6 +23,15 @@ function M:snapshot()
     width=read(0xf98350),height=read(0xf98354),sliding=read(0xf2b3a8),
     focused=self.platform:focused(),composing=self.platform.composing,
     platformGeneration=self.platform.generation}
+  if s.modal==9 and s.activeModalMenu==0xb97688 then
+    s.loadArray=read(0xb97688);s.textIndex=read(0x1652740);s.textState=read(0x11265a8)
+    s.loadCount=read(0x112661c);s.loadOffset=read(0x1126628)
+    s.loadSelected=read(0x1126624);s.loadRows=read(0x112662c)
+    if s.loadCount>=0 and s.loadCount<=500 then
+      s.loadIdentity=ffi.string(ffi.cast('const char *',0x1126e28),s.loadCount*4)
+    end
+  end
+  return s
 end
 function M:resolve(editor)
   local s=self:snapshot()
@@ -30,11 +40,12 @@ function M:resolve(editor)
     s.modal,s.modal2,s.modal3,s.activeModalID,s.activeModalMenu,s.textModal,s.textEditor,s.platformGeneration},':')
   if signature~=self.signature then self.signature=signature;self.generation=self.generation+1 end
   self.current=s
-  local options=Options.owns(s)
+  local options,load=Options.owns(s),Load.owns(s)
   if not s.focused or self.platform.composing or s.delay~=-1 or s.newPlayer~=0
-      or (s.textModal~=0 and not options) or s.textEditor~=0 or s.modal2~=-1 or s.modal3~=-1 then return nil end
+      or (s.textModal~=0 and not options and not load) or s.textEditor~=0 or s.modal2~=-1 or s.modal3~=-1 then return nil end
   local ownedModal=editor and editor.opened and editor.parentScreen==s.screen and editor.modalID or nil
   if not ownedModal and options then ownedModal=5 end
+  if not ownedModal and load then ownedModal=9 end
   local world=require('code/native/gameplay').resolve(s,ownedModal)
   if not world and not menus[s.screen] then return nil end
   local owner,focus=world and world.owner or 'menu.'..menus[s.screen],''
@@ -42,7 +53,7 @@ function M:resolve(editor)
     owner=editor.controller.capturing and 'hotkeys.capture' or 'hotkeys.editor'
     focus=tostring(editor.focus)
     if editor.text then return nil end
-  elseif s.modal~=-1 and not options then return nil end
+  elseif s.modal~=-1 and not options and not load then return nil end
   return {verified=true,focused=true,text=false,composing=false,transition=false,
     owner=owner,screen=tostring(s.screen),panel=tostring(s.tab)..':'..s.subtab,
     modal=s.modal==-1 and '' or tostring(s.modal),focus=focus,

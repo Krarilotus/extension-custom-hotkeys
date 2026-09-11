@@ -4,7 +4,7 @@ local parents={'menu.main','menu.custom-scenarios','menu.campaigns','menu.missio
 local all={'menu.main','menu.custom-scenarios','menu.campaigns','menu.missions','game.build','game.status'}
 local world={'game.build','game.status'}
 local navigation={'menu.main','menu.custom-scenarios','menu.campaigns','menu.missions',
-  'game.build','game.status','game.options'}
+  'game.build','game.status','game.options','game.load'}
 local entries={{id='view.toggle-interface',contexts={'game.build'},states={'live-sp'},command=false,
   default={scan=15,extended=false,mods=1}},
   {id='hotkeys.open',contexts=all,
@@ -15,7 +15,7 @@ local entries={{id='view.toggle-interface',contexts={'game.build'},states={'live
     default={scan=15,extended=false,mods=2}},
   {id='menu.activate',contexts=parents,states={'menu'},command=false,
     default={scan=28,extended=false,mods=0}},
-  {id='game.menu.activate',contexts={'game.build','game.status','game.options'},states={'live-sp'},command=true,
+  {id='game.menu.activate',contexts={'game.build','game.status','game.options','game.load'},states={'live-sp'},command=true,
     default={scan=28,extended=false,mods=0}}}
 for group=0,9 do
   entries[#entries+1]={id='unit.group.assign.'..group,contexts=world,states={'live-sp'},

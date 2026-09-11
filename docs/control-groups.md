@@ -57,7 +57,7 @@ ownership and its branch remain unchanged.
 
 Component tests cover native call order, group/member bounds, foreign ownership,
 repeat suppression, text/selection/context changes and original-key conflicts.
-Single-unit native assignment/transfer evidence follows. Native recall/cycling,
+Single-unit native assignment/transfer evidence follows. Native cycling and
 complete keyboard-only, multiplayer and replay/state restore acceptance are pending. The module still rejects active MP and Recorder.
 
 ## Native assignment evidence
@@ -86,3 +86,26 @@ initial drag did not select troops; a mouse click was needed. The planned
 text-dialog check was not performed before cleanup. Physical bindings/holds,
 keyboard-only setup, multi-unit/lord exclusion/dead-member cases, command counts,
 multiplayer and replay are not established by this run.
+
+## Native recall and focus evidence
+
+PID21016 on b866794, 11 September 2026, used the same isolated Nicaea setup.
+F10 assigned archer52/serial4535 to group1. After mouse deselection, diagnostic
+F11 recalled it: selection count returned from0 to1 and the panel changed from48
+to61. The native tribe changed from1246 to1243; the camera stayed1789/1584.
+A second F11 focused the matching selection at1632/1376 without changing tribe
+or selected count. F11 in the Save name dialog was rejected; selection and
+camera remained unchanged. The error log contains only its header.
+
+Task receipts: `recall-21016-{assigned,deselected,recalled,focused,save-rejected}.json`,
+`recall-21016.log`, `recall-21016-error.log`, `recall-21016-build.json`.
+The executable, dependencies and config hash match the assignment run above.
+The native Save button created task-local `hk.sav` (757523 bytes, SHA256
+`c8326f155641249681b577952134850a8a2f4aee75bb82876ce72729327d3878`).
+Reload validation is pending. Bulk text insertion did not enter a name; separate
+h/k key presses did. Shift+F1 through the test backend did not open Save.
+
+This is native adapter evidence, not physical binding or keyboard-only acceptance.
+No group-cycle, command-count, multiplayer or replay claim follows. Alt+F4 closed
+the game, process absence was verified, and the queue released at22:12:57 CEST;
+the isolated baseline configuration was restored.

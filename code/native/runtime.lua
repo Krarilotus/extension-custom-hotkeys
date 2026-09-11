@@ -53,8 +53,15 @@ function M.start(entries,language)
   navigation=require('code/navigation').new({
     controls=function(context)
       if not context or (context.owner:sub(1,5)~='menu.' and context.owner~='game.build'
-          and context.owner~='game.status' and context.owner~='game.options') then return nil end
+          and context.owner~='game.status' and context.owner~='game.options' and context.owner~='game.load') then return nil end
       local s=scene:snapshot()
+      if context.owner=='game.load' then
+        local load=require('code/load_context')
+        if tostring(s.screen)~=context.screen or not load.owns(s) then return nil end
+        local origin=load.origin(s)
+        if not origin then return nil end
+        return load.controls(reader:read(s.activeModalMenu,s,origin),s)
+      end
       if context.owner=='game.options' then
         if tostring(s.screen)~=context.screen or not require('code/options_context').owns(s) then return nil end
         local origin=require('code/options_context').origin(s)
