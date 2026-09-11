@@ -48,6 +48,12 @@ control did not minimize the window or emit focus-loss events; focus-transition
 acceptance therefore remains unperformed.
 No second Windows hook or graphics source change was introduced.
 
+Follow-up PID29788 verified a focus round trip by activating a task-owned
+Character Map window and then the game. Numpad Enter still arrived without scan
+or extended identity. The new read-only input preflight reports that transport
+failure before gameplay acceptance. See [testing environment](testing-environment.md)
+for the corrected focus procedure, geometry recovery and backend requirements.
+
 Earlier failed probe launches are retained in the task records: missing LuaJIT
 debug configuration, unavailable Lua API in winProcHandler 0.2.0, and framework
 table-return proxy failure with 1.0.0. The latter also reproduces with the shipped
