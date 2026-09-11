@@ -23,6 +23,7 @@ return {
  open='Ouvrir : ',choose='Choisir : ',
  ['hotkeys.open']='Ouvrir les raccourcis', ['menu.next']='Commande suivante',
  ['menu.previous']='Commande précédente', ['menu.activate']='Activer la commande',
+ ['game.quicksave']='Sauvegarde rapide',
  ['game.menu.activate']='Activer la commande de jeu',
  ['target.center']='Centrer le curseur de visée', ['target.confirm']='Confirmer la cible',
  ['target.cancel']='Annuler la cible ou la sélection',

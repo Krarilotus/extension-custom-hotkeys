@@ -23,6 +23,7 @@ return {
  open='Abrir: ',choose='Elegir: ',
  ['hotkeys.open']='Abrir teclas personalizadas', ['menu.next']='Control siguiente',
  ['menu.previous']='Control anterior', ['menu.activate']='Activar control',
+ ['game.quicksave']='Guardado r?pido',
  ['game.menu.activate']='Activar control del juego',
  ['target.center']='Centrar cursor de objetivo', ['target.confirm']='Confirmar objetivo',
  ['target.cancel']='Cancelar objetivo o selección',

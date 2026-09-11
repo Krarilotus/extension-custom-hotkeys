@@ -2,7 +2,7 @@ local ffi=require('ffi')
 local Resolve=require('code/gameplay')
 local M={}
 local function read(address) return tonumber(ffi.cast('int32_t *',address)[0]) end
-function M.resolve(s,ownedModal)
+function M.snapshot(s)
   if s.screen~=14 and s.screen~=16 then return nil end
   s.synchronyMode=read(0x191dd80);s.player=read(0x1a275dc)
   s.inGame=read(0x1fe7db4);s.syncStatus=read(0x191e300);s.saveRelated=read(0x191e424)
@@ -25,6 +25,10 @@ function M.resolve(s,ownedModal)
   -- outside that handler is not assumed by this read-only identity check.
   s.unitMode=read(0x1387f48);s.unitModeAux=read(0x1387f4c)
   s.tribe=read(0x1667f78)
-  return Resolve.resolve(s,ownedModal)
+  return s
+end
+function M.resolve(s,ownedModal)
+  s=M.snapshot(s)
+  return s and Resolve.resolve(s,ownedModal) or nil
 end
 return M
