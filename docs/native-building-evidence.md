@@ -56,4 +56,22 @@ The fix waits for the normal WM_MOUSEMOVE acknowledgement before the aim frame,
 bounded to eight input callbacks. Context, native control and physical takeover
 checks remain active throughout; timeout cancels without a click. Component
 tests cover delayed old coordinates, repeated identical movement, timeout and
-text/state/physical cancellation. Native retest is pending.
+text/state/physical cancellation.
+
+Retest PID9476: on11 September at18:53 CEST, Industry opened from Castle Builder
+tab10 to tab20. The woodcutter selector then selected placement mode51. Both
+used production native cursor/menu adapters; no raw control callback was called.
+The task-only F10/F11 diagnostics bypassed physical key lookup, and mouse input
+prepared the keep and granary. This is an adapter pass, not keyboard-only,
+command-count or packaged-module acceptance. The camera also visibly changed
+position during the Industry test; its cause remains to be isolated against a
+native mouse baseline and must not be silently counted as expected behavior.
+
+Each control's native press changed panel/targeting state; the next input callback
+cancelled the owned gesture in its release phase. The final sampler verified
+zero held mouse buttons, zero camera hold flags, tab20 and placement51. The
+game exited normally, absence was verified and the desktop released18:54:29.
+The baseline configuration was restored. Receipts are `cursor-9476{,-error}.log`,
+`cursor-9476-{build,woodcutter}.json`. The staged catalog had134 actions and
+predated the building panel/toolbar additions; its per-file hashes identify the
+tested code, including the acknowledgement fix.

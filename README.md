@@ -21,8 +21,14 @@ visible cursor and activates eligible controls through the original input path.
 Gameplay adapters include bounded visible targeting, local camera pan,
 displaced armory/signpost/stance actions and107 native build/unit control
 selectors. The complete action catalog and native acceptance are still being
-implemented; an Industry selector activation failure remains under investigation.
-There is no installable Custom Hotkeys artifact yet.
+implemented. A native retest verified Industry and woodcutter selection after
+the cursor acknowledgement fix. Existing building panel/focus/return actions
+and a Ctrl+Tab toolbar replacement are now configurable; native acceptance of
+those additions remains pending.
+
+The [development package](docs/install-development.md) is built reproducibly
+from a committed tree with `python tools/build.py`. Native acceptance of the
+packaged module is pending; task diagnostic results are not package acceptance.
 
 Run `python -m pip install -r tests/requirements.txt` and
 `python -m pytest tests -q`. The same component cases run in Lua 5.4 and LuaJIT;
