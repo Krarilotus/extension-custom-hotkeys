@@ -17,6 +17,11 @@ local de={title='Eigene Tastenkürzel',profile='Profil',new='Neues Profil',searc
   ['menu.previous']='Vorheriges Bedienelement', ['menu.activate']='Bedienelement aktivieren',
   ['menu.back']='Zurück', ['editor.capture']='Gewähltes Tastenkürzel ändern'}
 local M={}
+en.assignGroup='Assign selection to group ';de.assignGroup='Auswahl zu Gruppe zuweisen: '
+for group=0,9 do
+  en['unit.group.native.'..group]='Native group or building shortcut '..group
+  de['unit.group.native.'..group]='Originales Gruppen-/Gebäudekürzel '..group
+end
 en['game.save.open']='Open Save dialog';de['game.save.open']='Speicherdialog öffnen'
 en['game.load.open']='Open Load dialog';de['game.load.open']='Ladedialog öffnen'
 en.mainHelp1='Change keyboard shortcuts.';en.mainHelp2='Create, import and export profiles.'
@@ -78,6 +83,9 @@ function M.new(language,nativeText)
     end
   end
   local controls,buildings,cache={},{},{}
+  for group=0,9 do
+    chosen['unit.group.assign.'..group]=(chosen.assignGroup or en.assignGroup)..group
+  end
   for _,control in ipairs(require('code/controls')) do controls[control.id]=control end
   for _,building in ipairs(require('code/building_actions')) do
     for _,verb in ipairs({'menu.focus.','menu.open.','camera.return.'}) do

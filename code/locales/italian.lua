@@ -1,4 +1,5 @@
 return {
+ assignGroup='Assegna la selezione al gruppo ',
  ['game.save.open']='Apri Salva', ['game.load.open']='Apri Carica',
  ['camera.focus.lord']='Centra sul tuo signore', ['camera.cycle.lords']='Scorri i signori vivi',
  mainHelp1='Modifica le scorciatoie da tastiera.',mainHelp2='Crea e scambia profili.',

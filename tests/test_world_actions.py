@@ -18,6 +18,68 @@ def setup(lua):
     ''')
 
 
+def test_group_assignment_rechecks_selection_and_calls_native_owner_once(lua):
+    setup(lua)
+    lua.execute('''
+      s.tribe=1;s.ownedSelection=1
+      local valid=true
+      world.adapter.validGroupMembers=function(tribe,player)
+        assert(tribe==1 and player==1);return valid end
+      world.adapter.assignGroup=function(group,tribe) calls[#calls+1]={group,tribe} end
+      for group=0,9 do
+        assert(world:dispatch('unit.group.assign.'..group,c))
+        assert(#calls==group+1 and calls[#calls][1]==group and calls[#calls][2]==1)
+      end
+      for _,id in ipairs({'unit.group.assign.10','unit.group.assign.-1','unit.group.assign.01'}) do
+        assert(not world:dispatch(id,c))
+      end
+      for _,case in ipairs({{'screen',16},{'tab',48},{'selectedCount',0},
+          {'tribe',0},{'tribe',1250},{'tribeOwner',2},{'ownedSelection',0}}) do
+        local key,value=case[1],case[2];local old=s[key];s[key]=value
+        assert(not world:dispatch('unit.group.assign.0',c));s[key]=old
+      end
+      valid=false;assert(not world:dispatch('unit.group.assign.0',c));valid=true
+      for field,value in pairs({text=true,modal='10',state='replay',authority=false,
+          owner='game.options',selection='changed',focused=false,generation=2}) do
+        local old=raw[field];raw[field]=value
+        assert(not world:dispatch('unit.group.assign.0',c));raw[field]=old
+      end
+      assert(#calls==10)
+    ''')
+
+
+def test_group_defaults_do_not_steal_native_building_number_shortcuts(lua):
+    lua.execute('''
+      local catalog=Catalog.new(require('code/entries'),require('code/originals'))
+      local defaults=assert(Catalog.validate(catalog,Catalog.defaults(catalog)))
+      for group=0,9 do
+        local scan=group==0 and 11 or group+1
+        assert(defaults['unit.group.assign.'..group].scan==scan)
+        for _,mods in ipairs({0,2}) do
+          local changed=Catalog.defaults(catalog)
+          changed['target.center']={scan=scan,extended=false,mods=mods}
+          local ok,reason=Catalog.validate(catalog,changed)
+          assert(not ok and reason=='binding.native-conflict')
+        end
+        local changed=Catalog.defaults(catalog)
+        changed['unit.group.assign.'..group]=false
+        changed['target.center']={scan=scan,extended=false,mods=3}
+        assert(not Catalog.validate(catalog,changed))
+      end
+      local count=0;current=facts('game.build')
+      local router=Router.new(catalog,defaults,{resolve=function() return current end,
+        dispatch=function(id) assert(id=='unit.group.assign.1');count=count+1 end,
+        cancelLocalHold=function() end,canRecover=function() return false end,recover=function() end})
+      assert(router:handle(event(2,'down',1)))
+      local repeatKey=event(2,'down',1);repeatKey.repeated=true
+      assert(router:handle(repeatKey) and count==1)
+      current.text=true
+      assert(router:handle(repeatKey) and count==1)
+      assert(router:handle(event(2,'up',1)))
+      assert(not router:handle(event(2,'down',1)) and count==1)
+    ''')
+
+
 def test_save_load_dialog_owner_and_native_session_restrictions(lua):
     setup(lua)
     lua.execute('''

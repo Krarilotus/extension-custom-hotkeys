@@ -12,6 +12,14 @@ function M:dispatch(id,context)
       or (context.owner~='game.build' and context.owner~='game.status')
       or not Context.same(context,Context.resolve(a.resolve())) then return false end
   local s=a.snapshot()
+  local group=id:match('^unit%.group%.assign%.([0-9])$')
+  if group then
+    if s.screen~=14 or (s.tab~=61 and s.tab~=62) or s.selectedCount<=0
+        or not integer(s.tribe,1,1249) or s.tribeOwner~=s.player
+        or s.ownedSelection~=1 or not a.validGroupMembers(s.tribe,s.player) then return false end
+    a.assignGroup(tonumber(group),s.tribe)
+    return true
+  end
   if id=='game.save.open' or id=='game.load.open' then
     if not integer(s.mode,0,5) or s.mode==1 or s.mode==4 or s.scenarioRestriction~=0
         or s.playerDead~=0 or (s.synchronyMode~=0 and s.synchronyMode~=99)

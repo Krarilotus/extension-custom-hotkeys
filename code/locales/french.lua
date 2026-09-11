@@ -1,4 +1,5 @@
 return {
+ assignGroup='Affecter la sélection au groupe ',
  ['game.save.open']='Ouvrir Enregistrer', ['game.load.open']='Ouvrir Charger',
  ['camera.focus.lord']='Centrer sur votre seigneur', ['camera.cycle.lords']='Parcourir les seigneurs vivants',
  mainHelp1='Modifier les raccourcis clavier.',mainHelp2='Créer et échanger des profils.',

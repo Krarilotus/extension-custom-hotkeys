@@ -21,6 +21,9 @@ local rotate=ffi.cast('void (__thiscall *)(void *,int)',0x4f70e0)
 local zoom=ffi.cast('void (__thiscall *)(void *,int)',0x4e7770)
 local aliveLord=ffi.cast('int (__thiscall *)(void *,int)',0x5377f0)
 local saveLoadDialog=ffi.cast('void (__thiscall *)(void *,int)',0x4968a0)
+local clearGroup=ffi.cast('void (__thiscall *)(void *,int)',0x459bb0)
+local assignGroup=ffi.cast('void (__thiscall *)(void *,int,int)',0x459c10)
+local tribeUnit=ffi.cast('int (__thiscall *)(void *,int,int)',0x522390)
 local function lord(id)
   if id<1 or id>2499 then return nil end
   local offset=id*0x490
@@ -32,6 +35,21 @@ function M.new(scene,view)
     resolve=function() return scene:resolve(view) end,
     toggleInterface=function() toggleInterface(ffi.cast('void *',0x1fe7d10)) end,
     saveLoadDialog=function(modal) saveLoadDialog(ffi.cast('void *',0x11265a8),modal) end,
+    validGroupMembers=function(tribe,player)
+      local count=short(0x1667fd4+tribe*0x334)
+      if count<1 or count>2500 then return false end
+      for index=0,count-1 do
+        local id=tribeUnit(ffi.cast('void *',0x1667f78),tribe,index)
+        if id<1 or id>2499 or short(0x13885e2+id*0x490)~=player then return false end
+      end
+      return true
+    end,
+    assignGroup=function(group,tribe)
+      local owner=ffi.cast('void *',0x112b0b8)
+      -- Original Ctrl+number sequence. Native assignment retains identity
+      -- serials, excludes lords and removes members from other groups.
+      clearGroup(owner,group);assignGroup(owner,group,tribe)
+    end,
     rotate=function(value) rotate(ffi.cast('void *',0x1a93208),value) end,
     zoom=function(value)
       zoom(viewport,value)
@@ -41,6 +59,7 @@ function M.new(scene,view)
     snapshot=function()
       local s=scene:snapshot()
       s.player=i(0x1a275dc);s.selectedCount=i(0x1387f58);s.tribe=i(0x1667f78)
+      s.ownedSelection=i(0x1fe7bec)
       s.rightHeld=i(0xf2c9f8);s.rotation=i(0x1fe7aa4)
       s.pendingRotation=i(0x1fe7aa8);s.zoom=i(0x21aec68)
       s.synchronyMode=i(0x191dd80);s.sessionHost=i(0x191def8)

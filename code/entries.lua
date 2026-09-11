@@ -17,6 +17,10 @@ local entries={{id='view.toggle-interface',contexts={'game.build'},states={'live
     default={scan=28,extended=false,mods=0}},
   {id='game.menu.activate',contexts={'game.build','game.status','game.options'},states={'live-sp'},command=true,
     default={scan=28,extended=false,mods=0}}}
+for group=0,9 do
+  entries[#entries+1]={id='unit.group.assign.'..group,contexts=world,states={'live-sp'},
+    command=false,default={scan=group==0 and 11 or group+1,extended=false,mods=1}}
+end
 for _,dialog in ipairs({{'save',59},{'load',60}}) do
   entries[#entries+1]={id='game.'..dialog[1]..'.open',contexts=world,states={'live-sp'},
     command=false,default={scan=dialog[2],extended=false,mods=2}}

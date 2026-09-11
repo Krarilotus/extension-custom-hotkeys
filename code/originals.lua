@@ -4,6 +4,17 @@ local entries={}
 local function add(action,scan,mods,extended,retain)
   entries[#entries+1]={action=action,binding={scan=scan,extended=extended or false,mods=mods},retain=retain}
 end
+for group=0,9 do
+  local scan=group==0 and 11 or group+1
+  for _,mods in ipairs({1,3}) do add('unit.group.assign.'..group,scan,mods) end
+  -- Plain numbers select/focus groups or operate the active building panel.
+  -- Preserve that context-dependent native path until its replacement is ready.
+  for _,mods in ipairs({0,2}) do
+    entries[#entries+1]={action='unit.group.native.'..group,unavailable=true,
+      contexts={'game.build','game.status'},states={'live-sp'},
+      binding={scan=scan,extended=false,mods=mods}}
+  end
+end
 for _,dialog in ipairs({{'save',59},{'load',60}}) do
   for _,mods in ipairs({2,3}) do add('game.'..dialog[1]..'.open',dialog[2],mods) end
 end
