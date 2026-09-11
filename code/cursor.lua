@@ -40,7 +40,7 @@ function M:click(button,context,guard,ready)
       or not self:valid(context,guard) or self.adapter.busy() then return false end
   local x,y=self.adapter.position()
   if not integer(x) or not integer(y) then return false end
-  self.pending={phase='aim',context=context,button=button,x=x,y=y,guard=guard,ready=ready}
+  self.pending={phase='aim',context=context,button=button,x=x,y=y,guard=guard,ready=ready,settleFrames=0}
   return true
 end
 function M:cancel()
@@ -56,6 +56,14 @@ function M:beforeFrame()
   if not self:valid(pending.context,pending.guard) then self:cancel();return end
   if pending.phase=='aim' or pending.phase=='press' then
     if self.adapter.busy() then self:cancel();return end
+    if pending.phase=='aim' and self.adapter.settled and self.adapter.settled()~=true then
+      -- SetCursorPos and the native mouse boundary do not complete the queued
+      -- WM_MOUSEMOVE stream synchronously. Older coordinates can arrive first.
+      -- Wait only before pressing, with all state/physical guards still active.
+      pending.settleFrames=pending.settleFrames+1
+      if pending.settleFrames>=8 then self:cancel() end
+      return
+    end
     local x,y=self.adapter.position()
     if x~=pending.x or y~=pending.y then self:cancel();return end
     -- Let the ordinary native frame resolve hover/hit testing at the target

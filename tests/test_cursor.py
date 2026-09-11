@@ -86,6 +86,39 @@ def test_native_hover_must_accept_aim_before_press(lua):
     ''')
 
 
+def test_queued_pointer_acknowledgement_precedes_aim_and_click(lua):
+    setup(lua)
+    lua.execute('''
+      local settled=false
+      native.settled=function() return settled end
+      assert(cursor:moveTo(300,500,current));assert(cursor:click('left',current))
+      x,y=100,100 -- Older native mouse coordinates arrive before our move.
+      cursor:beforeFrame();cursor:beforeFrame()
+      assert(cursor.pending and #changes==0 and cancelled==0)
+      x,y=300,500;settled=true
+      cursor:beforeFrame();assert(#changes==0)
+      cursor:beforeFrame();assert(#changes==1)
+      cursor:beforeFrame();assert(#changes==2)
+      cursor:beforeFrame();assert(not cursor.pending)
+      settled=false;assert(cursor:click('left',current))
+      for i=1,8 do cursor:beforeFrame() end
+      assert(not cursor.pending and #changes==2 and cancelled==0)
+    ''')
+
+
+def test_waiting_for_pointer_ack_never_weakens_context_or_physical_guards(lua):
+    setup(lua)
+    lua.execute('''
+      native.settled=function() return false end
+      assert(cursor:click('left',current));raw.text=true;cursor:beforeFrame()
+      assert(not cursor.pending and #changes==0)
+      raw.text=false;assert(cursor:click('left',current));busy=true;cursor:beforeFrame()
+      assert(not cursor.pending and #changes==0)
+      busy=false;assert(cursor:click('left',current));raw.generation=2;cursor:beforeFrame()
+      assert(not cursor.pending and #changes==0)
+    ''')
+
+
 def test_semantic_control_requires_unique_active_identity_and_rechecks_help(lua):
     setup(lua)
     lua.execute('''

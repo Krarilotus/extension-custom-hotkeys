@@ -9,6 +9,7 @@ function M.new(scene,resolve,pointer)
   local adapter={}
   function adapter.resolve() return resolve() end
   function adapter.position() return tonumber(raw[0]),tonumber(raw[1]) end
+  function adapter.settled() return pointer:settled() end
   function adapter.bounds()
     local s=scene:snapshot();return s.width,s.height
   end

@@ -24,12 +24,17 @@ function M:move(x,y)
   if user.ClientToScreen(self.platform.window,self.point)==0 then return false end
   -- Keep the visible cursor and normal WM_MOUSEMOVE hit-testing path aligned.
   -- The identical resulting message is ours; real movement relinquishes focus.
-  self.expected=cx+65536*cy
+  local position=cx+65536*cy
+  -- A repeated move to an already observed position needs no new message.
+  -- Otherwise normal queued WM_MOUSEMOVE must acknowledge this move before
+  -- native click input is allowed to use its coordinates.
+  if self.last~=position or self.expected~=nil then self.expected=position end
   if user.SetCursorPos(self.point[0].x,self.point[0].y)==0
       or user.GetCursorPos(self.actual)==0 or self.actual[0].x~=self.point[0].x
       or self.actual[0].y~=self.point[0].y then self.expected=nil;return false end
   return true,gx,gy
 end
+function M:settled() return self.expected==nil end
 function M:observe(message,lparam)
   if message==0x200 then
     local position=tonumber(lparam)%4294967296

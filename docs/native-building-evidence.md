@@ -42,3 +42,18 @@ the Castle Builder failure. Both unit interaction fields read0 in that state.
 No cancellation trace occurred because no gesture was queued. The next positive
 retest requires a native Castle Builder fixture with a keep and granary already
 placed. See `layout-29652-world.json` for exact context.
+
+PID23708 reproduced the Castle Builder failure with keep and granary placed.
+Industry queued at (313,702), then cancelled in the aim phase 11ms later:
+the input coordinates were still (639,296), the previous world position.
+The context had not changed, no button was held, and no click edge had begun.
+This identified an asynchronous cursor acknowledgement problem, rather than
+permission to relax screen or native hover checks. The game was closed normally,
+absence verified and the desktop released at18:32:23 CEST. Exact receipts are
+`category-23708{,-error}.log`, `category-23708-{build,failed}.json`.
+
+The fix waits for the normal WM_MOUSEMOVE acknowledgement before the aim frame,
+bounded to eight input callbacks. Context, native control and physical takeover
+checks remain active throughout; timeout cancels without a click. Component
+tests cover delayed old coordinates, repeated identical movement, timeout and
+text/state/physical cancellation. Native retest is pending.
