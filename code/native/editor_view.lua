@@ -208,7 +208,10 @@ function M:layout(slot,text,width,font,edit)
     -- Only representable single-byte text reaches the native fonts. Character
     -- offsets therefore match encoded offsets; clamp on conversion failure.
     result=Layout.field(encoded,caret,anchor,width,measure)
-  else result={text=Layout.fit(encoded,width,measure)} end
+  else
+    local fitted=Layout.fit(encoded,width,measure)
+    result={text=fitted,width=measure(fitted)}
+  end
   self.textCache[slot]={text=text,width=width,font=font,caret=caret,anchor=anchor,result=result}
   return result
 end
@@ -218,10 +221,10 @@ function M:draw(text,x,y,color,font,width,slot)
 end
 function M:renderButton(id)
   if not self.opened then return end
-  local e=self.controller;local v=e:view();local label,selected='',false
+  local e=self.controller;local v=e:view();local label,selected,binding='',false,nil
   if id<=rows then
     local row=v.rows[id]
-    if row then label=row.label..'    '..self:bindingName(row.binding);selected=row.selected end
+    if row then label=row.label;binding=self:bindingName(row.binding);selected=row.selected end
   else
     for i,c in ipairs(self.controls) do if c.id==id then
       label=(c.label=='<' or c.label=='>') and c.label or self.labels(c.label)
@@ -243,12 +246,22 @@ function M:renderButton(id)
   local ok,err=pcall(function()
     game.Rendering.drawBlendedBlackBox(game.Rendering.pencilRenderCore,s.x,s.y,
       s.x+s.width,s.y+s.height,selected and 8 or 0x14)
-    local result=self:layout(id,label,s.width-12,0x12,editing)
+    local labelWidth=s.width-12
+    local keyLayout
+    if binding then
+      keyLayout=self:layout('key-'..id,binding,math.floor(labelWidth/2),0x12)
+      labelWidth=labelWidth-keyLayout.width-18
+    end
+    local result=self:layout(id,label,labelWidth,0x12,editing)
     if result.selectionEnd then
       game.Rendering.drawBlendedBlackBox(game.Rendering.pencilRenderCore,
         s.x+6+result.selectionStart,s.y+3,s.x+6+result.selectionEnd,s.y+s.height-3,4)
     end
     self:drawEncoded(result.text,s.x+6,s.y+5,selected and 0xFFFFFF or 0xB8EEFB)
+    if keyLayout then
+      self:drawEncoded(keyLayout.text,s.x+s.width-6-keyLayout.width,s.y+5,
+        selected and 0xFFFFFF or 0xB8EEFB)
+    end
     if result.caret then self:drawEncoded('|',s.x+6+result.caret,s.y+5,0xFFFFFF) end
   end)
   game.Rendering.pDrawBufferChoiceValue[0]=old
