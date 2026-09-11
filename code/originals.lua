@@ -13,6 +13,7 @@ for _,building in ipairs(require('code/building_actions')) do
   end
 end
 for mods=0,3 do
+  add('view.toggle-interface',15,mods)
   add('camera.cycle.signposts',31,mods)
   add('unit.stance.stand-ground',16,mods)
   add('unit.stance.defensive',17,mods)

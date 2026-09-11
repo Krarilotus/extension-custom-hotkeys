@@ -98,6 +98,9 @@ def test_production_defaults_require_displaced_actions_and_retain_native_arrows(
     lua.execute('''
       local catalog=Catalog.new(require('code/entries'),require('code/originals'))
       local defaults=assert(Catalog.validate(catalog,Catalog.defaults(catalog)))
+      defaults['view.toggle-interface']=false
+      assert(not Catalog.validate(catalog,defaults))
+      defaults=Catalog.defaults(catalog)
       defaults['menu.focus.armory']=false
       local ok,reason=Catalog.validate(catalog,defaults)
       assert(not ok and reason=='binding.native-conflict')
@@ -114,4 +117,18 @@ def test_production_defaults_require_displaced_actions_and_retain_native_arrows(
       assert(router:handle(event(17)));assert(router:handle(repeat_event(17)) and count==1)
       assert(router:handle(event(17,'up')))
       assert(router:handle(event(17,'down',4)) and count==2)
+    ''')
+
+
+def test_toolbar_replacement_uses_native_action_only_in_eligible_build_screen(lua):
+    setup(lua)
+    lua.execute('''
+      local toggles=0
+      world.adapter.toggleInterface=function() toggles=toggles+1 end
+      assert(world:dispatch('view.toggle-interface',c));assert(toggles==1)
+      s.screen=16;assert(not world:dispatch('view.toggle-interface',c));s.screen=14
+      raw.text=true;assert(not world:dispatch('view.toggle-interface',c));raw.text=false
+      raw.modal='5';assert(not world:dispatch('view.toggle-interface',c));raw.modal=''
+      raw.generation=2;assert(not world:dispatch('view.toggle-interface',c))
+      assert(toggles==1)
     ''')

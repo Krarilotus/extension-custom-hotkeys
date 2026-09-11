@@ -1,4 +1,5 @@
 return {
+ ['view.toggle-interface']='Mostra o nascondi la barra', ['group.view']='Visuale',
  focusOpen='Centra e apri: ',returnFrom='Torna da: ',
  import='Importa profilo',export='Esporta profilo',exported='Profilo esportato.',
  importName='Inserisci un nuovo nome. Invio conferma; Esc annulla.',

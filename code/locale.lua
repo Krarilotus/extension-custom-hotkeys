@@ -17,6 +17,8 @@ local de={title='Eigene Tastenkürzel',profile='Profil',new='Neues Profil',searc
   ['menu.previous']='Vorheriges Bedienelement', ['menu.activate']='Bedienelement aktivieren',
   ['menu.back']='Zurück', ['editor.capture']='Gewähltes Tastenkürzel ändern'}
 local M={}
+en['view.toggle-interface']='Show or hide toolbar';de['view.toggle-interface']='Werkzeugleiste ein-/ausblenden'
+en['group.view']='View';de['group.view']='Ansicht'
 en.swap='Swap keys';de.swap='Tauschen'
 en.import='Import profile';en.export='Export profile';en.exported='Profile exported.'
 en.importName='Enter a new profile name. Enter accepts; Escape cancels.'

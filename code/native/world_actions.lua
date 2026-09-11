@@ -16,9 +16,11 @@ local viewportTile=ffi.cast('int (__cdecl *)(void)',0x4b2a60)
 local openBuilding=ffi.cast('int (__thiscall *)(void *,int)',0x463310)
 local buildScreen=ffi.cast('void (__thiscall *)(void *,int,int)',0x46b340)
 local stance=ffi.cast('void (__thiscall *)(void *,int,int)',0x522bf0)
+local toggleInterface=ffi.cast('void (__thiscall *)(void *)',0x471aa0)
 function M.new(scene,view)
   return require('code/world_actions').new({
     resolve=function() return scene:resolve(view) end,
+    toggleInterface=function() toggleInterface(ffi.cast('void *',0x1fe7d10)) end,
     snapshot=function()
       local s=scene:snapshot()
       s.player=i(0x1a275dc);s.selectedCount=i(0x1387f58);s.tribe=i(0x1667f78)

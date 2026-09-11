@@ -1,4 +1,5 @@
 return {
+ ['view.toggle-interface']='Pokaż lub ukryj pasek', ['group.view']='Widoczność',
  focusOpen='Pokaż i otwórz: ',returnFrom='Wróć z: ',
  import='Importuj profil',export='Eksportuj profil',exported='Profil wyeksportowany.',
  importName='Podaj nową nazwę profilu. Enter zatwierdza; Esc anuluje.',

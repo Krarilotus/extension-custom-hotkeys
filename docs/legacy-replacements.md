@@ -20,6 +20,7 @@ Legacy audit: `caa50aba9fc85c5fc766c413b23085ddfbba4a79`, `port/o_keys.lua`.
 | unit.stance.defensive | Alt+W | Original W on the active unit panels queues defensive stance through 0x522BF0 -> GameSynchronyState::queueCommand(0x46). Never call the direct stance setter 0x522C20. |
 | session.quicksave | Ctrl+S | Save through the normal SP save owner with the chosen quicksave name; do not patch the global text getter. |
 | session.quickload | Ctrl+L | Load through the normal SP session owner. Native MP/replay eligibility must reject any unsupported SP shortcut. |
+| view.toggle-interface | Ctrl+Tab | Original Tab shows/hides the toolbar through0x471AA0. Tab/Shift+Tab now navigate controls; their original modifier aliases participate in conflict detection. Native retest pending. |
 
 On the reference image, the WM_SYSKEYDOWN table routes Alt+A, Alt+S and Alt+W to
 the original default branch; this is why they are candidates for the displaced
@@ -54,6 +55,10 @@ The current original-binding table covers the audited A/S/Q/W/E and E0-arrow
 branches for the reference letter positions. Complete layout-dependent virtual
 key mapping, other original shortcuts and numpad aliases are still required
 before distributing defaults; this table is not a claim of AZERTY compatibility.
+The H/G/B/M/I/T/N existing-building branches have since been added with separate
+focus/open/return actions and original modifier aliases; see [building shortcuts](building-shortcuts.md).
+Stockpile panel access is also configurable. Those additions have component
+coverage and still require their recorded native checks.
 
 Legacy's quicksave/quickload implementation intercepts text-name lookups and
 builds its own wrapper around save/load progress handling. Copying that code

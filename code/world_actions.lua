@@ -12,6 +12,10 @@ function M:dispatch(id,context)
       or (context.owner~='game.build' and context.owner~='game.status')
       or not Context.same(context,Context.resolve(a.resolve())) then return false end
   local s=a.snapshot()
+  if id=='view.toggle-interface' then
+    if s.screen~=14 then return false end
+    a.toggleInterface();return true
+  end
   if stances[id]~=nil then
     if s.screen~=14 or (s.tab~=61 and s.tab~=62) or s.selectedCount<=0
         or not integer(s.tribe,0,1249) or s.tribeOwner~=s.player then return false end

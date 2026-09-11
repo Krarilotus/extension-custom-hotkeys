@@ -3,7 +3,9 @@
 local parents={'menu.main','menu.custom-scenarios','menu.campaigns','menu.missions'}
 local all={'menu.main','menu.custom-scenarios','menu.campaigns','menu.missions','game.build','game.status'}
 local world={'game.build','game.status'}
-local entries={{id='hotkeys.open',contexts=all,
+local entries={{id='view.toggle-interface',contexts={'game.build'},states={'live-sp'},command=false,
+  default={scan=15,extended=false,mods=1}},
+  {id='hotkeys.open',contexts=all,
   states={'menu','live-sp'},command=false,default={scan=88,extended=false,mods=0}},
   {id='menu.next',contexts=all,states={'menu','live-sp'},command=false,
     default={scan=15,extended=false,mods=0}},

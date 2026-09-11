@@ -1,4 +1,5 @@
 return {
+ ['view.toggle-interface']="Afficher ou masquer la barre d'outils",['group.view']='Affichage',
  focusOpen='Centrer et ouvrir : ',returnFrom='Revenir de : ',
  import='Importer un profil',export='Exporter le profil',exported='Profil exporté.',
  importName='Saisissez un nouveau nom. Entrée valide ; Échap annule.',
