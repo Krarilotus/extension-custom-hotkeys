@@ -42,6 +42,15 @@ has authorized accepting the routine unsigned-extension developer notice.
 
 ## Minimum prerequisites
 
+Before staging and again before requesting a desktop slot, run
+`python tools/storage_preflight.py <isolated-install-directory>`. Require exit0
+and at least2 GiB free on the installation volume. This read-only check does not
+reserve space; still handle failed evidence writes by closing the owned app
+normally and releasing. On 11 September, PID34292 encountered disk exhaustion,
+and even the queue's atomic release failed until space returned. Its process
+exited normally and release was verified20:00:25 CEST. Do not remove another
+worker's files or call a truncated evidence run passed.
+
 1. An unlocked interactive desktop, a fresh exclusive desktop-queue reservation,
    and an assertion immediately before each UI call. Release for background
    work and before ending the turn. Keep Escape available as the user stop key.
