@@ -10,6 +10,10 @@ function M.start(modulePath)
     {encode=function(value) return json:encode(value) end,
      decode=function(value) return json:decode(value) end},sha.sha256,
     function(value) return profiles.validate(catalog,value) end)
+  local exchange=require('code/store').new(require('code/ucp_storage').new(io,'exchange'),
+    {encode=function(value) return json:encode(value) end,
+     decode=function(value) return json:decode(value) end},sha.sha256,
+    function(value) return profiles.validate(catalog,value) end)
   local chain,library=require('code/native/interface').open(core)
   local access=modules.ui:access()
   local cffi=modules.cffi:cffi()
@@ -33,6 +37,12 @@ function M.start(modulePath)
       end,
       loadProfiles=function() return store:load() end,
       saveProfiles=function(document) return store:save(document) end,
+      loadExchange=function() return exchange:load() end,
+      saveExchange=function(document)
+        local previous,err=exchange:load()
+        if not previous and err~='store.missing' then return nil,err end
+        return exchange:save(document)
+      end,
       bootstrap=function() return {entries=entries,language=data.version.getGameLanguage()} end}}
   })
   live[#live+1]={state=state,library=library,store=store}

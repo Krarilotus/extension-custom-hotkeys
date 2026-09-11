@@ -7,7 +7,7 @@ local Layout=require('code/text_layout')
 local NativeText=require('code/native/text')
 local M={}
 M.__index=M
-local rows=7
+local rows=6
 function M.new(profiles,catalog,router,scene,platform,labels)
   local self=setmetatable({profiles=profiles,catalog=catalog,router=router,scene=scene,
     platform=platform,labels=labels,opened=false,focus=1,pins={},textCache={},keyNames={},
@@ -38,6 +38,7 @@ function M.new(profiles,catalog,router,scene,platform,labels)
   button(101,20,48,300,'profile');button(102,328,48,32,'<');button(103,368,48,32,'>')
   button(104,408,48,212,'new');button(105,20,86,430,'search');button(106,458,86,162,'groups')
   for row=1,rows do button(row,20,128+(row-1)*26,600,'') end
+  button(116,20,292,292,'import');button(117,328,292,292,'export')
   button(107,20,324,112,'capture');button(115,140,324,104,'swap')
   button(108,252,324,104,'clear');button(109,364,324,120,'reset')
   button(110,492,324,128,'resetProfile')
@@ -90,7 +91,7 @@ function M:activate(id)
   end
   if self.text then self:finishText(false) end
   for i,c in ipairs(self.controls) do if c.id==id then self.focus=i;break end end
-  self.error=nil
+  self.error,self.notice=nil,nil
   local e=self.controller
   if id<=rows then e:choose(e.first+id-1)
   elseif id==101 or id==102 or id==103 then
@@ -108,6 +109,17 @@ function M:activate(id)
     e:filter(e.query,groups[current%#groups+1] or nil)
   elseif id==107 then e:capture()
   elseif id==115 then e:reassign()
+  elseif id==116 then
+    local document,err=remote.interface.loadExchange()
+    if not document then self.error=err
+    else
+      self.router:barrier()
+      self.text={kind='import',document=document,edit=Text.new(document.active)}
+      self.text.edit:selectAll()
+    end
+  elseif id==117 then
+    local ok,err=remote.interface.saveExchange(e:exportProfile())
+    if ok then self.notice='exported' else self.error=err end
   elseif id==108 then e:clear()
   elseif id==109 then e:resetAction()
   elseif id==110 then e:resetProfile()
@@ -123,6 +135,7 @@ function M:finishText(accept)
   self.text=nil;self.router:barrier()
   if accept then
     if text.kind=='profile' then self.controller:createProfile(text.edit:value())
+    elseif text.kind=='import' then self.controller:importProfile(text.edit:value(),text.document)
     else self.controller:filter(text.edit:value(),self.controller.group) end
   end
 end
@@ -216,12 +229,13 @@ function M:renderButton(id)
     if id==101 then label=self.labels('profile')..': '..v.active end
     if id==105 then label=self.labels('search')..': '..e.query end
     if id==106 then label=self.labels('groups')..': '..(e.group and self.labels('group.'..e.group) or self.labels('all')) end
-    if self.text and ((id==104 and self.text.kind=='profile') or (id==105 and self.text.kind=='search')) then
+    if self.text and ((id==104 and self.text.kind=='profile') or (id==105 and self.text.kind=='search')
+        or (id==116 and self.text.kind=='import')) then
       label=self.text.edit:value();selected=true
     end
   end
   local editing=self.text and ((id==104 and self.text.kind=='profile')
-    or (id==105 and self.text.kind=='search')) and self.text.edit or nil
+    or (id==105 and self.text.kind=='search') or (id==116 and self.text.kind=='import')) and self.text.edit or nil
   if label=='' and not editing then return end
   local s=game.Rendering.ButtonState
   local old=game.Rendering.pDrawBufferChoiceValue[0]
@@ -245,10 +259,12 @@ function M:render(x,y,width,height)
   game.Rendering.drawBlendedBlackBox(game.Rendering.pencilRenderCore,x+6,y+6,x+width-6,y+height-6,0x14)
   self:draw(self.labels('title'),x+20,y+18,0xCCFAFF,0xF)
   local e=self.controller
-  local message=self.text and self.labels('editing') or (e.capturing and self.labels('press'))
+  local message=self.text and self.labels(self.text.kind=='import' and 'importName' or 'editing')
+    or (e.capturing and self.labels('press')) or (self.notice and self.labels(self.notice))
   local err=self.error or e.error
   if err then
-    message=self.labels(err:find('conflict',1,true) and 'conflict' or 'invalid')
+    message=self.labels(err:find('conflict',1,true) and 'conflict'
+      or (err:sub(1,6)=='store.' and 'fileError' or 'invalid'))
     if e.reassignment then message=message..' '..self.labels(e.reassignment.other) end
   end
   if message then self:draw(message,x+20,y+407,0xCCFAFF,nil,width-40,'message') end

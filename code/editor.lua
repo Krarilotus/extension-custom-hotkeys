@@ -60,6 +60,8 @@ end
 
 function M:selectProfile(name) return self:perform(self.profiles.select,name) end
 function M:createProfile(name) return self:perform(self.profiles.create,name) end
+function M:importProfile(name,document) return self:perform(self.profiles.import,name,document) end
+function M:exportProfile() return self:perform(self.profiles.export) end
 
 function M:capture()
   if self.closed or self.capturing or not self.rows[self.selected] then return false end

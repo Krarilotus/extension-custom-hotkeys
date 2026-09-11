@@ -1,86 +1,68 @@
-# Component contracts and outstanding integration
+﻿# Component and native integration contracts
 
-These modules do not install a hook or dispatch a game command by themselves.
-The test catalog is deliberately confined to tests. No runtime compatibility or
-native acceptance is implied by a component passing with an injected adapter.
+`binding.lua` represents Set-1 scan identity, the E0 flag and Ctrl/Shift/Alt.
+It rejects modifier-only, E1/Pause, Windows and reserved system combinations.
+AltGr/composition retain native ownership. Ctrl+Shift+F12 is a recovery chord
+inside eligible parents; it never overrides a native text field or another modal.
 
-`binding.lua` represents a Set-1 scan code, E0 flag and Ctrl/Shift/Alt bit mask.
-Numpad and extended keys remain distinct. Modifier-only, E1/Pause, Windows and
-reserved system combinations are rejected. AltGr/composition are native-owned.
-Ctrl+Shift+F12 is reserved for a recovery entry whose native context must still
-be proved safe; it is not a universal modal or text-input override.
+`context.lua` validates positive facts for screen, panel, modal, focus, selection,
+targeting, authority, session and lifecycle. `native/scene.lua` and `gameplay.lua`
+resolve the audited SHC1.41 fields. Current gameplay integration is live SP only.
+Both native unit interaction fields contribute to pending-gesture identity.
+Multiplayer and Recorder integration remain explicit gates.
 
-`context.lua` requires explicit verified screen, panel, modal, control focus,
-selection, targeting, state, authority and lifecycle generation. Unknown state
-disables dispatch. It is a contract validator, **not the native resolver**.
+`router.lua` consumes each remapped press once, suppresses its character/debt
+messages, and cancels holds/capture/pending input at barriers. It rechecks context
+at dispatch and never retries uncertain native calls. `messages.lua` and
+`native/chain.lua` use the existing winProcHandler chain. The x86 callback and
+private LuaJIT state remain pinned because the owner has no unregister API.
+Focus cancellation precedes the graphics wrapper, which may consume focus events.
 
-`router.lua` tracks press/release ownership, consumes a remapped activation once,
-suppresses its queued character messages and cancels local holds on barriers.
-It rechecks context immediately before native dispatch. Reentrant routing is
-consumed; uncertain native dispatch is never retried through the original key.
-Capture is exclusive and cancels when its owner loses focus. A quarantined key
-can recover after a missing release only when Windows reports a fresh down with
-its previous-state bit clear. Tests for held transitions set that bit; duplicate
-fresh downs without a barrier still cannot submit a second activation.
+`preflight.lua` rejects conflicting Legacy o_keys settings and unavailable
+Recorder integration before enable-time patches. The shipped framework's load
+and normalization path was exercised in both Legacy load orders. Legacy source
+is unchanged. `native/identity.lua` and `executable.lua` verify process, working
+directory, image/base and executable hash before native addresses are used.
+The task owns the checked0x468100 input prefix; it does not add competing command,
+recorder, load or restore hooks. Unsupported executable hashes are rejected.
 
-`messages.lua` preserves the next WndProc's arguments and return value. It uses
-the supplied winProcHandler chain callback; it does not call GetMainProc or
-simulate another keyboard message. Failure disables extension routing and
-drains already consumed gestures before forwarding a fresh native press.
+`cursor.lua`, `navigation.lua` and `targeting.lua` use the visible cursor, native
+hit testing and normal mouse input. Each aim/press/release/drain phase rechecks
+context and the selected control/projection. Native control addresses identify
+eligible controls; the extension never invokes their raw callbacks. Building
+placement and unit orders retain original validation/command handling. Camera
+pan owns local input flags and cancels on barriers. Stance uses the native
+submission wrapper, not the internal stance mutator.
 
-`preflight.lua` rejects enabled, missing, contradictory or non-normalized Legacy
-hotkey settings. It must run at module load before native setup and again before
-activation. The shipped UCP 3.0.7 `main.lua`, normalization and BaseLoader:load
-phases were executed locally with instrumented extensions in both load orders:
-Legacy ON failed before any enable call. This establishes the Lua load-order
-contract only. Runtime integration, live byte checks and additional overlapping
-Legacy options still need verification. Never attempt Legacy's unimplemented
-runtime disable.
+`profiles.lua` separates draft and committed state. Apply persists before
+activating; Cancel discards. Existing saved preferences take precedence over
+launcher bootstrap defaults. Complete catalog validation covers native/custom
+conflicts, atomic key swaps and imported JSON. The profile schema remains
+experimental until the required catalog is complete.
 
-`native/win32.lua` checks the actual HWND's process/thread, foreground and focus;
-reads queue-synchronized modifier down bits; preserves Right Alt/AltGr and IME;
-and obtains distinct layout-specific key labels as UTF-8. The eventual view must
-convert them to the verified game encoding. `native/interface.lua` uses UCP's
-library service to resolve the documented winProcHandler C exports, avoiding the
-table-return proxy failure tracked in
-[framework issue #147](https://github.com/UnofficialCrusaderPatch/UnofficialCrusaderPatch3/issues/147).
+`store.lua` alternates two checksummed, validated files, verifies writes by
+reading them back and retains the last good file after a failed write. UCP3.0.7
+public io.open supplies the fixed installation-local boundary. A named mutex
+prevents a second profile writer. The in-game editor imports/exports a separate
+exchange pair; it cannot use a profile name as a filesystem path. Framework
+userdata PR142 remains separately owned and is not required for this boundary.
 
-`native/chain.lua` pins one x86 stdcall callback in a dedicated LuaJIT state with
-tracing disabled. It observes focus messages before graphicsApiReplacer, whose
-continue-out-of-focus mode may consume them. Non-keyboard messages retain their
-parameters and normal graphics conversion. It forwards the actual registered
-priority and never retries an uncertain downstream native call.
+`editor.lua` drives the real native view in `native/editor_view.lua`, using the
+UI owner's public menu/modal API and explicit arrays. It supports search/groups,
+profiles, capture/clear/reset/swap, Apply/Cancel and profile exchange. Text is
+UTF-8 in storage and explicitly converted to the verified native font code page.
+Native text widths bound labels and keep the editing caret/selection visible.
+Game-language labels and Windows key names are cached. Source language coverage
+and component encoding checks do not imply native/font/translation acceptance.
 
-These adapters have been exercised in a task-only native diagnostic with an
-empty action catalog, not integrated with accepted gameplay actions or the
-editor. See [native evidence and limitations](native-input-evidence.md).
-Recorder activation currently fails closed pending its public input ownership
-and lifecycle contract; native SP mode must not authorize live replay actions.
+Tests run production components in Lua5.4 and LuaJIT, including real temporary
+files and injected failures. Native task-only F-key diagnostics bypass physical
+lookup because the current automation backend reports scan=0; they are never
+keyboard-only acceptance and are excluded from product code. See the native
+evidence documents for observed outcomes, mouse preparation and failed checks.
 
-`profiles.lua` keeps edits in a draft and changes the active profile only after
-persistence succeeds. Launcher bindings bootstrap a missing store; an existing
-active profile wins on restart. Named profiles, import/export, unbind, reset and
-atomic conflict reassignment are validated without executing imported content.
-The schema remains developmental until the complete action catalog is frozen.
-
-`store.lua` alternates two validated, checksummed files through an injected I/O
-boundary. It preserves the previous good file on torn/failed writes, verifies a
-new write by reading it back, and refuses ambiguous/corrupt state. Digests cover
-generation and payload; they detect corruption, not authenticity. The UCP storage
-adapter, codec, directory boundary and single-writer ownership are not wired yet.
-Existing framework userdata work remains owned by UCP issue #131 / PR #142.
-
-`editor.lua` provides shared keyboard/mouse operations, filtering and visible
-row focus to a future native view. It is **not an in-game menu**. Native font and
-encoding, text fields, rendering, mouse hit testing and localization remain open.
-
-The tests cover injected failure paths and real temporary-file persistence in
-Lua 5.4/LuaJIT. On Windows the test configuration disables CPython faulthandler's
-SEH dump because LuaJIT uses that mechanism for caught Lua errors; assertions,
-unexpected exceptions and process failures still fail normally. See
-[LuaJIT error handling](https://github.com/LuaJIT/LuaJIT/blob/v2.1/src/lj_err.c).
-
-Remaining completion gates include native action/catalog and lifecycle adapters,
-placement and targeting, editor/localization, packaging and native SP tests,
-manual two-PC tests, recorder integration and replay/restore, performance, review
-and verified normal merge. The initial component stage does not close issue #1.
+Remaining delivery gates include the full catalog/default/layout audit,
+construction/economy/recruitment and quicksave/load workflows, native profile
+exchange/localization, packaging, command counts/performance, keyboard-only and
+manual two-PC acceptance, Recorder replay/restore integration, review and normal
+verified merge. Draft PR2 and issue1 remain open.

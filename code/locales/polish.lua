@@ -1,4 +1,7 @@
 return {
+ import='Importuj profil',export='Eksportuj profil',exported='Profil wyeksportowany.',
+ importName='Podaj nową nazwę profilu. Enter zatwierdza; Esc anuluje.',
+ fileError='Plik profilu jest niedostępny. Sprawdź pliki importu/eksportu.',
  title='Własne skróty klawiszowe',profile='Profil',new='Nowy profil',search='Szukaj',
  groups='Grupa',all='Wszystkie',capture='Zmień klawisz',swap='Zamień',clear='Wyczyść',reset='Przywróć',
  resetProfile='Przywróć profil',apply='Zastosuj',cancel='Anuluj',unbound='Nieprzypisany',

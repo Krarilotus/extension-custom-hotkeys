@@ -15,7 +15,8 @@ def test_actual_framework_languages_cover_actions_controls_and_native_font_bytes
         label.encode(encoding)
     for key in ['title', 'profile', 'new', 'search', 'groups', 'all', 'capture', 'swap',
                 'clear', 'reset', 'resetProfile', 'apply', 'cancel', 'unbound', 'press',
-                'editing', 'invalid', 'conflict', 'group.hotkeys', 'group.camera', 'group.build']:
+                'editing', 'invalid', 'conflict', 'group.hotkeys', 'group.camera', 'group.build',
+                'import', 'export', 'exported', 'importName', 'fileError']:
         label = labels(key)
         assert label != key, (language, key)
         label.encode(encoding)

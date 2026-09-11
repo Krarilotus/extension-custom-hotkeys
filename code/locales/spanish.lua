@@ -1,4 +1,7 @@
 return {
+ import='Importar perfil',export='Exportar perfil',exported='Perfil exportado.',
+ importName='Escribe un nombre nuevo. Intro acepta; Esc cancela.',
+ fileError='Perfil no disponible. Comprueba los archivos de importación/exportación.',
  title='Teclas personalizadas',profile='Perfil',new='Nuevo perfil',search='Buscar',
  groups='Grupo',all='Todos',capture='Cambiar tecla',swap='Intercambiar',clear='Borrar',reset='Restablecer',
  resetProfile='Restablecer perfil',apply='Aplicar',cancel='Cancelar',unbound='Sin asignar',

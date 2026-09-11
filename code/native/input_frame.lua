@@ -4,13 +4,14 @@ local installed
 function M.install(cursor,router,camera)
   assert(not installed,'input-frame.installed')
   local result={}
+  local nativeMouse=ffi.cast('void *',0xf2c9b0)
+  local function advance()
+    if camera.count>0 then camera:beforeFrame(router:refresh()) end
+    if cursor.pending then cursor:beforeFrame() end
+  end
   result.callback=ffi.cast('void (__cdecl *)(void *)',function(mouse)
-    if tonumber(ffi.cast('uintptr_t',mouse))~=0xf2c9b0
-        or (not cursor.pending and camera.count==0) then return end
-    local ok,err=pcall(function()
-      if camera.count>0 then camera:beforeFrame(router:refresh()) end
-      if cursor.pending then cursor:beforeFrame() end
-    end)
+    if (not cursor.pending and camera.count==0) or mouse~=nativeMouse then return end
+    local ok,err=pcall(advance)
     if not ok then
       result.failure=tostring(err);router.blocked=true
       pcall(cursor.cancel,cursor);pcall(router.barrier,router)

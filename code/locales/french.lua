@@ -1,4 +1,7 @@
 return {
+ import='Importer un profil',export='Exporter le profil',exported='Profil exporté.',
+ importName='Saisissez un nouveau nom. Entrée valide ; Échap annule.',
+ fileError="Profil indisponible. Vérifiez les fichiers d'import/export.",
  title='Raccourcis personnalisés',profile='Profil',new='Nouveau profil',search='Rechercher',
  groups='Groupe',all='Tous',capture='Modifier',swap='Échanger',clear='Effacer',reset='Réinitialiser',
  resetProfile='Profil par défaut',apply='Appliquer',cancel='Annuler',unbound='Non attribué',

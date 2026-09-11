@@ -18,6 +18,12 @@ local de={title='Eigene Tastenkürzel',profile='Profil',new='Neues Profil',searc
   ['menu.back']='Zurück', ['editor.capture']='Gewähltes Tastenkürzel ändern'}
 local M={}
 en.swap='Swap keys';de.swap='Tauschen'
+en.import='Import profile';en.export='Export profile';en.exported='Profile exported.'
+en.importName='Enter a new profile name. Enter accepts; Escape cancels.'
+en.fileError='Profile file unavailable. Check the import/export files.'
+de.import='Profil importieren';de.export='Profil exportieren';de.exported='Profil exportiert.'
+de.importName='Neuen Profilnamen eingeben. Enter bestätigt; Escape bricht ab.'
+de.fileError='Profildatei nicht verfügbar. Import-/Exportdateien prüfen.'
 en.open='Open: ';en.choose='Choose: ';de.open='Öffnen: ';de.choose='Wählen: '
 for group,names in pairs({hotkeys={'Hotkeys','Tastenkürzel'},menu={'Menus','Menüs'},
   game={'Game','Spiel'},target={'Targeting','Zielen'},camera={'Camera','Kamera'},

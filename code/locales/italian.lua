@@ -1,4 +1,7 @@
 return {
+ import='Importa profilo',export='Esporta profilo',exported='Profilo esportato.',
+ importName='Inserisci un nuovo nome. Invio conferma; Esc annulla.',
+ fileError='Profilo non disponibile. Controlla i file di importazione/esportazione.',
  title='Tasti personalizzati',profile='Profilo',new='Nuovo profilo',search='Cerca',
  groups='Gruppo',all='Tutti',capture='Cambia tasto',swap='Scambia',clear='Cancella',reset='Ripristina',
  resetProfile='Profilo predefinito',apply='Applica',cancel='Annulla',unbound='Non assegnato',

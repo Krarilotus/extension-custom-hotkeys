@@ -74,6 +74,32 @@ def test_real_file_restart_and_latest_generation(disk):
     ''')
 
 
+def test_portable_profile_exchange_uses_separate_files_and_import_is_draft_only(disk):
+    lua, path = disk
+    (path / 'ucp').mkdir()
+    lua.execute('''
+      local Storage=require('code/ucp_storage')
+      local nativeIO={open=function(name,mode) return io.open(store_dir..'/'..name,mode) end}
+      local function exchange()
+        return Store.new(Storage.new(nativeIO,'exchange'),codec,sha256,
+          function(d) return Profiles.validate(catalog,d) end)
+      end
+      local source=assert(Profiles.new(catalog,storage,router))
+      source:begin();assert(source:create('Travel'));assert(source:bind('unit.move',key(20)))
+      local exported=exchange();local _,err=exported:load();assert(err=='store.missing')
+      assert(exported:save(source:export()))
+      source:cancel();assert(source.committed.active=='Default')
+      local imported=assert(exchange():load())
+      source:begin();assert(source:import('Imported',imported))
+      assert(source.draft.profiles.Imported.bindings['unit.move'].scan==20)
+      assert(not source.committed.profiles.Imported and #calls==0)
+      source:cancel();assert(not source.committed.profiles.Imported)
+    ''')
+    assert (path / 'ucp/custom-hotkeys-exchange-profiles-a.json').exists()
+    assert not (path / 'ucp/custom-hotkeys-profiles-a.json').exists()
+    assert not (path / 'profiles-a.json').exists()
+
+
 def test_every_torn_prefix_recovers_last_usable_file(disk):
     lua, path = disk
     lua.execute('''
