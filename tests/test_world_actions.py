@@ -45,6 +45,33 @@ def test_view_transform_wrap_zoom_and_projection_transition_guards(lua):
     ''')
 
 
+def test_lord_focus_and_cycle_validate_reference_and_bound_native_lookups(lua):
+    setup(lua)
+    lua.execute('''
+      local own={id=57,type=55,state=2,owner=1,tile=1234}
+      local nextPlayer=8;local looked={}
+      world.adapter.lord=function() return own end
+      world.adapter.lordIndex=function(v) if v then nextPlayer=v end;return nextPlayer end
+      world.adapter.aliveLord=function(player)
+        looked[#looked+1]=player
+        return player==1 and own or nil
+      end
+      assert(world:dispatch('camera.focus.lord',c))
+      assert(#calls==1 and calls[1][1]=='tile' and calls[1][2]==1234)
+      for field,value in pairs({id=2500,type=1,state=0,owner=2,tile=160000}) do
+        local old=own[field];own[field]=value
+        assert(not world:dispatch('camera.focus.lord',c));own[field]=old
+      end
+      assert(world:dispatch('camera.cycle.lords',c))
+      assert(#calls==2 and looked[1]==8 and looked[2]==1 and nextPlayer==2)
+      looked={};own.state=0
+      assert(world:dispatch('camera.cycle.lords',c))
+      assert(#looked==8 and nextPlayer==2 and #calls==2)
+      raw.text=true;assert(not world:dispatch('camera.cycle.lords',c))
+      assert(#looked==8 and nextPlayer==2 and #calls==2)
+    ''')
+
+
 def test_arrow_view_conflicts_are_distinct_from_pan_and_unavailable_lowering(lua):
     lua.execute('''
       local catalog=Catalog.new(require('code/entries'),require('code/originals'))

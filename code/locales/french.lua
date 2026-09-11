@@ -1,4 +1,5 @@
 return {
+ ['camera.focus.lord']='Centrer sur votre seigneur', ['camera.cycle.lords']='Parcourir les seigneurs vivants',
  mainHelp1='Modifier les raccourcis clavier.',mainHelp2='Créer et échanger des profils.',
  ['view.rotate-left']='Tourner la vue à gauche', ['view.rotate-right']='Tourner la vue à droite',
  ['view.toggle-zoom']='Changer le zoom', ['view.lower-buildings']='Abaisser les bâtiments',

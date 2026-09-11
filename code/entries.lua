@@ -32,6 +32,7 @@ for _,pan in ipairs({{'up',17},{'left',30},{'down',31},{'right',32}}) do
     command=false,behavior='hold-local',default={scan=pan[2],extended=false,mods=0}}
 end
 for _,action in ipairs({{'camera.cycle.signposts',31,4},
+    {'camera.focus.lord',38,0},{'camera.cycle.lords',38,2},
     {'unit.stance.stand-ground',16,0},{'unit.stance.defensive',17,4},
     {'unit.stance.aggressive',18,0}}) do
   entries[#entries+1]={id=action[1],contexts=world,states={'live-sp'},command=action[1]:sub(1,5)=='unit.',

@@ -32,8 +32,9 @@ because the manual lists only an unmodified key.
 Unmodified D has no action in the original WM_KEYDOWN table. Alt+D follows a
 separate native debug-overlay route, observed in the isolated baseline. It is
 not the map-description editor and must not be accidentally remapped as one.
-Plain L's original local-player unit focus remains reachable; its modifier
-variants still need complete coverage in the original-binding catalog.
+L now has configurable local lord-focus and Shift+L lord-cycle replacements,
+including Ctrl aliases in conflict detection; see [lord shortcuts](lord-shortcuts.md).
+Their native acceptance remains pending.
 
 The armory field resolves to GameStateStructures.playerDataArray[player].armory.id
 at 0x115BF04 + player*0x39F4. The S array is

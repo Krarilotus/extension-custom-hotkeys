@@ -1,4 +1,5 @@
 return {
+ ['camera.focus.lord']='Pokaż swojego lorda', ['camera.cycle.lords']='Przełączaj żyjących lordów',
  mainHelp1='Dostosuj skróty klawiszowe.',mainHelp2='Twórz i wymieniaj profile.',
  ['view.rotate-left']='Obróć widok w lewo', ['view.rotate-right']='Obróć widok w prawo',
  ['view.toggle-zoom']='Zmień przybliżenie', ['view.lower-buildings']='Obniż budynki',

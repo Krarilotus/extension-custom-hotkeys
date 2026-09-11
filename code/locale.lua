@@ -23,6 +23,8 @@ en['view.rotate-left']='Rotate view left';de['view.rotate-left']='Ansicht nach l
 en['view.rotate-right']='Rotate view right';de['view.rotate-right']='Ansicht nach rechts drehen'
 en['view.toggle-zoom']='Toggle zoom';de['view.toggle-zoom']='Zoom umschalten'
 en['view.lower-buildings']='Lower buildings';de['view.lower-buildings']='Gebäude absenken'
+en['camera.focus.lord']='Focus your lord';de['camera.focus.lord']='Eigenen Burgherrn zeigen'
+en['camera.cycle.lords']='Cycle living lords';de['camera.cycle.lords']='Lebende Burgherren durchgehen'
 en['view.toggle-interface']='Show or hide toolbar';de['view.toggle-interface']='Werkzeugleiste ein-/ausblenden'
 en['group.view']='View';de['group.view']='Ansicht'
 en.swap='Swap keys';de.swap='Tauschen'

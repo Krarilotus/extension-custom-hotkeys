@@ -12,6 +12,26 @@ function M:dispatch(id,context)
       or (context.owner~='game.build' and context.owner~='game.status')
       or not Context.same(context,Context.resolve(a.resolve())) then return false end
   local s=a.snapshot()
+  if id=='camera.focus.lord' or id=='camera.cycle.lords' then
+    local function valid(lord,player)
+      return lord and integer(lord.id,1,2499) and lord.type==55 and lord.state==2
+        and lord.owner==player and integer(lord.tile,0,159999)
+    end
+    if id=='camera.focus.lord' then
+      local lord=a.lord(s.player)
+      if not valid(lord,s.player) then return false end
+      a.focusTile(lord.tile);return true
+    end
+    local player=a.lordIndex()
+    if not integer(player,1,8) then return false end
+    for _=1,8 do
+      a.lordIndex(player%8+1)
+      local lord=a.aliveLord(player)
+      if valid(lord,player) then a.focusTile(lord.tile);return true end
+      player=player%8+1
+    end
+    return true
+  end
   if id=='view.rotate-left' or id=='view.rotate-right' or id=='view.toggle-zoom' then
     if s.rightHeld~=0 or s.pendingRotation~=8 then return false end
     if id=='view.toggle-zoom' then

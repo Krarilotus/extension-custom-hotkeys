@@ -1,4 +1,5 @@
 return {
+ ['camera.focus.lord']='Centrar en tu señor', ['camera.cycle.lords']='Recorrer los señores vivos',
  mainHelp1='Personaliza los atajos de teclado.',mainHelp2='Crea e intercambia perfiles.',
  ['view.rotate-left']='Girar la vista a la izquierda', ['view.rotate-right']='Girar la vista a la derecha',
  ['view.toggle-zoom']='Cambiar zoom', ['view.lower-buildings']='Bajar edificios',

@@ -19,6 +19,13 @@ local stance=ffi.cast('void (__thiscall *)(void *,int,int)',0x522bf0)
 local toggleInterface=ffi.cast('void (__thiscall *)(void *)',0x471aa0)
 local rotate=ffi.cast('void (__thiscall *)(void *,int)',0x4f70e0)
 local zoom=ffi.cast('void (__thiscall *)(void *,int)',0x4e7770)
+local aliveLord=ffi.cast('int (__thiscall *)(void *,int)',0x5377f0)
+local function lord(id)
+  if id<1 or id>2499 then return nil end
+  local offset=id*0x490
+  return {id=id,type=short(0x13885da+offset),state=short(0x13885d8+offset),
+    owner=short(0x13885e2+offset),tile=i(0x1388620+offset)}
+end
 function M.new(scene,view)
   return require('code/world_actions').new({
     resolve=function() return scene:resolve(view) end,
@@ -38,6 +45,13 @@ function M.new(scene,view)
       return s
     end,
     building=function(spec,player) return building(i(spec.reference+player*0x39f4)) end,
+    lord=function(player) return lord(i(0x115dff0+player*0x39f4)) end,
+    aliveLord=function(player)
+      local count=i(0x1387f38)
+      if count<1 or count>2500 then return nil end
+      return lord(aliveLord(ffi.cast('void *',0x1387f38),player))
+    end,
+    lordIndex=function(value) if value~=nil then write(0xb39348,value) end;return i(0xb39348) end,
     bookmark=function(spec,value)
       if value~=nil then write(spec.bookmark,value) end
       return i(spec.bookmark)

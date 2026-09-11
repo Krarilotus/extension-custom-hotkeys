@@ -13,6 +13,7 @@ for _,building in ipairs(require('code/building_actions')) do
   end
 end
 for mods=0,3 do
+  add(mods>=2 and 'camera.cycle.lords' or 'camera.focus.lord',38,mods)
   add('view.toggle-interface',15,mods)
   add('camera.cycle.signposts',31,mods)
   add('unit.stance.stand-ground',16,mods)
