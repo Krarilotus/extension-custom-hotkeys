@@ -89,3 +89,22 @@ def test_load_list_change_cancels_queued_release_before_loading_other_entry(lua)
       end
       assert(resets==3)
     """)
+
+
+def test_load_mapping_bounds_and_modal_geometry_fail_closed(lua):
+    load_setup(lua)
+    lua.execute("""
+      for _,bad in ipairs({string.char(244,1,0,0),string.char(255,255,255,255),
+          string.char(0,0,1,0)}) do
+        s.loadIdentity=string.rep(string.char(0),4)..bad
+        assert(not Load.owns(s))
+      end
+      s.loadIdentity=string.char(243,1,0,0)..string.rep(string.char(0),4)
+      assert(Load.owns(s))
+      for _,case in ipairs({{'modalX',-1},{'modalY',0.5},{'modalWidth',0},
+          {'modalHeight',2000},{'modalBorder',0},{'modalAnimation',0},
+          {'modalClosing',1}}) do
+        local key,value=case[1],case[2];local old=s[key];s[key]=value
+        assert(not Load.origin(s),key);s[key]=old
+      end
+    """)
