@@ -17,6 +17,7 @@ function M.resolve(s,ownedModal)
   s.building=read(0x112655c);s.nextBuilding=read(0x1126560)
   s.unit=read(0x1126564);s.nextUnit=read(0x1126568)
   s.placement=read(0x1fe7aec);s.rotation=read(0x1fe7aa4)
+  s.pendingRotation=read(0x1fe7aa8)
   s.cameraX=read(0x21aec50);s.cameraY=read(0x21aec54);s.zoom=read(0x21aec68)
   s.patrol=read(0x1667f94)
   -- Native unit-action handler 0x446920 changes both interaction fields.

@@ -1,4 +1,6 @@
 return {
+ ['view.rotate-left']='Girar la vista a la izquierda', ['view.rotate-right']='Girar la vista a la derecha',
+ ['view.toggle-zoom']='Cambiar zoom', ['view.lower-buildings']='Bajar edificios',
  ['view.toggle-interface']='Mostrar u ocultar la barra', ['group.view']='Vista',
  focusOpen='Centrar y abrir: ',returnFrom='Volver de: ',
  import='Importar perfil',export='Exportar perfil',exported='Perfil exportado.',

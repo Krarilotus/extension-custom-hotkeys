@@ -12,6 +12,17 @@ function M:dispatch(id,context)
       or (context.owner~='game.build' and context.owner~='game.status')
       or not Context.same(context,Context.resolve(a.resolve())) then return false end
   local s=a.snapshot()
+  if id=='view.rotate-left' or id=='view.rotate-right' or id=='view.toggle-zoom' then
+    if s.rightHeld~=0 or s.pendingRotation~=8 then return false end
+    if id=='view.toggle-zoom' then
+      if not integer(s.zoom,0,1) then return false end
+      a.zoom(1-s.zoom)
+    else
+      if not integer(s.rotation,0,6) or s.rotation%2~=0 then return false end
+      a.rotate((s.rotation+(id=='view.rotate-left' and 2 or 6))%8)
+    end
+    return true
+  end
   if id=='view.toggle-interface' then
     if s.screen~=14 then return false end
     a.toggleInterface();return true

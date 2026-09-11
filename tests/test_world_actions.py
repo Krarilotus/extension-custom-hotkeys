@@ -18,6 +18,51 @@ def setup(lua):
     ''')
 
 
+def test_view_transform_wrap_zoom_and_projection_transition_guards(lua):
+    setup(lua)
+    lua.execute('''
+      s.rightHeld=0;s.pendingRotation=8;s.rotation=6;s.zoom=0
+      world.adapter.rotate=function(value) calls[#calls+1]={'rotate',value} end
+      world.adapter.zoom=function(value) calls[#calls+1]={'zoom',value} end
+      assert(world:dispatch('view.rotate-left',c));assert(calls[1][2]==0)
+      s.rotation=0
+      assert(world:dispatch('view.rotate-right',c));assert(calls[2][2]==6)
+      assert(world:dispatch('view.toggle-zoom',c));assert(calls[3][2]==1)
+      s.zoom=1
+      assert(world:dispatch('view.toggle-zoom',c));assert(calls[4][2]==0)
+      for _,id in ipairs({'view.rotate-left','view.rotate-right','view.toggle-zoom'}) do
+        s.rightHeld=1;assert(not world:dispatch(id,c));s.rightHeld=0
+        s.pendingRotation=2;assert(not world:dispatch(id,c));s.pendingRotation=8
+        for field,value in pairs({text=true,modal='5',state='replay',authority=false,
+          owner='game.options',targeting='changed'}) do
+          local old=raw[field];raw[field]=value
+          assert(not world:dispatch(id,c));raw[field]=old
+        end
+      end
+      assert(#calls==4)
+      s.rotation=3;assert(not world:dispatch('view.rotate-left',c))
+      s.zoom=2;assert(not world:dispatch('view.toggle-zoom',c))
+    ''')
+
+
+def test_arrow_view_conflicts_are_distinct_from_pan_and_unavailable_lowering(lua):
+    lua.execute('''
+      local catalog=Catalog.new(require('code/entries'),require('code/originals'))
+      local defaults=assert(Catalog.validate(catalog,Catalog.defaults(catalog)))
+      defaults['target.center']={scan=75,extended=true,mods=1}
+      defaults['camera.pan.left']=false
+      assert(Catalog.validate(catalog,defaults)) -- Its owner is rotation, not pan.
+      defaults['view.rotate-left']=false
+      assert(not Catalog.validate(catalog,defaults))
+      for _,key in ipairs({{scan=80,extended=true,mods=1},
+          {scan=80,extended=true,mods=3},{scan=47,extended=false,mods=0}}) do
+        defaults=Catalog.defaults(catalog);defaults['target.center']=key
+        local ok,reason,detail=Catalog.validate(catalog,defaults)
+        assert(not ok and reason=='binding.native-conflict' and detail[2]=='view.lower-buildings')
+      end
+    ''')
+
+
 def test_stance_uses_one_submission_and_rejects_wrong_panel_owner_or_selection(lua):
     setup(lua)
     lua.execute('''

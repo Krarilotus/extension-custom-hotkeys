@@ -17,6 +17,10 @@ local entries={{id='view.toggle-interface',contexts={'game.build'},states={'live
     default={scan=28,extended=false,mods=0}},
   {id='game.menu.activate',contexts={'game.build','game.status','game.options'},states={'live-sp'},command=true,
     default={scan=28,extended=false,mods=0}}}
+for _,view in ipairs({{'rotate-left',45},{'rotate-right',46},{'toggle-zoom',44}}) do
+  entries[#entries+1]={id='view.'..view[1],contexts=world,states={'live-sp'},
+    command=false,default={scan=view[2],extended=false,mods=0}}
+end
 for _,id in ipairs({'target.up','target.down','target.left','target.right',
     'target.fine.up','target.fine.down','target.fine.left','target.fine.right','target.center',
     'target.confirm','target.cancel'}) do

@@ -18,10 +18,26 @@ for mods=0,3 do
   add('unit.stance.stand-ground',16,mods)
   add('unit.stance.defensive',17,mods)
   add('unit.stance.aggressive',18,mods)
+  add('view.rotate-left',45,mods)
+  add('view.rotate-right',46,mods)
+  add('view.toggle-zoom',44,mods)
+  -- Lowering has an independently owned native hold/release path. Until its
+  -- replacement is implemented, preserve it and forbid assigning over it.
+  entries[#entries+1]={action='view.lower-buildings',unavailable=true,
+    contexts={'game.build','game.status'},states={'live-sp'},
+    binding={scan=47,extended=false,mods=mods}}
   for direction,scan in pairs({up=72,down=80,left=75,right=77}) do
     -- Arrow input remains a familiar native alternative unless assigned to
     -- another action. A collision still requires an assigned pan replacement.
-    add('camera.pan.'..direction,scan,mods,true,true)
+    if mods==0 or mods==2 then add('camera.pan.'..direction,scan,mods,true,true)
+    elseif direction=='down' then
+      entries[#entries+1]={action='view.lower-buildings',unavailable=true,
+        contexts={'game.build','game.status'},states={'live-sp'},
+        binding={scan=scan,extended=true,mods=mods}}
+    else
+      local action=direction=='up' and 'view.toggle-zoom' or 'view.rotate-'..direction
+      add(action,scan,mods,true,true)
+    end
   end
 end
 return entries

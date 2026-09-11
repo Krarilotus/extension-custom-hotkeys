@@ -17,6 +17,10 @@ local de={title='Eigene Tastenkürzel',profile='Profil',new='Neues Profil',searc
   ['menu.previous']='Vorheriges Bedienelement', ['menu.activate']='Bedienelement aktivieren',
   ['menu.back']='Zurück', ['editor.capture']='Gewähltes Tastenkürzel ändern'}
 local M={}
+en['view.rotate-left']='Rotate view left';de['view.rotate-left']='Ansicht nach links drehen'
+en['view.rotate-right']='Rotate view right';de['view.rotate-right']='Ansicht nach rechts drehen'
+en['view.toggle-zoom']='Toggle zoom';de['view.toggle-zoom']='Zoom umschalten'
+en['view.lower-buildings']='Lower buildings';de['view.lower-buildings']='Gebäude absenken'
 en['view.toggle-interface']='Show or hide toolbar';de['view.toggle-interface']='Werkzeugleiste ein-/ausblenden'
 en['group.view']='View';de['group.view']='Ansicht'
 en.swap='Swap keys';de.swap='Tauschen'

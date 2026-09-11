@@ -17,13 +17,23 @@ local openBuilding=ffi.cast('int (__thiscall *)(void *,int)',0x463310)
 local buildScreen=ffi.cast('void (__thiscall *)(void *,int,int)',0x46b340)
 local stance=ffi.cast('void (__thiscall *)(void *,int,int)',0x522bf0)
 local toggleInterface=ffi.cast('void (__thiscall *)(void *)',0x471aa0)
+local rotate=ffi.cast('void (__thiscall *)(void *,int)',0x4f70e0)
+local zoom=ffi.cast('void (__thiscall *)(void *,int)',0x4e7770)
 function M.new(scene,view)
   return require('code/world_actions').new({
     resolve=function() return scene:resolve(view) end,
     toggleInterface=function() toggleInterface(ffi.cast('void *',0x1fe7d10)) end,
+    rotate=function(value) rotate(ffi.cast('void *',0x1a93208),value) end,
+    zoom=function(value)
+      zoom(viewport,value)
+      -- The original Z branch marks both render surfaces dirty after setup.
+      write(0xf983f8,2);write(0xb48ee4,1)
+    end,
     snapshot=function()
       local s=scene:snapshot()
       s.player=i(0x1a275dc);s.selectedCount=i(0x1387f58);s.tribe=i(0x1667f78)
+      s.rightHeld=i(0xf2c9f8);s.rotation=i(0x1fe7aa4)
+      s.pendingRotation=i(0x1fe7aa8);s.zoom=i(0x21aec68)
       if s.tribe>=0 and s.tribe<1250 then s.tribeOwner=i(0x1667fa4+s.tribe*0x334) end
       return s
     end,

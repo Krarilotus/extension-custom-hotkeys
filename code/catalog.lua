@@ -34,10 +34,15 @@ function M.new(entries, nativeBindings)
   end
   local originals = {}
   for _, entry in ipairs(nativeBindings or {}) do
-    assert(actions[entry.action], 'native.action')
+    local action=actions[entry.action]
+    if entry.unavailable==true then
+      assert(not action and type(entry.action)=='string','native.unavailable')
+      action={contexts=assert(set(entry.contexts)),states=assert(set(entry.states))}
+    else assert(action, 'native.action') end
     local binding = assert(Binding.validate(entry.binding))
     assert(entry.retain==nil or type(entry.retain)=='boolean','native.retain')
-    originals[#originals+1] = {action=entry.action, binding=binding,retain=entry.retain==true}
+    originals[#originals+1] = {action=entry.action, definition=action,binding=binding,
+      unavailable=entry.unavailable==true,retain=entry.retain==true or entry.unavailable==true}
   end
   return {actions=actions, ordered=ordered, originals=originals}
 end
@@ -76,10 +81,10 @@ function M.validate(catalog, bindings)
       end
       for _, original in ipairs(catalog.originals) do
         if original.action ~= action.id and Binding.same(binding, original.binding)
-            and Context.overlap(action, catalog.actions[original.action]) then
+            and Context.overlap(action, original.definition) then
           -- A native binding may only be displaced after its replacement is assigned.
           local replacement = normalized[original.action]
-          if replacement == nil or replacement == false or Binding.same(replacement, original.binding) then
+          if original.unavailable or replacement == nil or replacement == false or Binding.same(replacement, original.binding) then
             return nil, 'binding.native-conflict', {action.id, original.action}
           end
         end

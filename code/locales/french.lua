@@ -1,4 +1,6 @@
 return {
+ ['view.rotate-left']='Tourner la vue à gauche', ['view.rotate-right']='Tourner la vue à droite',
+ ['view.toggle-zoom']='Changer le zoom', ['view.lower-buildings']='Abaisser les bâtiments',
  ['view.toggle-interface']="Afficher ou masquer la barre d'outils",['group.view']='Affichage',
  focusOpen='Centrer et ouvrir : ',returnFrom='Revenir de : ',
  import='Importer un profil',export='Exporter le profil',exported='Profil exporté.',

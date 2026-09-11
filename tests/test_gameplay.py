@@ -7,7 +7,7 @@ def setup(lua):
         playerDead=0,playerDisabled=0,selectedCount=0,selectedLast=0,
         selectionBits=string.rep(string.char(0),400),building=0,nextBuilding=0,
         unit=0,nextUnit=0,tribe=0,placement=0,rotation=0,cameraX=0,cameraY=0,zoom=0,patrol=0,
-        unitMode=1,unitModeAux=1}
+        unitMode=1,unitModeAux=1,pendingRotation=8}
     ''')
 
 
@@ -36,6 +36,10 @@ def test_gameplay_text_pause_authority_and_transition_gates(lua):
       end
       s.nextBuilding=1;assert(not Gameplay.resolve(s));s.nextBuilding=0
       s.nextUnit=1;assert(not Gameplay.resolve(s));s.nextUnit=0
+      for _,pending in ipairs({0,2,4,6,-1,9}) do
+        s.pendingRotation=pending;assert(not Gameplay.resolve(s))
+      end
+      s.pendingRotation=8
       s.modal=2041;assert(not Gameplay.resolve(s))
       assert(Gameplay.resolve(s,2041));s.modal2=2;assert(not Gameplay.resolve(s,2041))
       s.modal2=-1;s.screen=17;assert(not Gameplay.resolve(s,2041))

@@ -1,4 +1,6 @@
 return {
+ ['view.rotate-left']='Obróć widok w lewo', ['view.rotate-right']='Obróć widok w prawo',
+ ['view.toggle-zoom']='Zmień przybliżenie', ['view.lower-buildings']='Obniż budynki',
  ['view.toggle-interface']='Pokaż lub ukryj pasek', ['group.view']='Widoczność',
  focusOpen='Pokaż i otwórz: ',returnFrom='Wróć z: ',
  import='Importuj profil',export='Eksportuj profil',exported='Profil wyeksportowany.',
