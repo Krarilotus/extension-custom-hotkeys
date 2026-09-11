@@ -15,9 +15,10 @@ Completion requires native keyboard-only, two physical multiplayer peers and
 recorder replay/state-restore acceptance, localization, an installable tested
 artifact and verified reviewed merge. Work in progress remains draft.
 
-The current branch contains the binding router, profile transactions, a storage
-component, editor controller and Windows input transport. Native action adapters, the actual in-game view and
-the complete action catalog are still being implemented. There is no installable
+The current branch contains the binding router, persistent profiles, native
+profile editor and Windows input transport. Native menu navigation moves the
+visible cursor and activates eligible controls through the original input path.
+The complete gameplay action catalog and adapters are still being implemented. There is no installable
 Custom Hotkeys artifact yet. Test actions are fixtures, not supported gameplay.
 
 Run `python -m pip install -r tests/requirements.txt` and
@@ -26,3 +27,6 @@ they do not establish native ABI, keyboard-only or multiplayer compatibility.
 
 See [component contracts](docs/components.md) and the
 [pending manual two-PC route](docs/manual-multiplayer.md).
+Native development evidence covers [profile editing](docs/native-editor-evidence.md)
+and [menu navigation](docs/native-navigation-evidence.md); neither is a complete
+keyboard-only acceptance pass.

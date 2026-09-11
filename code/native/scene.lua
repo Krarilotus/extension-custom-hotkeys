@@ -19,6 +19,7 @@ function M:snapshot()
 end
 function M:resolve(editor)
   local s=self:snapshot()
+  if editor then require('code/editor_ownership').reconcile(editor,s) end
   local signature=table.concat({s.screen,s.tab,s.subtab,s.delay,s.newPlayer,s.mode,
     s.modal,s.modal2,s.modal3,s.textModal,s.textEditor,s.platformGeneration},':')
   if signature~=self.signature then self.signature=signature;self.generation=self.generation+1 end

@@ -8,7 +8,7 @@ local installed
 -- private LuaJIT state alive until process exit: the owner has no unregister API.
 local signature = 'int32_t (__stdcall *)(int32_t, void *, uint32_t, uint32_t, int32_t)'
 
-function M.install(interface, router, platform, exclusiveInput)
+function M.install(interface, router, platform, exclusiveInput, mouseInput)
   assert(not installed, 'chain.already-installed')
   assert(ffi.os == 'Windows' and ffi.arch == 'x86', 'chain.unsupported-abi')
   assert(type(interface) == 'table', 'chain.interface-required')
@@ -38,6 +38,9 @@ function M.install(interface, router, platform, exclusiveInput)
     if platform:owns(window) then
       local ok, err = pcall(function()
         if platform:observe(message) then router:barrier() end
+        -- A real mouse gesture takes over before the original handler sees it.
+        -- Cancelling first lets that handler retain the user's real input.
+        if mouseInput and message>=0x200 and message<=0x20e then mouseInput(message,wparam,lparam) end
       end)
       if not ok then result.failure=tostring(err); router.blocked=true end
     end

@@ -25,6 +25,7 @@ function M.start(modulePath)
       local text=f:read('*all');f:close();return text
     end,
     interface={env=_ENV,extra={manager=access.manager,chain=function() return chain end,
+      installInputFrame=function(callback) return require('code/input_patch').install(core,callback) end,
       menuAddress=function(id)
         local p=access.manager.lookupMenu(id)
         if not p then return nil end
@@ -35,6 +36,9 @@ function M.start(modulePath)
       bootstrap=function() return {entries=entries,language=data.version.getGameLanguage()} end}}
   })
   live[#live+1]={state=state,library=library,store=store}
+  local image=state:executeString("return require('code/native/identity').file()",
+    'custom-hotkeys/identity',true)
+  assert(require('code/executable').check(image,io,sha.sha256))
   state:importHeaderFile('ucp/modules/ui/ui/headers/latest/ui.h')
   local receipt=state:executeString([[
     local options=remote.interface.bootstrap()

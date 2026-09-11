@@ -16,6 +16,7 @@ function M.new(catalog, bindings, adapter)
 end
 
 function M:barrier()
+  if self.adapter.cancelPending then self.adapter.cancelPending() end
   for _, held in pairs(self.held) do
     held.blocked = true
     self:cancelHold(held)
@@ -75,6 +76,7 @@ function M:refresh()
   local current = self:readContext()
   if not current or current.owner ~= 'hotkeys.capture' then self:cancelCapture() end
   if not Context.same(self.context, current) then
+    if self.adapter.cancelPending then self.adapter.cancelPending() end
     -- A change cancels gestures, but preserves down/up forwarding ownership.
     for _, held in pairs(self.held) do held.blocked = true; self:cancelHold(held) end
     self.context = current
@@ -113,6 +115,7 @@ function M:handle(event)
     held = nil
   end
   if held then
+    if held.system then return false end
     return held.consumed or held.blocked
   end
   held = {consumed=false, blocked=false}
@@ -123,6 +126,11 @@ function M:handle(event)
   if event.win ~= false or event.altgr ~= false or event.composing ~= false then return false end
   if type(event.mods) ~= 'number' or event.mods ~= math.floor(event.mods)
       or event.mods < 0 or event.mods > 7 then return false end
+  if Binding.system(event) then
+    held.system = true
+    if self.capture then self.capture(nil, 'binding.reserved') end
+    return false
+  end
   if not context then return false end
   if self.capture then
     if context.owner ~= 'hotkeys.capture' then self:cancelCapture(); return false end

@@ -16,26 +16,48 @@ function M.start(entries,language)
   local platform=Platform.new(tonumber(ffi.cast('int32_t *',0xf983e4)[0]))
   local scene=Scene.new(platform)
   local catalog=Catalog.new(entries)
-  local view
+  local view,cursor,navigation
   local router=Router.new(catalog,Catalog.defaults(catalog),{
     resolve=function() return scene:resolve(view) end,
-    dispatch=function(id)
+    dispatch=function(id,context)
       if id=='hotkeys.open' then return view:open() end
+      if id=='menu.next' then return navigation:move(1,context) end
+      if id=='menu.previous' then return navigation:move(-1,context) end
+      if id=='menu.activate' then return navigation:activate(context) end
       error('action.not-integrated: '..id)
     end,
     canRecover=function(c) return c and c.owner:sub(1,5)=='menu.' end,
     recover=function() return view:open() end,
     cancelLocalHold=function() end,
+    cancelPending=function() if cursor then cursor:cancel() end end,
   })
   local store={load=function() return remote.interface.loadProfiles() end,
     save=function(_,document) return remote.interface.saveProfiles(document) end}
   local profiles,err=Profiles.new(catalog,store,router)
   assert(profiles,err)
   view=View.new(profiles,catalog,router,scene,platform,require('code/locale').new(language))
+  local pointer=require('code/native/pointer').new(platform,scene)
+  cursor=require('code/cursor').new(require('code/native/mouse').new(scene,
+    function() return scene:resolve(view) end,pointer))
+  local reader=require('code/native/menu_reader').new()
+  navigation=require('code/navigation').new({
+    controls=function(context)
+      if not context or context.owner:sub(1,5)~='menu.' then return nil end
+      local s=scene:snapshot()
+      if tostring(s.screen)~=context.screen or s.modal~=-1 or s.modal2~=-1 or s.modal3~=-1 then return nil end
+      return reader:read(remote.interface.menuAddress(s.screen),s)
+    end,
+    point=function(row) return row.x+math.floor(row.width/2),row.y+math.floor(row.height/2) end,
+    hit=function(address) return ffi.cast('MenuItem *',address)[0].hovering~=0 end,
+  },cursor)
   local chain=require('code/native/chain').install(remote.interface.chain(),router,platform,
-    function(event) return view:input(event) end)
+    function(event) return view:input(event) end,function(message,_,lparam)
+      if pointer:observe(message,lparam) then navigation:cancel() end
+    end)
+  local inputFrame=require('code/native/input_frame').install(cursor,router)
   local runtime={lock=lock,platform=platform,scene=scene,catalog=catalog,router=router,
-    profiles=profiles,view=view,chain=chain,pins={}}
+    profiles=profiles,view=view,chain=chain,cursor=cursor,navigation=navigation,
+    inputFrame=inputFrame,pointer=pointer,pins={}}
   local main=api.ui.Menu:fromPointer(remote.interface.menuAddress(41),41)
   local count=main.menuItemsCount
   assert(count>=1 and count<=4096,'menu.main-size')

@@ -2,6 +2,7 @@ local ffi=require('ffi')
 local Controller=require('code/editor')
 local Text=require('code/text_edit')
 local Encoding=require('code/native/encoding')
+local Binding=require('code/binding')
 local M={}
 M.__index=M
 local rows=7
@@ -51,12 +52,13 @@ function M.new(profiles,catalog,router,scene,platform,labels)
 end
 function M:owns()
   local s=self.scene:snapshot()
+  require('code/editor_ownership').reconcile(self,s)
   return self.opened and self.platform:focused() and s.modal==self.modalID
     and s.modal2==-1 and s.modal3==-1 and s.textModal==0 and s.textEditor==0
     and s.delay==-1 and s.newPlayer==0 and s.screen==self.parentScreen
 end
 function M:open()
-  local c=self.scene:resolve()
+  local c=self.scene:resolve(self)
   if self.opened or not c or c.owner:sub(1,5)~='menu.' then return false end
   self.controller=Controller.new(self.profiles,self.catalog,self.router,self.labels,string.lower,rows)
   self.focus,self.text,self.error,self.opened=7,nil,nil,true
@@ -122,7 +124,9 @@ function M:input(event)
   if not self:owns() then return false end
   -- Preserve system/window shortcuts. AltGr characters are handled as text,
   -- never as shortcut chords. IME messages themselves keep the native path.
-  if event.win or (event.mods and event.mods>=4 and not event.altgr) then return false end
+  if event.win or Binding.system(event)
+      or (event.value==27 and event.mods and event.mods%2==1)
+      or (event.mods and event.mods>=4 and not event.altgr) then return false end
   if event.kind=='char' then
     if self.text then local char=Encoding.character(event.value)
       if char then local ok,err=self.text.edit:insert(char);if not ok then self.error=err end end end

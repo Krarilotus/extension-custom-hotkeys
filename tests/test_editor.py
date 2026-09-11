@@ -63,3 +63,22 @@ def test_focus_loss_cancels_capture_and_unsticks_editor(lua):
       router:barrier()
       assert(not editor.capturing and not router.capture)
     ''')
+
+
+def test_replaced_native_modal_discards_draft_without_touching_replacement(lua):
+    setup(lua)
+    lua.execute('''
+      local ownership=require('code/editor_ownership')
+      local view={opened=true,parentScreen=41,modalID=2041,controller=editor,
+        router=router,text={}}
+      assert(editor:createProfile('Unapplied'))
+      assert(ownership.reconcile(view,{screen=41,modal=2041,focused=false}))
+      assert(profiles.draft and view.text)
+      current.owner='hotkeys.capture'; assert(editor:capture())
+      local replacement={screen=42,modal=12}
+      assert(not ownership.reconcile(view,replacement))
+      assert(replacement.screen==42 and replacement.modal==12)
+      assert(not view.opened and not view.text and not router.capture)
+      assert(editor.closed and not profiles.draft)
+      assert(not profiles.committed.profiles.Unapplied and #calls==0)
+    ''')

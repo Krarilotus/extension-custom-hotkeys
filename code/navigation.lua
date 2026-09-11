@@ -1,0 +1,52 @@
+-- Focus only controls returned by the active native interaction traversal.
+-- Activation is a native cursor gesture, with eligibility checked again at
+-- the input frame. Cached rows never authorize a hidden or disabled control.
+local Context=require('code/context')
+local M={}
+M.__index=M
+function M.new(adapter,cursor)
+  return setmetatable({adapter=adapter,cursor=cursor},M)
+end
+function M:current(context)
+  if not Context.same(self.context,context) then self.context=context;self.address=nil end
+  local rows=self.adapter.controls(context)
+  if not rows then self.address=nil;return nil end
+  return rows
+end
+function M:move(delta,context)
+  if delta~=1 and delta~=-1 then return false end
+  local rows=self:current(context)
+  if not rows or #rows==0 then return false end
+  local index=delta==1 and 0 or 1
+  for i,row in ipairs(rows) do if row.address==self.address then index=i;break end end
+  local row=rows[(index+delta-1)%#rows+1]
+  local x,y=self.adapter.point(row)
+  if not x or not self.cursor:moveTo(x,y,context) then return false end
+  self.address=row.address
+  return true
+end
+function M:activate(context)
+  local rows=self:current(context)
+  if not rows or not self.address then return false end
+  local expected
+  for _,row in ipairs(rows) do if row.address==self.address then expected=row;break end end
+  if not expected then self.address=nil;return false end
+  local x,y=self.adapter.point(expected)
+  if not x or not self.cursor:moveTo(x,y,context) then return false end
+  local address=self.address
+  local kind,parameter,action=expected.kind,expected.parameter,expected.action
+  return self.cursor:click('left',context,function(now)
+    local current=self.adapter.controls(now)
+    if not current then return false end
+    for _,row in ipairs(current) do
+      if row.address==address then
+        local currentX,currentY=self.adapter.point(row)
+        return currentX==x and currentY==y and row.kind==kind
+          and row.parameter==parameter and row.action==action
+      end
+    end
+    return false
+  end,function() return not self.adapter.hit or self.adapter.hit(address)==true end)
+end
+function M:cancel() self.address=nil;self.context=nil;self.cursor:cancel() end
+return M

@@ -144,6 +144,21 @@ def test_capture_cancel_invalid_key_and_recovery(lua):
     ''')
 
 
+@pytest.mark.parametrize('scan,mods', [(15,4),(62,4),(1,1),(1,4),(57,4),(83,5)])
+def test_system_gestures_remain_forwarded_during_capture_and_handoff(lua,scan,mods):
+    lua.execute(f'''
+      current.owner='hotkeys.capture'
+      local reason
+      router:startCapture(function(_,err) reason=err end)
+      assert(not router:handle(event({scan},'down',{mods})))
+      assert(reason=='binding.reserved' and router.capture and #calls==0)
+      router:barrier()
+      assert(not router:handle(repeat_event({scan}, {mods})))
+      assert(not router:handle(event({scan},'up',{mods})))
+      assert(#calls==0)
+    ''')
+
+
 @pytest.mark.parametrize('field', ['altgr', 'win', 'composing', 'repeated'])
 def test_platform_composition_and_preexisting_holds(lua, field):
     lua.execute(f"local e=event(50); e.{field}=true; router:handle(e); assert(#calls==0)")

@@ -28,6 +28,7 @@ function M:filter(query, group)
     end
   end
   self.selected,self.first=1,1
+  self.cachedView=nil
   return true
 end
 
@@ -37,6 +38,7 @@ function M:navigate(delta)
   self.selected=math.max(1,math.min(#self.rows,self.selected+delta))
   if self.selected<self.first then self.first=self.selected end
   if self.selected>=self.first+self.pageSize then self.first=self.selected-self.pageSize+1 end
+  self.cachedView=nil
   return true
 end
 
@@ -49,6 +51,7 @@ function M:perform(operation,...)
   if self.closed or self.capturing then return nil,'editor.busy' end
   local ok,err,detail=operation(self.profiles,...)
   self.error,self.detail=err,detail
+  self.cachedView=nil
   return ok,err,detail
 end
 
@@ -59,8 +62,10 @@ function M:capture()
   if self.closed or self.capturing or not self.rows[self.selected] then return false end
   local action=self.rows[self.selected].id
   self.capturing=true
+  self.cachedView=nil
   self.router:startCapture(function(binding,err)
     if self.closed then return end
+    self.cachedView=nil
     if binding then
       self.capturing=false
       self:perform(self.profiles.bind,action,binding)
@@ -76,6 +81,7 @@ function M:cancelCapture()
   self.router:barrier()
   self.capturing=false
   self.error,self.detail=nil,nil
+  self.cachedView=nil
 end
 
 function M:clear()
@@ -95,15 +101,18 @@ function M:resetProfile() return self:perform(self.profiles.reset) end
 function M:apply()
   local ok,err=self:perform(self.profiles.apply)
   if ok then self.closed=true end
+  self.cachedView=nil
   return ok,err
 end
 
 function M:cancel()
   self.profiles:cancel()
   self.closed,self.capturing=true,false
+  self.cachedView=nil
 end
 
 function M:view()
+  if self.cachedView then return self.cachedView end
   local document=self.profiles.draft or self.profiles.committed
   local profile=document.profiles[document.active]
   local rows,names={},{}
@@ -115,9 +124,10 @@ function M:view()
     rows[#rows+1]={index=i,id=row.id,label=row.label,group=row.group,
       selected=i==self.selected,binding=b and {scan=b.scan,extended=b.extended,mods=b.mods} or false}
   end
-  return {rows=rows,profiles=names,active=document.active,first=self.first,
+  self.cachedView={rows=rows,profiles=names,active=document.active,first=self.first,
     total=#self.rows,capturing=self.capturing,error=self.error,detail=self.detail,
     closed=self.closed}
+  return self.cachedView
 end
 
 return M

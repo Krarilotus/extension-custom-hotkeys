@@ -3,6 +3,16 @@ local function integer(n, lo, hi)
   return type(n) == 'number' and n == math.floor(n) and n >= lo and n <= hi
 end
 
+-- These gestures belong to Windows even while the binding editor captures.
+-- Recovery is reserved by validate(), but remains owned by this extension.
+function M.system(value)
+  local s,m=value.scan,value.mods
+  if not integer(m,0,7) then return false end
+  local ctrl,alt=m%2==1,m>=4
+  return (alt and (s==15 or s==62 or s==1 or s==57))
+    or (ctrl and s==1) or (ctrl and alt and (s==83 or s==15))
+end
+
 -- Set-1 scan code plus the E0 bit. Ctrl=1, Shift=2, Alt=4; sides are aliases.
 -- E1/Pause and modifier-only bindings are deliberately unsupported.
 function M.validate(value)
@@ -19,10 +29,7 @@ function M.validate(value)
       or s == 93 or s == 69 or s == 70 or s == 84 then
     return nil, 'binding.unsupported'
   end
-  local ctrl, shift, alt = m % 2 == 1, math.floor(m / 2) % 2 == 1, m >= 4
-  if (alt and (s == 15 or s == 62 or s == 1 or s == 57))
-      or (ctrl and s == 1) or (ctrl and alt and (s == 83 or s == 15))
-      or (ctrl and shift and s == 88 and not e) then
+  if M.system(value) or M.recovery(value) then
     return nil, 'binding.reserved'
   end
   return {scan = s, extended = e, mods = m}
