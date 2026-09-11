@@ -8,7 +8,7 @@ local installed
 -- private LuaJIT state alive until process exit: the owner has no unregister API.
 local signature = 'int32_t (__stdcall *)(int32_t, void *, uint32_t, uint32_t, int32_t)'
 
-function M.install(interface, router, platform)
+function M.install(interface, router, platform, exclusiveInput)
   assert(not installed, 'chain.already-installed')
   assert(ffi.os == 'Windows' and ffi.arch == 'x86', 'chain.unsupported-abi')
   assert(type(interface) == 'table', 'chain.interface-required')
@@ -30,7 +30,7 @@ function M.install(interface, router, platform)
     assert(not result.failure, 'chain.failed')
     return platform:modifiers()
   end,
-  function(hwnd) return platform:owns(hwnd) end)
+  function(hwnd) return platform:owns(hwnd) end, exclusiveInput)
   result.callback = ffi.cast(signature, function(priority, hwnd, message, wparam, lparam)
     -- HWNDs are numeric keys here; separately boxed pointer cdata must not
     -- split gesture debt into a different Lua table on every callback.

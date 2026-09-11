@@ -7,7 +7,7 @@ local barriers = {[0x6]=true,[0x7]=true,[0x8]=true,[0x1c]=true,[0x51]=true,
 -- Pure message adapter. The native owner provides the real HWND and key state.
 -- Non-owned windows and unconsumed messages retain all original arguments and
 -- CallNextProc's return value. No GetMainProc or SendInput recursion.
-function M.new(router, nextProc, modifierState, ownsWindow)
+function M.new(router, nextProc, modifierState, ownsWindow, exclusiveInput)
   local failed = false
   local debts = {}
   local function stop()
@@ -53,9 +53,14 @@ function M.new(router, nextProc, modifierState, ownsWindow)
         local event = {kind=kind,scan=math.floor(raw/65536)%256,
           extended=math.floor(raw/16777216)%2==1,repeated=math.floor(raw/1073741824)%2==1,
           mods=modifiers.mods,altgr=modifiers.altgr,win=modifiers.win,
-          composing=modifiers.composing}
+          composing=modifiers.composing,value=wparam}
         entered = true
-        return router:handle(event)
+        local routed=router:handle(event)
+        if routed then return true end
+        if exclusiveInput and exclusiveInput(event)==true then return true end
+        -- An exclusive editor may close before its release/character arrives.
+        -- Keep that gesture suppressed until the next fresh down.
+        return debt[physical]==true
       end)
       if not ok then
         stop()
