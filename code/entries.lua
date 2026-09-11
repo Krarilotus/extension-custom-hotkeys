@@ -20,6 +20,14 @@ local entries={{id='view.toggle-interface',contexts={'game.build'},states={'live
 for group=0,9 do
   entries[#entries+1]={id='unit.group.assign.'..group,contexts=world,states={'live-sp'},
     command=false,default={scan=group==0 and 11 or group+1,extended=false,mods=1}}
+  entries[#entries+1]={id='unit.group.recall.'..group,contexts=world,states={'live-sp'},
+    command=true,default=false}
+  entries[#entries+1]={id='camera.group.'..group,contexts=world,states={'live-sp'},
+    command=false,default=false}
+end
+for _,direction in ipairs({'next','previous'}) do
+  entries[#entries+1]={id='unit.group.'..direction,contexts=world,states={'live-sp'},
+    command=true,default=false}
 end
 for _,dialog in ipairs({{'save',59},{'load',60}}) do
   entries[#entries+1]={id='game.'..dialog[1]..'.open',contexts=world,states={'live-sp'},

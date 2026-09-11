@@ -1,5 +1,9 @@
 return {
  assignGroup='Przypisz zaznaczenie do grupy ',
+ recallGroup='Wybierz grupę ',focusGroup='Pokaż grupę ',
+ ['unit.group.next']='Wybierz następną grupę',
+ ['unit.group.previous']='Wybierz poprzednią grupę',
+ nativeGroup='Oryginalny skrót grupy lub budynku ',
  ['game.save.open']='Otwórz zapis gry', ['game.load.open']='Otwórz wczytywanie gry',
  ['camera.focus.lord']='Pokaż swojego lorda', ['camera.cycle.lords']='Przełączaj żyjących lordów',
  mainHelp1='Dostosuj skróty klawiszowe.',mainHelp2='Twórz i wymieniaj profile.',

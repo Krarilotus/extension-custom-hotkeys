@@ -31,8 +31,10 @@ local function lord(id)
     owner=short(0x13885e2+offset),tile=i(0x1388620+offset)}
 end
 function M.new(scene,view)
+  local groups=require('code/native/groups')
   return require('code/world_actions').new({
     resolve=function() return scene:resolve(view) end,
+    group=groups.inspect,groupMatches=groups.matches,recallGroup=groups.recall,
     toggleInterface=function() toggleInterface(ffi.cast('void *',0x1fe7d10)) end,
     saveLoadDialog=function(modal) saveLoadDialog(ffi.cast('void *',0x11265a8),modal) end,
     validGroupMembers=function(tribe,player)

@@ -1,5 +1,9 @@
 return {
  assignGroup='Assegna la selezione al gruppo ',
+ recallGroup='Seleziona il gruppo ',focusGroup='Centra sul gruppo ',
+ ['unit.group.next']='Seleziona il gruppo successivo',
+ ['unit.group.previous']='Seleziona il gruppo precedente',
+ nativeGroup='Scorciatoia originale di gruppo o edificio ',
  ['game.save.open']='Apri Salva', ['game.load.open']='Apri Carica',
  ['camera.focus.lord']='Centra sul tuo signore', ['camera.cycle.lords']='Scorri i signori vivi',
  mainHelp1='Modifica le scorciatoie da tastiera.',mainHelp2='Crea e scambia profili.',

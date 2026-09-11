@@ -12,6 +12,26 @@ function M:dispatch(id,context)
       or (context.owner~='game.build' and context.owner~='game.status')
       or not Context.same(context,Context.resolve(a.resolve())) then return false end
   local s=a.snapshot()
+  local recall=id:match('^unit%.group%.recall%.([0-9])$')
+  local focus=id:match('^camera%.group%.([0-9])$')
+  local cycle=id=='unit.group.next' and 1 or (id=='unit.group.previous' and -1 or nil)
+  if recall or focus or cycle then
+    local group,first
+    if cycle then
+      for step=1,10 do
+        group=((self.groupCursor or 0)+cycle*step)%10
+        first=a.group(group,s.player)
+        if first then break end
+      end
+    else
+      group=tonumber(recall or focus);first=a.group(group,s.player)
+    end
+    if not first then return false end
+    if focus or a.groupMatches(group) then a.focusTile(first.tile)
+    else a.recallGroup(group) end
+    self.groupCursor=group
+    return true
+  end
   local group=id:match('^unit%.group%.assign%.([0-9])$')
   if group then
     if s.screen~=14 or (s.tab~=61 and s.tab~=62) or s.selectedCount<=0

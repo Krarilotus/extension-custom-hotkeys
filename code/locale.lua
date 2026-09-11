@@ -18,6 +18,11 @@ local de={title='Eigene Tastenkürzel',profile='Profil',new='Neues Profil',searc
   ['menu.back']='Zurück', ['editor.capture']='Gewähltes Tastenkürzel ändern'}
 local M={}
 en.assignGroup='Assign selection to group ';de.assignGroup='Auswahl zu Gruppe zuweisen: '
+en.recallGroup='Select group ';de.recallGroup='Gruppe auswählen: '
+en.focusGroup='Focus group ';de.focusGroup='Gruppe zeigen: '
+en['unit.group.next']='Select next group';de['unit.group.next']='Nächste Gruppe auswählen'
+en['unit.group.previous']='Select previous group';de['unit.group.previous']='Vorherige Gruppe auswählen'
+en.nativeGroup='Native group or building shortcut ';de.nativeGroup='Originales Gruppen-/Gebäudekürzel '
 for group=0,9 do
   en['unit.group.native.'..group]='Native group or building shortcut '..group
   de['unit.group.native.'..group]='Originales Gruppen-/Gebäudekürzel '..group
@@ -85,6 +90,9 @@ function M.new(language,nativeText)
   local controls,buildings,cache={},{},{}
   for group=0,9 do
     chosen['unit.group.assign.'..group]=(chosen.assignGroup or en.assignGroup)..group
+    chosen['unit.group.recall.'..group]=(chosen.recallGroup or en.recallGroup)..group
+    chosen['camera.group.'..group]=(chosen.focusGroup or en.focusGroup)..group
+    chosen['unit.group.native.'..group]=(chosen.nativeGroup or en.nativeGroup)..group
   end
   for _,control in ipairs(require('code/controls')) do controls[control.id]=control end
   for _,building in ipairs(require('code/building_actions')) do

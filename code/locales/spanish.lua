@@ -1,5 +1,9 @@
 return {
  assignGroup='Asignar la selección al grupo ',
+ recallGroup='Seleccionar grupo ',focusGroup='Centrar en el grupo ',
+ ['unit.group.next']='Seleccionar grupo siguiente',
+ ['unit.group.previous']='Seleccionar grupo anterior',
+ nativeGroup='Atajo original de grupo o edificio ',
  ['game.save.open']='Abrir Guardar', ['game.load.open']='Abrir Cargar',
  ['camera.focus.lord']='Centrar en tu señor', ['camera.cycle.lords']='Recorrer los señores vivos',
  mainHelp1='Personaliza los atajos de teclado.',mainHelp2='Crea e intercambia perfiles.',

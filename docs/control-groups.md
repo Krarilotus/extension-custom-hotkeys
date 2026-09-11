@@ -22,16 +22,43 @@ checks are deliberately stricter than the original keyboard branch.
 
 Unmodified and Shift number keys are still forwarded to the original game and
 protected against reassignment. Their original meaning depends on the active
-panel: group selection/focus or building controls. Configurable group recall and
-cycling remain required implementation work. The recall path includes
-`queueEscapeCommand(0x536C70)`, `makeSelectionBasedOnShortcut(0x535FD0)` and native
-selection UI transitions; substituting a direct selection-bit write is unsafe.
-OpenSHC command-selection ownership remains separate and unchanged.
+panel: group selection/focus or building controls. Configurable actions are:
+
+- `unit.group.recall.0` through `.9`: select a group, or focus it if its selection
+  already matches the native selected set.
+- `camera.group.0` through `.9`: focus its first eligible member without changing
+  selection or issuing a simulation command.
+- `unit.group.next` / `.previous`: cycle through up to ten group slots, skipping
+  empty/ineligible groups. The cursor is only a local group number; no world
+  positions or delayed commands are cached.
+
+These additional actions start unbound, so choosing their keys does not silently
+replace the context-dependent original number shortcuts.
+
+Recall validates every one of the2500 native group records before calling native
+selection (including entries after holes), bounds IDs before dereferencing, rejects
+current-serial foreign ownership and requires an eligible living member. Native
+selection retains its serial-mismatch pruning. Camera focus also checks the tile.
+Native `isUnitShortcutAvailable(0x5360A0)` determines whether to focus an already
+matching selection. Otherwise the original sequence is
+`queueEscapeCommand(0x536C70)` then `makeSelectionBasedOnShortcut(0x535FD0)`.
+The first queues category0x0F. The second rebuilds the local selection through
+`createTribeFromSelectedUnits(0x535B00)`, which validates local player membership
+and submits category0x10 through `queueCommand(0x489100)`. Neither command's
+simulation execution routine is called by this extension. Two distinct native
+commands in this sequence are expected; they are not duplicate activations.
+
+After submission, the adapter preserves the original local selection-panel
+transition from0x4B464B..0x4B4695: remember the prior build tab, select tab61,
+call `switchToMenuView(14,0)`, and update its local interaction/render flags.
+Pending extension cursor gestures are cancelled first. Shared context barriers
+quarantine held keys if the selection/menu changes. OpenSHC command-selection
+ownership and its branch remain unchanged.
 
 Component tests cover native call order, group/member bounds, foreign ownership,
 repeat suppression, text/selection/context changes and original-key conflicts.
-Native assignment, keyboard-only recall/cycling, multiplayer and replay/state
-restore acceptance are pending. The module still rejects active MP and Recorder.
+Single-unit native assignment/transfer evidence follows. Native recall/cycling,
+complete keyboard-only, multiplayer and replay/state restore acceptance are pending. The module still rejects active MP and Recorder.
 
 ## Native assignment evidence
 
