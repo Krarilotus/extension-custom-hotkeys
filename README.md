@@ -14,3 +14,15 @@ and [WASD replacements](https://github.com/UnofficialCrusaderPatch/UnofficialCru
 Completion requires native keyboard-only, two physical multiplayer peers and
 recorder replay/state-restore acceptance, localization, an installable tested
 artifact and verified reviewed merge. Work in progress remains draft.
+
+The current branch contains the binding router, profile transactions, a storage
+component and editor controller. Native adapters, the actual in-game view and
+the complete action catalog are still being implemented. There is no installable
+Custom Hotkeys artifact yet. Test actions are fixtures, not supported gameplay.
+
+Run `python -m pip install -r tests/requirements.txt` and
+`python -m pytest tests -q`. The same component cases run in Lua 5.4 and LuaJIT;
+they do not establish native ABI, keyboard-only or multiplayer compatibility.
+
+See [component contracts](docs/components.md) and the
+[pending manual two-PC route](docs/manual-multiplayer.md).
