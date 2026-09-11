@@ -33,4 +33,21 @@ entry, covered modal, focus/IME, multiplayer and transition rejection, including
 denial of world actions. PID20256 exposed the previous coordinate error: Save
 was targeted at788,223 instead of638,208, and the native hover guard cancelled
 the click. No save action occurred. The owner-coordinate correction has
-component coverage; its native retest remains pending.
+component coverage. Its PID2564 retest still targeted808,231: the item points
+to the same menu, whose coordinates change between native processing passes.
+The hover guard again cancelled without a click. Reading the owner alone
+therefore did not fix Options navigation.
+
+Options now derives its origin from the active composition's x/y plus the
+native viewport offsets at `0x21AEC58/5C`, following `0x4B0B93..0x4B0BBE`.
+Border bit2 adds the twelve-pixel top strip (`0x4B0CB4..0x4B0CDE`). It requires
+an idle, non-closing composition and a bounded rectangle, and applies this
+origin only to controls owned by the verified active menu. No native geometry
+is written or cached across frames. The click guard still rechecks the active
+layout and native hover. This second correction requires a native retest.
+
+In PID2564, mouse fallback opened Save/modal10/text index2. A diagnostic rotate
+attempt logged no eligible context; rotation0, zoom0, camera2772/1864 and all
+pan hold flags0 stayed unchanged. This is a native text-modal rejection check,
+not typed-text or physical held-key acceptance. The process closed normally,
+absence was verified, and the desktop was released19:54:25 CEST.

@@ -6,7 +6,7 @@ local function n(value) return tonumber(value) end
 function M.new(manager)
   return setmetatable({manager=manager},M)
 end
-function M:read(menuAddress, state)
+function M:read(menuAddress, state, origin)
   if not menuAddress or menuAddress==0 then return nil,'menu.missing' end
   local menu=ffi.cast('Menu *',menuAddress)
   local array=menu[0].menuItemArray
@@ -29,8 +29,15 @@ function M:read(menuAddress, state)
     local owner=r.menuPointer
     if owner==nil or owner[0].menuItemArray~=array then return nil,'menu.owner' end
     if n(owner[0].currentBuildMenuButtonShift_0x14)~=0 then return nil,'menu.shifted' end
-    local x=n(owner[0].xPosition)+n(r.position.position.x)
-    local y=n(owner[0].yPosition)+n(r.position.position.y)
+    local baseX,baseY=n(owner[0].xPosition),n(owner[0].yPosition)
+    if origin then
+      if origin.menu~=menuAddress or n(ffi.cast('uintptr_t',owner))~=menuAddress then
+        return nil,'menu.owner'
+      end
+      baseX,baseY=origin.x,origin.y
+    end
+    local x=baseX+n(r.position.position.x)
+    local y=baseY+n(r.position.position.y)
     local width,height=n(r.itemWidth),n(r.itemHeight)
     local action=n(ffi.cast('uintptr_t',r.menuItemActionHandler.simple))
     -- 0x440410 only clears the interaction return flag. Its rectangle is the

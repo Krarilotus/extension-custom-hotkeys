@@ -56,7 +56,9 @@ function M.start(entries,language)
       local s=scene:snapshot()
       if context.owner=='game.options' then
         if tostring(s.screen)~=context.screen or not require('code/options_context').owns(s) then return nil end
-        return reader:read(s.activeModalMenu,s)
+        local origin=require('code/options_context').origin(s)
+        if not origin then return nil end
+        return reader:read(s.activeModalMenu,s,origin)
       end
       if tostring(s.screen)~=context.screen or s.modal~=-1 or s.modal2~=-1 or s.modal3~=-1 then return nil end
       return reader:read(remote.interface.menuAddress(s.screen),s)
