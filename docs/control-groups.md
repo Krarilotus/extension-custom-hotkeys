@@ -32,3 +32,30 @@ Component tests cover native call order, group/member bounds, foreign ownership,
 repeat suppression, text/selection/context changes and original-key conflicts.
 Native assignment, keyboard-only recall/cycling, multiplayer and replay/state
 restore acceptance are pending. The module still rejects active MP and Recorder.
+
+## Native assignment evidence
+
+PID25128 on5570dc4,11 September2026, used the original Nicaea campaign fixture.
+Mouse setup selected one archer: unit52, tribe1246, screen14/tab61, player1,
+owned-selection flag1. Both groups1/2 initially contained only -1 in the sampled
+first four entries. Diagnostic F10 called assignment1 at21:56:52.223; group1
+then contained unit52/serial4535. F11 called assignment2 at21:57:06.369; group1
+returned to -1 and group2 contained that same unit/serial. Other sampled entries
+remained -1. Selection count1, camera1789/1584, orientation0, zoom0 and all four
+pan flags0 were unchanged. Both adapter calls returned true without frame failure;
+the error log contains only its header.
+
+SHC1.41/UCP3.0.7-77c6a, UI1.0.1, LuaJIT1.0.0, cffi1.0.0,
+winProcHandler1.0.0 and graphicsApiReplacer1.3.0; Legacy/Recorder inactive.
+Configuration SHA256:
+`0df5b909572bc96a8209450bcfea6a995fcad4ffca2c7eb39003419c385baabe`.
+Task receipts: `native-evidence/groups-25128-{before,one,two}.json`,
+`groups-25128.log`, `groups-25128-error.log`, `groups-25128-build.json`.
+Alt+F4 closed the game; process absence was verified and the desktop released
+at21:57:22 CEST to Interface. The isolated baseline configuration was restored.
+
+This passes the single-unit native assignment/transfer diagnostic. The attempted
+initial drag did not select troops; a mouse click was needed. The planned
+text-dialog check was not performed before cleanup. Physical bindings/holds,
+keyboard-only setup, multi-unit/lord exclusion/dead-member cases, command counts,
+multiplayer and replay are not established by this run.
