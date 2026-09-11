@@ -132,6 +132,11 @@ function M:handle(event)
     return false
   end
   if not context then return false end
+  if self.capture and Binding.recovery(event) then
+    held.consumed=true
+    self:barrier()
+    return true
+  end
   if self.capture then
     if context.owner ~= 'hotkeys.capture' then self:cancelCapture(); return false end
     local binding, err = Binding.validate({scan=event.scan, extended=event.extended, mods=event.mods})
@@ -169,7 +174,7 @@ function M:handle(event)
   end
   if not chosen then
     for _, original in ipairs(self.catalog.originals) do
-      if Binding.key(original.binding) == physical + 256 * event.mods
+      if not original.retain and Binding.key(original.binding) == physical + 256 * event.mods
           and Context.allows(self.catalog.actions[original.action], context)
           and not Binding.same(self.bindings[original.action] or nil, original.binding) then
         if not Context.same(context, self:readContext()) then self:barrier(); return false end

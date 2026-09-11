@@ -1,12 +1,16 @@
 local ffi=require('ffi')
 local M={}
 local installed
-function M.install(cursor,router)
+function M.install(cursor,router,camera)
   assert(not installed,'input-frame.installed')
   local result={}
   result.callback=ffi.cast('void (__cdecl *)(void *)',function(mouse)
-    if tonumber(ffi.cast('uintptr_t',mouse))~=0xf2c9b0 or not cursor.pending then return end
-    local ok,err=pcall(cursor.beforeFrame,cursor)
+    if tonumber(ffi.cast('uintptr_t',mouse))~=0xf2c9b0
+        or (not cursor.pending and camera.count==0) then return end
+    local ok,err=pcall(function()
+      if camera.count>0 then camera:beforeFrame(router:refresh()) end
+      if cursor.pending then cursor:beforeFrame() end
+    end)
     if not ok then
       result.failure=tostring(err);router.blocked=true
       pcall(cursor.cancel,cursor);pcall(router.barrier,router)

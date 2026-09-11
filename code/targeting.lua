@@ -4,18 +4,18 @@ local directions={up={0,-1},down={0,1},left={-1,0},right={1,0}}
 function M.new(cursor,navigation,rectangle)
   return setmetatable({cursor=cursor,navigation=navigation,rectangle=rectangle},M)
 end
-function M:inside()
+function M:inside(projection)
   local x,y=self.cursor.adapter.position()
-  local left,top,width,height=self.rectangle()
-  return left~=nil and x>=left and y>=top and x<left+width and y<top+height
+  local left,top,width,height,current=self.rectangle()
+  return left~=nil and current==projection and x>=left and y>=top and x<left+width and y<top+height
 end
 function M:dispatch(id,context)
   if not context or (context.owner~='game.build' and context.owner~='game.status') then return false end
-  local left,top,width,height=self.rectangle()
+  local left,top,width,height,projection=self.rectangle()
   if not left then return false end
   if id=='target.confirm' or id=='target.cancel' then
     return self.cursor:click(id=='target.confirm' and 'left' or 'right',context,
-      function() return self:inside() end)
+      function() return self:inside(projection) end)
   end
   if self.cursor.pending then return false end
   local x,y=self.cursor.adapter.position()

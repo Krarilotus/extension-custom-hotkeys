@@ -61,6 +61,12 @@ function M:modifiers()
   return Keyboard.snapshot(self.keys, self.composing)
 end
 
+function M:keyDown(vk)
+  if not self:focused() then return false end
+  assert(user.GetKeyboardState(self.keys)~=0,'keyboard.unavailable')
+  return self.keys[vk]>=128
+end
+
 -- UTF-8 labels for the active Windows layout. The native view must convert
 -- this result to the game's verified encoding; it must not treat UTF-8 as ANSI.
 function M:keyName(binding)

@@ -17,12 +17,23 @@ local de={title='Eigene Tastenkürzel',profile='Profil',new='Neues Profil',searc
   ['menu.previous']='Vorheriges Bedienelement', ['menu.activate']='Bedienelement aktivieren',
   ['menu.back']='Zurück', ['editor.capture']='Gewähltes Tastenkürzel ändern'}
 local M={}
+for id,names in pairs({
+  ['menu.focus.armory']={'Focus and open armory','Waffenkammer zeigen und öffnen'},
+  ['menu.open.armory']={'Open armory panel','Waffenkammer öffnen'},
+  ['camera.return.armory']={'Return from armory','Von Waffenkammer zurück'},
+  ['camera.cycle.signposts']={'Cycle signposts','Wegweiser durchgehen'},
+  ['unit.stance.stand-ground']={'Stand ground','Stellung halten'},
+  ['unit.stance.defensive']={'Defensive stance','Defensive Haltung'},
+  ['unit.stance.aggressive']={'Aggressive stance','Aggressive Haltung'},
+}) do en[id]=names[1];de[id]=names[2] end
 en['game.menu.activate']='Activate gameplay control'
 de['game.menu.activate']='Bedienelement im Spiel aktivieren'
 en['target.center']='Center targeting cursor';de['target.center']='Zielcursor zentrieren'
 en['target.confirm']='Confirm target';de['target.confirm']='Ziel bestätigen'
 en['target.cancel']='Cancel target or selection';de['target.cancel']='Ziel oder Auswahl abbrechen'
 for key,names in pairs({up={'up','oben'},down={'down','unten'},left={'left','links'},right={'right','rechts'}}) do
+  en['camera.pan.'..key]='Pan camera '..names[1]
+  de['camera.pan.'..key]='Kamera nach '..names[2]
   en['target.'..key]='Move target '..names[1]
   de['target.'..key]='Zielcursor nach '..names[2]
   en['target.fine.'..key]='Move target '..names[1]..' precisely'

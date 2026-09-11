@@ -19,4 +19,15 @@ for _,id in ipairs({'target.up','target.down','target.left','target.right',
   entries[#entries+1]={id=id,contexts=world,states={'live-sp'},
     command=id=='target.confirm',default=false}
 end
+for _,pan in ipairs({{'up',17},{'left',30},{'down',31},{'right',32}}) do
+  entries[#entries+1]={id='camera.pan.'..pan[1],contexts=world,states={'live-sp'},
+    command=false,behavior='hold-local',default={scan=pan[2],extended=false,mods=0}}
+end
+for _,action in ipairs({{'menu.focus.armory',30,4},{'menu.open.armory',30,1},
+    {'camera.return.armory',30,2},{'camera.cycle.signposts',31,4},
+    {'unit.stance.stand-ground',16,0},{'unit.stance.defensive',17,4},
+    {'unit.stance.aggressive',18,0}}) do
+  entries[#entries+1]={id=action[1],contexts=world,states={'live-sp'},command=action[1]:sub(1,5)=='unit.',
+    default={scan=action[2],extended=false,mods=action[3]}}
+end
 return entries

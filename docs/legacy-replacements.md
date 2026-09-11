@@ -1,14 +1,16 @@
 # Legacy replacement audit
 
-This is a source-backed development contract. The bindings below are proposed
-defaults, not implemented or native-tested replacements. They must not be
-advertised as available in the current component PR.
+This is a source-backed development contract. Pan, armory/signpost and stance
+adapters are implemented with component coverage. Native PID3580 verified a
+diagnostic pan/release and stance submission; physical WASD and the armory/
+signpost routes still need native acceptance. Quicksave/load remain pending.
+The catalog is incomplete and must not yet be distributed as a finished module.
 
 Reference executable: SHC 1.41, SHA-256
 `3bb0a8c1e72331b3a30a5aa93ed94beca0081b476b04c1960e26d5b45387ac5a`.
 Legacy audit: `caa50aba9fc85c5fc766c413b23085ddfbba4a79`, `port/o_keys.lua`.
 
-| Action identity | Proposed default | Native behavior to preserve |
+| Action identity | Development default | Native behavior to preserve |
 |---|---|---|
 | camera.pan.up/left/down/right | W/A/S/D | Local held pan, bounded by the actual active gameplay screen; cleanup on release/focus/transition. |
 | menu.focus.armory | Alt+A | Original A obtains the local player's armory, saves the previous view, focuses its location **and opens its status panel**. The tail branch 0x4B418C -> 0x4B3B12 -> 0x4B3A35 reaches the native status opener at 0x4B3A45. |
@@ -36,8 +38,22 @@ The armory field resolves to GameStateStructures.playerDataArray[player].armory.
 at 0x115BF04 + player*0x39F4. The S array is
 0x112B0B8 + 0x516D4 + 0x2918 = 0x117F0A4; its native writer at 0x456EF0
 checks building type 0x34 (signpost), stores those IDs and their entrance data.
-These native callers and field/enum matches substantiate the identities. Runtime
-availability, exact outcomes and replacement keys remain acceptance work.
+These native callers and field/enum matches substantiate the identities. Armory
+adapters reject missing, reused or foreign building references. Stance requires
+the actual active unit panel and an owned, nonempty native selection. Signpost
+cycling is bounded to eight native references. See native-world-actions-evidence.md
+for the exact limited native outcomes.
+
+Unassigned original arrow keys retain native forwarding as a familiar alternative
+to WASD. Assigning an arrow to another custom action still requires an assigned
+pan replacement. An extension pan releases only its own hold and preserves an
+eligible forwarded arrow gesture; all owned holds stop on context/focus changes.
+Physical arrow/keypad overlap still needs native acceptance.
+
+The current original-binding table covers the audited A/S/Q/W/E and E0-arrow
+branches for the reference letter positions. Complete layout-dependent virtual
+key mapping, other original shortcuts and numpad aliases are still required
+before distributing defaults; this table is not a claim of AZERTY compatibility.
 
 Legacy's quicksave/quickload implementation intercepts text-name lookups and
 builds its own wrapper around save/load progress handling. Copying that code

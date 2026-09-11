@@ -117,6 +117,17 @@ def test_profile_change_quarantines_held_key(lua):
     ''')
 
 
+def test_recovery_chord_cancels_capture_without_binding_or_dispatch(lua):
+    lua.execute('''
+      current.owner='hotkeys.capture';local reason
+      router:startCapture(function(value,err) assert(value==nil);reason=err end)
+      assert(router:handle(event(88,'down',3)))
+      assert(not router.capture and reason=='capture.cancel' and #calls==0)
+      assert(router:handle(repeat_event(88,3)) and router:handle(event(88,'up',3)))
+      assert(#calls==0)
+    ''')
+
+
 def test_capture_cannot_activate_following_dialog(lua):
     lua.execute('''
       current.owner='hotkeys.capture'

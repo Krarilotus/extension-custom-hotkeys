@@ -22,12 +22,13 @@ def test_target_confirm_cannot_hit_footer_or_leak_across_changed_projection(lua)
     setup(lua)
     lua.execute('''
       raw.owner='game.build';raw.state='live-sp';current=Context.resolve(raw)
+      local projection='camera:0'
       target=require('code/targeting').new(cursor,{cancel=function() cursor:cancel() end},
-        function() return 0,0,800,480 end)
+        function() return 0,0,800,480,projection end)
       y=550;assert(not target:dispatch('target.confirm',current))
       y=240;assert(target:dispatch('target.confirm',current))
       assert(not target:dispatch('target.confirm',current))
-      cursor:beforeFrame();raw.targeting='changed-camera';cursor:beforeFrame()
+      cursor:beforeFrame();projection='camera:1';cursor:beforeFrame()
       assert(#changes==0 and not cursor.pending)
       current=Context.resolve(raw);assert(target:dispatch('target.cancel',current))
       for i=1,4 do cursor:beforeFrame() end

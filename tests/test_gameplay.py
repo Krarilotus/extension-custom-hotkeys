@@ -6,7 +6,7 @@ def setup(lua):
         textEditor=0,newPlayer=0,delay=-1,focused=true,composing=false,player=1,
         playerDead=0,playerDisabled=0,selectedCount=0,selectedLast=0,
         selectionBits=string.rep(string.char(0),400),building=0,nextBuilding=0,
-        unit=0,nextUnit=0,placement=0,rotation=0,cameraX=0,cameraY=0,zoom=0,patrol=0}
+        unit=0,nextUnit=0,tribe=0,placement=0,rotation=0,cameraX=0,cameraY=0,zoom=0,patrol=0}
     ''')
 
 
@@ -48,7 +48,7 @@ def test_selection_and_projection_identity_changes_without_stale_owned_flag(lua)
       s.ownedSelected=1;assert(Gameplay.resolve(s).selection==initial.selection)
       s.selectionBits=string.char(1)..s.selectionBits:sub(2)
       assert(Gameplay.resolve(s).selection~=initial.selection)
-      s.cameraX=1;assert(Gameplay.resolve(s).targeting~=initial.targeting)
+      s.cameraX=1;assert(Gameplay.resolve(s).targeting==initial.targeting)
       s.cameraX=0;s.placement=25;assert(Gameplay.resolve(s).targeting~=initial.targeting)
       for _,rotation in ipairs({0,2,4,6}) do s.rotation=rotation;assert(Gameplay.resolve(s)) end
       s.rotation=3;assert(not Gameplay.resolve(s))

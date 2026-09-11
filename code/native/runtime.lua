@@ -15,8 +15,8 @@ function M.start(entries,language)
   local lock=assert(require('code/native/profile_lock').acquire())
   local platform=Platform.new(tonumber(ffi.cast('int32_t *',0xf983e4)[0]))
   local scene=Scene.new(platform)
-  local catalog=Catalog.new(entries)
-  local view,cursor,navigation,targeting
+  local catalog=Catalog.new(entries,require('code/originals'))
+  local view,cursor,navigation,targeting,camera,worldActions
   local router=Router.new(catalog,Catalog.defaults(catalog),{
     resolve=function() return scene:resolve(view) end,
     dispatch=function(id,context)
@@ -25,11 +25,12 @@ function M.start(entries,language)
       if id=='menu.previous' then return navigation:move(-1,context) end
       if id=='menu.activate' or id=='game.menu.activate' then return navigation:activate(context) end
       if id:sub(1,7)=='target.' then return targeting:dispatch(id,context) end
-      error('action.not-integrated: '..id)
+      if id:sub(1,11)=='camera.pan.' then cursor:cancel();return camera:start(id,context) end
+      return worldActions:dispatch(id,context)
     end,
     canRecover=function(c) return c and (c.owner:sub(1,5)=='menu.' or c.owner=='game.build' or c.owner=='game.status') end,
     recover=function() return view:open() end,
-    cancelLocalHold=function() end,
+    cancelLocalHold=function(id) if camera then camera:release(id) end end,
     cancelPending=function() if cursor then cursor:cancel() end end,
   })
   local store={load=function() return remote.interface.loadProfiles() end,
@@ -37,6 +38,8 @@ function M.start(entries,language)
   local profiles,err=Profiles.new(catalog,store,router)
   assert(profiles,err)
   view=View.new(profiles,catalog,router,scene,platform,require('code/locale').new(language))
+  camera=require('code/native/camera').new(platform,router)
+  worldActions=require('code/native/world_actions').new(scene,view)
   local pointer=require('code/native/pointer').new(platform,scene)
   cursor=require('code/cursor').new(require('code/native/mouse').new(scene,
     function() return scene:resolve(view) end,pointer))
@@ -59,16 +62,17 @@ function M.start(entries,language)
     local x,y,w,h=tonumber(p[0]),tonumber(p[1]),tonumber(p[2]),tonumber(p[3])
     local s=scene:snapshot()
     if x<0 or y<0 or w<64 or h<64 or x+w>s.width or y+h>s.height then return nil end
-    return x,y,w,h
+    return x,y,w,h,tostring(ffi.cast('int32_t *',0x21aec50)[0])..':'..
+      tostring(ffi.cast('int32_t *',0x21aec54)[0])..':'..x..':'..y..':'..w..':'..h
   end)
   local chain=require('code/native/chain').install(remote.interface.chain(),router,platform,
     function(event) return view:input(event) end,function(message,_,lparam)
       if pointer:observe(message,lparam) then navigation:cancel() end
     end)
-  local inputFrame=require('code/native/input_frame').install(cursor,router)
+  local inputFrame=require('code/native/input_frame').install(cursor,router,camera)
   local runtime={lock=lock,platform=platform,scene=scene,catalog=catalog,router=router,
     profiles=profiles,view=view,chain=chain,cursor=cursor,navigation=navigation,
-    inputFrame=inputFrame,pointer=pointer,targeting=targeting,pins={}}
+    inputFrame=inputFrame,pointer=pointer,targeting=targeting,camera=camera,worldActions=worldActions,pins={}}
   local main=api.ui.Menu:fromPointer(remote.interface.menuAddress(41),41)
   local count=main.menuItemsCount
   assert(count>=1 and count<=4096,'menu.main-size')

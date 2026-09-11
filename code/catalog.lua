@@ -36,7 +36,8 @@ function M.new(entries, nativeBindings)
   for _, entry in ipairs(nativeBindings or {}) do
     assert(actions[entry.action], 'native.action')
     local binding = assert(Binding.validate(entry.binding))
-    originals[#originals+1] = {action=entry.action, binding=binding}
+    assert(entry.retain==nil or type(entry.retain)=='boolean','native.retain')
+    originals[#originals+1] = {action=entry.action, binding=binding,retain=entry.retain==true}
   end
   return {actions=actions, ordered=ordered, originals=originals}
 end

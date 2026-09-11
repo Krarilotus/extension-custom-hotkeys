@@ -4,7 +4,7 @@ local M={}
 local live={}
 function M.start(modulePath)
   local entries=require('code/entries')
-  local catalog=require('code/catalog').new(entries)
+  local catalog=require('code/catalog').new(entries,require('code/originals'))
   local profiles=require('code/profiles')
   local store=require('code/store').new(require('code/ucp_storage').new(io),
     {encode=function(value) return json:encode(value) end,

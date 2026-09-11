@@ -19,6 +19,7 @@ function M.resolve(s,ownedModal)
   s.placement=read(0x1fe7aec);s.rotation=read(0x1fe7aa4)
   s.cameraX=read(0x21aec50);s.cameraY=read(0x21aec54);s.zoom=read(0x21aec68)
   s.patrol=read(0x1667f94)
+  s.tribe=read(0x1667f78)
   return Resolve.resolve(s,ownedModal)
 end
 return M
