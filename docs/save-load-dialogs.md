@@ -1,0 +1,30 @@
+# Save and Load dialog shortcuts
+
+`game.save.open` defaults to Shift+F1; `game.load.open` to Shift+F2. Their native
+Ctrl+Shift aliases participate in original-binding conflict detection. These
+actions open the ordinary native dialogs; they do not save/load immediately.
+Quicksave/quickload remains a separate implementation and acceptance requirement.
+
+Reference SHC1.41 SHA256:
+`3bb0a8c1e72331b3a30a5aa93ed94beca0081b476b04c1960e26d5b45387ac5a`.
+Original WndProc branches `0x4B3223`/`0x4B32B6` call
+`MenuTextInputState::loadOrSaveGame(0x4968A0,this=0x11265A8,10/9)`.
+The extension uses that boundary after rechecking the shared live screen,
+modal, text, focus, selection, authority and session context. Additional native
+mode, scenario restriction and local-player death checks apply. Mode1/4/6 and
+unverified modes are rejected. Synchrony0/99 is allowed; Save in mode99 also
+requires the native host flag1. The Load99 scenario check is conservatively
+stricter than the original branch. Active multiplayer and Recorder remain gated.
+
+The native owner discovers saves through ResourceManager, initializes list
+selection, activates modal9/10 through `0x4916C0`, and gives Save text index2 to
+UserTextHandler. The extension neither writes its list/state fields nor invokes
+raw Save/Load button callbacks. The multiplayer branch of this owner can queue
+category0x32 while listing load candidates; it must not become reachable by
+removing the current session gate without coordinated multiplayer acceptance.
+
+Pending extension cursor gestures are cancelled before opening. On entering the
+text modal, ordinary text remains native and extension world actions resolve to
+no eligible context. Component tests exercise one owner call per activation,
+the mode/session restrictions, changed-context rejection and original conflicts.
+Native shortcut acceptance and the complete quicksave/quickload flow are pending.

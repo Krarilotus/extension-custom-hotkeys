@@ -59,3 +59,17 @@ attempt logged no eligible context; rotation0, zoom0, camera2772/1864 and all
 pan hold flags0 stayed unchanged. This is a native text-modal rejection check,
 not typed-text or physical held-key acceptance. The process closed normally,
 absence was verified, and the desktop was released19:54:25 CEST.
+
+The corrected input-origin implementation passed its native adapter retest in
+PID16852 on11 September21:31 CEST, production revision bed43db. From a
+mouse-prepared Castle Builder fixture, F9 selected Save at client638,207 with
+visible native hover. F8 activated it through the normal cursor/input path;
+Save/modal10 opened, and the remaining gesture cancelled on the owner change.
+F10 rotation was rejected in Save, with camera2772/1864, rotation0, zoom0 and
+pan flags0. Native `w` appeared in the focused name field. Nothing was saved.
+Game exit and absence were verified; desktop released21:32:13; baseline restored.
+Receipts: workspace `native-evidence/options-16852-{build.json,before.json,
+save.json}` and `options-16852.log`/`options-16852-error.log`.
+The task-only F-key diagnostic bypasses scan0 transport. This verifies native
+navigation/activation and text-modal isolation, not physical rebinding, held
+keys, command counts or the complete keyboard-only acceptance route.

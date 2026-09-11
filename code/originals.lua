@@ -4,6 +4,9 @@ local entries={}
 local function add(action,scan,mods,extended,retain)
   entries[#entries+1]={action=action,binding={scan=scan,extended=extended or false,mods=mods},retain=retain}
 end
+for _,dialog in ipairs({{'save',59},{'load',60}}) do
+  for _,mods in ipairs({2,3}) do add('game.'..dialog[1]..'.open',dialog[2],mods) end
+end
 for _,building in ipairs(require('code/building_actions')) do
   if building.scan then
     add('menu.focus.'..building.name,building.scan,0)

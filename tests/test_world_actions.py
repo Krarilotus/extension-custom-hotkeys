@@ -18,6 +18,42 @@ def setup(lua):
     ''')
 
 
+def test_save_load_dialog_owner_and_native_session_restrictions(lua):
+    setup(lua)
+    lua.execute('''
+      s.mode=2;s.scenarioRestriction=0;s.playerDead=0;s.synchronyMode=0
+      s.sessionHost=0;s.textModal=0;s.modal=-1
+      world.adapter.saveLoadDialog=function(value) calls[#calls+1]=value end
+      assert(world:dispatch('game.save.open',c));assert(calls[1]==10)
+      assert(world:dispatch('game.load.open',c));assert(calls[2]==9)
+      s.synchronyMode=99
+      assert(not world:dispatch('game.save.open',c))
+      assert(world:dispatch('game.load.open',c));assert(calls[3]==9)
+      s.sessionHost=1;assert(world:dispatch('game.save.open',c));assert(calls[4]==10)
+      for _,id in ipairs({'game.save.open','game.load.open'}) do
+        for _,case in ipairs({{'mode',1},{'mode',4},{'mode',6},
+            {'scenarioRestriction',1},{'playerDead',1},{'synchronyMode',1},
+            {'synchronyMode',666},{'textModal',10},{'modal',5}}) do
+          local key,value=case[1],case[2];local old=s[key];s[key]=value
+          assert(not world:dispatch(id,c));s[key]=old
+        end
+        for field,value in pairs({text=true,modal='5',state='replay',authority=false,
+            owner='game.options',targeting='changed',focused=false}) do
+          local old=raw[field];raw[field]=value
+          assert(not world:dispatch(id,c));raw[field]=old
+        end
+      end
+      assert(#calls==4)
+      local catalog=Catalog.new(require('code/entries'),require('code/originals'))
+      local defaults=assert(Catalog.validate(catalog,Catalog.defaults(catalog)))
+      assert(defaults['game.save.open'].scan==59 and defaults['game.save.open'].mods==2)
+      defaults['target.center']={scan=59,extended=false,mods=3}
+      defaults['game.save.open']=false
+      local valid,reason=Catalog.validate(catalog,defaults)
+      assert(not valid and reason=='binding.native-conflict')
+    ''')
+
+
 def test_view_transform_wrap_zoom_and_projection_transition_guards(lua):
     setup(lua)
     lua.execute('''

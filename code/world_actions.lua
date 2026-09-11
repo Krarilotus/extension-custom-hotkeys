@@ -12,6 +12,14 @@ function M:dispatch(id,context)
       or (context.owner~='game.build' and context.owner~='game.status')
       or not Context.same(context,Context.resolve(a.resolve())) then return false end
   local s=a.snapshot()
+  if id=='game.save.open' or id=='game.load.open' then
+    if not integer(s.mode,0,5) or s.mode==1 or s.mode==4 or s.scenarioRestriction~=0
+        or s.playerDead~=0 or (s.synchronyMode~=0 and s.synchronyMode~=99)
+        or s.textModal~=0 or s.modal~=-1 then return false end
+    if id=='game.save.open' and s.synchronyMode==99 and s.sessionHost~=1 then return false end
+    a.saveLoadDialog(id=='game.save.open' and 10 or 9)
+    return true
+  end
   if id=='camera.focus.lord' or id=='camera.cycle.lords' then
     local function valid(lord,player)
       return lord and integer(lord.id,1,2499) and lord.type==55 and lord.state==2

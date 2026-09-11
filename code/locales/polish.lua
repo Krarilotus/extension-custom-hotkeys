@@ -1,4 +1,5 @@
 return {
+ ['game.save.open']='Otwórz zapis gry', ['game.load.open']='Otwórz wczytywanie gry',
  ['camera.focus.lord']='Pokaż swojego lorda', ['camera.cycle.lords']='Przełączaj żyjących lordów',
  mainHelp1='Dostosuj skróty klawiszowe.',mainHelp2='Twórz i wymieniaj profile.',
  ['view.rotate-left']='Obróć widok w lewo', ['view.rotate-right']='Obróć widok w prawo',

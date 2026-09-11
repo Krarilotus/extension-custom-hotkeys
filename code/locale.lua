@@ -17,6 +17,8 @@ local de={title='Eigene Tastenkürzel',profile='Profil',new='Neues Profil',searc
   ['menu.previous']='Vorheriges Bedienelement', ['menu.activate']='Bedienelement aktivieren',
   ['menu.back']='Zurück', ['editor.capture']='Gewähltes Tastenkürzel ändern'}
 local M={}
+en['game.save.open']='Open Save dialog';de['game.save.open']='Speicherdialog öffnen'
+en['game.load.open']='Open Load dialog';de['game.load.open']='Ladedialog öffnen'
 en.mainHelp1='Change keyboard shortcuts.';en.mainHelp2='Create, import and export profiles.'
 de.mainHelp1='Tastenkürzel anpassen.';de.mainHelp2='Profile erstellen und austauschen.'
 en['view.rotate-left']='Rotate view left';de['view.rotate-left']='Ansicht nach links drehen'

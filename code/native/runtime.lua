@@ -29,7 +29,7 @@ function M.start(entries,language)
       if id:sub(1,7)=='target.' then return targeting:dispatch(id,context) end
       if id:sub(1,11)=='camera.pan.' then cursor:cancel();return camera:start(id,context) end
       if controls[id] then return navigation:activateMatching(controls[id],context) end
-      if id:sub(1,5)=='view.' then cursor:cancel() end
+      if id:sub(1,5)=='view.' or id=='game.save.open' or id=='game.load.open' then cursor:cancel() end
       return worldActions:dispatch(id,context)
     end,
     canRecover=function(c) return c and (c.owner:sub(1,5)=='menu.' or c.owner=='game.build' or c.owner=='game.status') end,
