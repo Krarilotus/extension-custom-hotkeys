@@ -42,6 +42,31 @@ def test_gameplay_text_pause_authority_and_transition_gates(lua):
     ''')
 
 
+def test_options_owns_only_its_verified_active_modal_and_has_no_world_actions(lua):
+    setup(lua)
+    lua.execute('''
+      s.modal=5;s.textModal=5;s.activeModalID=5;s.activeModalMenu=0xb971f0
+      s.paused=1
+      local resolved=assert(Gameplay.resolve(s,5))
+      assert(resolved.owner=='game.options')
+      local raw=facts(resolved.owner,resolved.state);raw.screen='14';raw.modal='5'
+      local context=Context.resolve(raw)
+      local c=Catalog.new(require('code/entries'),require('code/originals'))
+      assert(Context.allows(c.actions['menu.next'],context))
+      assert(Context.allows(c.actions['game.menu.activate'],context))
+      for _,id in ipairs({'camera.pan.up','target.confirm','menu.open.market',
+        'menu.build.industry','unit.stance.defensive','hotkeys.open'}) do
+        assert(not Context.allows(c.actions[id],context),id)
+      end
+      for field,value in pairs({activeModalID=10,activeModalMenu=0,textModal=10,
+          textEditor=1,modal2=11,modal3=27,synchronyMode=1,focused=false,
+          composing=true,delay=0,newPlayer=1,screen=17}) do
+        local old=s[field];s[field]=value
+        assert(not Gameplay.resolve(s,5),field);s[field]=old
+      end
+    ''')
+
+
 def test_selection_and_projection_identity_changes_without_stale_owned_flag(lua):
     setup(lua)
     lua.execute('''

@@ -3,17 +3,19 @@
 local parents={'menu.main','menu.custom-scenarios','menu.campaigns','menu.missions'}
 local all={'menu.main','menu.custom-scenarios','menu.campaigns','menu.missions','game.build','game.status'}
 local world={'game.build','game.status'}
+local navigation={'menu.main','menu.custom-scenarios','menu.campaigns','menu.missions',
+  'game.build','game.status','game.options'}
 local entries={{id='view.toggle-interface',contexts={'game.build'},states={'live-sp'},command=false,
   default={scan=15,extended=false,mods=1}},
   {id='hotkeys.open',contexts=all,
   states={'menu','live-sp'},command=false,default={scan=88,extended=false,mods=0}},
-  {id='menu.next',contexts=all,states={'menu','live-sp'},command=false,
+  {id='menu.next',contexts=navigation,states={'menu','live-sp'},command=false,
     default={scan=15,extended=false,mods=0}},
-  {id='menu.previous',contexts=all,states={'menu','live-sp'},command=false,
+  {id='menu.previous',contexts=navigation,states={'menu','live-sp'},command=false,
     default={scan=15,extended=false,mods=2}},
   {id='menu.activate',contexts=parents,states={'menu'},command=false,
     default={scan=28,extended=false,mods=0}},
-  {id='game.menu.activate',contexts=world,states={'live-sp'},command=true,
+  {id='game.menu.activate',contexts={'game.build','game.status','game.options'},states={'live-sp'},command=true,
     default={scan=28,extended=false,mods=0}}}
 for _,id in ipairs({'target.up','target.down','target.left','target.right',
     'target.fine.up','target.fine.down','target.fine.left','target.fine.right','target.center',

@@ -51,8 +51,12 @@ function M.start(entries,language)
   navigation=require('code/navigation').new({
     controls=function(context)
       if not context or (context.owner:sub(1,5)~='menu.' and context.owner~='game.build'
-          and context.owner~='game.status') then return nil end
+          and context.owner~='game.status' and context.owner~='game.options') then return nil end
       local s=scene:snapshot()
+      if context.owner=='game.options' then
+        if tostring(s.screen)~=context.screen or not require('code/options_context').owns(s) then return nil end
+        return reader:read(s.activeModalMenu,s)
+      end
       if tostring(s.screen)~=context.screen or s.modal~=-1 or s.modal2~=-1 or s.modal3~=-1 then return nil end
       return reader:read(remote.interface.menuAddress(s.screen),s)
     end,
