@@ -23,6 +23,7 @@ return {
  open='Otwórz: ',choose='Wybierz: ',
  ['hotkeys.open']='Otwórz skróty klawiszowe', ['menu.next']='Następny element',
  ['menu.previous']='Poprzedni element', ['menu.activate']='Aktywuj element',
+ ['game.quickload']='Szybki odczyt',
  ['game.quicksave']='Szybki zapis',
  ['game.menu.activate']='Aktywuj element gry',
  ['target.center']='Wyśrodkuj kursor celu', ['target.confirm']='Potwierdź cel',

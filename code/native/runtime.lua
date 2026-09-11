@@ -18,12 +18,12 @@ function M.start(entries,language)
   local catalog=Catalog.new(entries,require('code/originals'))
   local controls={}
   for _,control in ipairs(require('code/controls')) do controls[control.id]=control end
-  local view,cursor,navigation,targeting,camera,worldActions,quicksave
+  local view,cursor,navigation,targeting,camera,worldActions,quickslot
   local router
   router=Router.new(catalog,Catalog.defaults(catalog),{
-    resolve=function() if quicksave and quicksave.active then return nil end;return scene:resolve(view) end,
+    resolve=function() if quickslot and quickslot.active then return nil end;return scene:resolve(view) end,
     dispatch=function(id,context)
-      if id=='game.quicksave' then router:barrier();return quicksave:start(context) end
+      if (id=='game.quicksave' or id=='game.quickload') then router:barrier();return quickslot:start(context,id) end
       if id=='hotkeys.open' then return view:open() end
       if id=='menu.next' then return navigation:move(1,context) end
       if id=='menu.previous' then return navigation:move(-1,context) end
@@ -39,7 +39,7 @@ function M.start(entries,language)
     recover=function() return view:open() end,
     cancelLocalHold=function(id) if camera then camera:release(id) end end,
     cancelPending=function()
-      if quicksave then quicksave:cancel() end
+      if quickslot then quickslot:cancel() end
       if cursor then cursor:cancel() end
     end,
   })
@@ -54,7 +54,7 @@ function M.start(entries,language)
   local pointer=require('code/native/pointer').new(platform,scene)
   cursor=require('code/cursor').new(require('code/native/mouse').new(scene,
     function()
-      if quicksave and quicksave.active then return quicksave:context() end
+      if quickslot and quickslot.active then return quickslot:context() end
       return scene:resolve(view)
     end,pointer))
   local reader=require('code/native/menu_reader').new()
@@ -92,18 +92,18 @@ function M.start(entries,language)
     return x,y,w,h,tostring(ffi.cast('int32_t *',0x21aec50)[0])..':'..
       tostring(ffi.cast('int32_t *',0x21aec54)[0])..':'..x..':'..y..':'..w..':'..h
   end)
-  quicksave=require('code/native/quicksave').new(scene,view,worldActions,cursor,reader)
+  quickslot=require('code/native/quickslot').new(scene,view,worldActions,cursor,reader)
   local chain=require('code/native/chain').install(remote.interface.chain(),router,platform,
     function(event)
-      if quicksave.active and (event.kind=='down' or event.kind=='char') then quicksave:cancel() end
+      if quickslot.active and (event.kind=='down' or event.kind=='char') then quickslot:cancel() end
       return view:input(event)
     end,function(message,_,lparam)
-      if pointer:observe(message,lparam) then quicksave:cancel();navigation:cancel() end
+      if pointer:observe(message,lparam) then quickslot:cancel();navigation:cancel() end
     end)
-  local inputFrame=require('code/native/input_frame').install(cursor,router,camera,quicksave)
+  local inputFrame=require('code/native/input_frame').install(cursor,router,camera,quickslot)
   local runtime={lock=lock,platform=platform,scene=scene,catalog=catalog,router=router,
     profiles=profiles,view=view,chain=chain,cursor=cursor,navigation=navigation,
-    inputFrame=inputFrame,quicksave=quicksave,pointer=pointer,targeting=targeting,camera=camera,worldActions=worldActions,pins={}}
+    inputFrame=inputFrame,quickslot=quickslot,pointer=pointer,targeting=targeting,camera=camera,worldActions=worldActions,pins={}}
   local main=api.ui.Menu:fromPointer(remote.interface.menuAddress(41),41)
   local count=main.menuItemsCount
   assert(count>=1 and count<=4096,'menu.main-size')

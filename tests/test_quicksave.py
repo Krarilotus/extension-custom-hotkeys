@@ -5,7 +5,7 @@ def test_quicksave_native_workflow_commits_each_step_once_and_stops_at_handoff(l
     lua.execute("""
       local phase,pending='name',false
       local calls={open=0,name=0,confirm=0,cancel=0}
-      local q=require('code/quicksave').new({
+      local q=require('code/quickslot').new({
         open=function() calls.open=calls.open+1;return {} end,
         observe=function() return phase end,
         submitName=function() calls.name=calls.name+1;return true end,
@@ -27,7 +27,7 @@ def test_quicksave_never_retries_rejected_uncertain_or_cancelled_steps(lua):
     lua.execute("""
       local phase,accept='name',false
       local attempts,cancels=0,0
-      local q=require('code/quicksave').new({open=function() return {} end,
+      local q=require('code/quickslot').new({open=function() return {} end,
         observe=function() return phase end,
         submitName=function() attempts=attempts+1;return accept end,
         confirm=function() attempts=attempts+1;return false end,
@@ -81,7 +81,7 @@ def native_setup(lua):
         return {cancel=function() c:cancel() end,
           activateMatching=function(_,selector,context)
             assert(selector.action==0x494950 and selector.parameter==22 and selector.kind==3)
-            assert(context.owner=='quicksave.confirm' and context.authority==false)
+            assert(context.owner=='quickslot.confirm' and context.authority==false)
             assert(adapter.controls(context))
             confirmations=confirmations+1;c.pending={};return true
           end}
@@ -91,8 +91,8 @@ def native_setup(lua):
         s.modal=10;s.textModal=10;s.activeModalID=10;s.activeModalMenu=0xb96290
         return true
       end}
-      package.loaded['code/native/quicksave']=nil
-      q=require('code/native/quicksave').new(scene,{},world,cursor,
+      package.loaded['code/native/quickslot']=nil
+      q=require('code/native/quickslot').new(scene,{},world,cursor,
         {read=function(_,address,state,origin) assert(address==0xb97ad8 and origin.x==280);return {} end})
       function start() assert(q:start(Context.resolve(facts('game.build')))) end
       function overwrite()

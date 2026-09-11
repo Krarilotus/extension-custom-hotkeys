@@ -23,6 +23,7 @@ return {
  open='Apri: ',choose='Scegli: ',
  ['hotkeys.open']='Apri i tasti personalizzati', ['menu.next']='Comando successivo',
  ['menu.previous']='Comando precedente', ['menu.activate']='Attiva comando',
+ ['game.quickload']='Caricamento rapido',
  ['game.quicksave']='Salvataggio rapido',
  ['game.menu.activate']='Attiva comando di gioco',
  ['target.center']='Centra il cursore di mira', ['target.confirm']='Conferma bersaglio',

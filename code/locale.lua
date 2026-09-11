@@ -63,6 +63,8 @@ for id,names in pairs({
   ['unit.stance.defensive']={'Defensive stance','Defensive Haltung'},
   ['unit.stance.aggressive']={'Aggressive stance','Aggressive Haltung'},
 }) do en[id]=names[1];de[id]=names[2] end
+en['game.quickload']='Quickload'
+de['game.quickload']='Schnellladen'
 en['game.quicksave']='Quicksave'
 de['game.quicksave']='Schnellspeichern'
 en['game.menu.activate']='Activate gameplay control'

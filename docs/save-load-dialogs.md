@@ -3,7 +3,7 @@
 `game.save.open` defaults to Shift+F1; `game.load.open` to Shift+F2. Their native
 Ctrl+Shift aliases participate in original-binding conflict detection. These
 actions open the ordinary native dialogs; they do not save/load immediately.
-Quicksave/quickload remains a separate implementation and acceptance requirement.
+The [quick actions](quickload.md) now build on these native dialog owners.
 
 Reference SHC1.41 SHA256:
 `3bb0a8c1e72331b3a30a5aa93ed94beca0081b476b04c1960e26d5b45387ac5a`.
@@ -27,7 +27,7 @@ Pending extension cursor gestures are cancelled before opening. On entering the
 text modal, ordinary text remains native and extension world actions resolve to
 no eligible context. Component tests exercise one owner call per activation,
 the mode/session restrictions, changed-context rejection and original conflicts.
-The complete quicksave/quickload flow remains pending.
+Native quicksave/quickload diagnostics are recorded in [quickload](quickload.md).
 
 Native adapter check on 11 September 2026, PID6852, source8a34462: diagnostic
 F10 invoked `game.save.open` once at21:37:05.791 and opened Save/modal10 with text

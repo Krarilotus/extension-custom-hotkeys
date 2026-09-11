@@ -2,7 +2,8 @@
 
 `game.quicksave` defaults to Ctrl+S and uses the dedicated native save name
 `Custom Hotkeys Quick`. The existing Alt+S signpost action remains configurable
-as the replacement for original S aliases. Quickload remains separate work.
+as the replacement for original S aliases. [Quickload](quickload.md) shares the
+same bounded input workflow and defaults to Ctrl+L.
 
 One fresh activation opens the normal Save dialog via the existing guarded action.
 A bounded workflow sets native name entry2 using0x469800 and introduces one Return
@@ -29,5 +30,15 @@ by the native UI. Active MP and Recorder are still rejected by existing integrat
 gates. Component tests cover first save, overwrite, single submission, cancellation,
 foreign dialogs/names, session/focus changes and pending Return ownership.
 
-Native first-save and overwrite acceptance is pending. Full physical keyboard-only,
-held-key, multiplayer and replay/state-restore acceptance remains incomplete.
+Native diagnostic evidence on SHC1.41: PID30908 created the dedicated slot at
+00:01:16 CEST12 September2026 (832452 bytes), overwrote it at00:01:47
+(832380 bytes), and reloaded it using the normal native Load controls. The
+read-only sampler observed Save10 -> overwrite11 -> progress14 -> gameplay;
+world actions were rejected while Load owned the screen. PID21676 retested
+quicksave after the shared quickslot refactor, creating an833737-byte overwrite
+at00:14:05 after quickload returned to gameplay. Both logs have no frame failure
+and error headers only. See [quickload](quickload.md) for the shared environment.
+
+These F-key diagnostics call the production adapters, bypassing physical binding
+lookup because the Computer Use backend emits scan0. They do not prove physical
+Ctrl+S, held-key, command counts, keyboard-only, multiplayer or replay acceptance.

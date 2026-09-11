@@ -3,7 +3,7 @@
 This is a source-backed development contract. Pan, armory/signpost and stance
 adapters are implemented with component coverage. Native PID3580 verified a
 diagnostic pan/release and stance submission; physical WASD and the armory/
-signpost routes still need native acceptance. Quicksave/load remain pending.
+signpost routes still need native acceptance. Quicksave/load now use the native input owners; see [quickload evidence](quickload.md).
 The catalog is incomplete and must not yet be distributed as a finished module.
 
 Reference executable: SHC 1.41, SHA-256
@@ -18,8 +18,8 @@ Legacy audit: `caa50aba9fc85c5fc766c413b23085ddfbba4a79`, `port/o_keys.lua`.
 | camera.return.armory | Shift+A | Original Shift+A returns to the saved view and clears it; it may close an active building panel. Preserve native validity checks. |
 | camera.cycle.signposts | Alt+S | Original S cycles the eight native signpost building references and focuses their coordinates, skipping missing entries. Local camera action, not a construction/selection action. |
 | unit.stance.defensive | Alt+W | Original W on the active unit panels queues defensive stance through 0x522BF0 -> GameSynchronyState::queueCommand(0x46). Never call the direct stance setter 0x522C20. |
-| session.quicksave | Ctrl+S | Save through the normal SP save owner with the chosen quicksave name; do not patch the global text getter. |
-| session.quickload | Ctrl+L | Load through the normal SP session owner. Native MP/replay eligibility must reject any unsupported SP shortcut. |
+| game.quicksave | Ctrl+S | Save through the normal SP save owner with the chosen quicksave name; do not patch the global text getter. |
+| game.quickload | Ctrl+L | Load through the normal SP session owner. Native MP/replay eligibility must reject any unsupported SP shortcut. |
 | view.toggle-interface | Ctrl+Tab | Original Tab shows/hides the toolbar through0x471AA0. Tab/Shift+Tab now navigate controls; their original modifier aliases participate in conflict detection. Native retest pending. |
 
 On the reference image, the WM_SYSKEYDOWN table routes Alt+A, Alt+S and Alt+W to

@@ -5,11 +5,12 @@ M.__index=M
 function M.new(adapter)
   return setmetatable({adapter=adapter,active=false},M)
 end
-function M:start(context)
+function M:start(context,action)
   if self.active then return false end
-  local token=self.adapter.open(context)
+  local token=self.adapter.open(context,action)
   if not token then return false end
-  self.token,self.phase,self.frames=token,'name',0
+  self.token,self.phase,self.frames=token,action=='game.quickload' and 'load' or 'name',0
+  self.limit=action=='game.quickload' and 900 or 90
   self.active=true
   return true
 end
@@ -23,9 +24,12 @@ function M:beforeFrame()
   if not self.active then return end
   self.frames=self.frames+1
   local kind=self.adapter.observe(self.token)
-  if not kind or self.frames>90 then self:cancel();return end
+  if not kind or self.frames>self.limit then self:cancel();return end
   if kind=='progress' or kind=='done' then self:cancel();return end
-  if self.phase=='name' then
+  if self.phase=='load' then
+    if kind~='load' then self:cancel();return end
+    if not self.adapter.pending() and not self.adapter.loadStep(self.token) then self:cancel() end
+  elseif self.phase=='name' then
     if kind~='name' then self:cancel();return end
     -- Mark before the native call: an uncertain failure is never retried.
     self.phase='submitted'

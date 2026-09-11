@@ -62,7 +62,7 @@ keyboard-only acceptance and are excluded from product code. See the native
 evidence documents for observed outcomes, mouse preparation and failed checks.
 
 Remaining delivery gates include the full catalog/default/layout audit,
-construction/economy/recruitment and quicksave/load workflows, native profile
+construction/economy/recruitment workflows, physical quicksave/load input, native profile
 exchange/localization, packaging, command counts/performance, keyboard-only and
 manual two-PC acceptance, Recorder replay/restore integration, review and normal
 verified merge. Draft PR2 and issue1 remain open.

@@ -4,7 +4,7 @@ Tab and Shift+Tab traverse eligible controls in the active single-player Load
 dialog; Enter activates the highlighted control through native cursor hit testing.
 This includes existing save rows, Load, Back, sort headers and available scroll
 arrows. Empty rows, an unavailable Load button and scrollbar dragging are excluded.
-The original mouse operation remains available. This is not quickload yet.
+The original mouse operation remains available. [Quickload](quickload.md) now reuses these controls.
 
 SHC1.41 modal9 must be the actual active composition with menu0xB97688 and
 array0x601A88. Its original table has no editable field; Save10 does. Native text
