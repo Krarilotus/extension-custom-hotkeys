@@ -14,8 +14,9 @@ pointer, plus no second/third modal or active text editor. It never obtains an
 options menu from the registry while a different modal owns input.
 
 The active composition is at `0x1FE7C90`; its ID is at +4 and menu pointer at
-+0x24. Rendering/input at `0x4B0F0E` reads that pointer, writes the menu's actual
-rendered x/y, then calls native menu input and rendering. Individual controls can
++0x24. The input update at `0x4AA311..0x4AA327` copies the active composition's
+client x/y to its menu before calling `0x4F6470`. Rendering at `0x4B0F0E`
+overwrites that origin with offscreen viewport offsets. Individual controls can
 retain a different owning Menu while sharing that array. Input at `0x4F4333`
 and rendering at `0x4F4A26` use the item's owner pointer at +0x4C. Navigation
 therefore reads that owner's coordinates and verifies its array. Shifted menus
@@ -38,13 +39,20 @@ to the same menu, whose coordinates change between native processing passes.
 The hover guard again cancelled without a click. Reading the owner alone
 therefore did not fix Options navigation.
 
-Options now derives its origin from the active composition's x/y plus the
-native viewport offsets at `0x21AEC58/5C`, following `0x4B0B93..0x4B0BBE`.
-Border bit2 adds the twelve-pixel top strip (`0x4B0CB4..0x4B0CDE`). It requires
-an idle, non-closing composition and a bounded rectangle, and applies this
+Options derives its input origin directly from the active composition's x/y.
+The viewport offsets at `0x21AEC58/5C` belong to rendering, not client input.
+Activation initializes the idle animation value to32 (`0x4AA057`); zero belongs
+to an opening animation when border bit0x400 is set. Navigation requires32,
+non-closing state, the verified Options border0x200 and a bounded rectangle.
+It applies this
 origin only to controls owned by the verified active menu. No native geometry
 is written or cached across frames. The click guard still rechecks the active
-layout and native hover. This second correction requires a native retest.
+layout and native hover. Native retesting of these input-coordinate and idle
+corrections remains pending. PID34292 rejected navigation because the previous
+version incorrectly required animation0. Its read-only sample confirmed
+modal388,116,504x360, border512, animation32, closing0, versus render offsets
+170,24 and Menu origin558,140. Disk exhaustion truncated file evidence, so the
+sample survives only in the tool transcript; no acceptance pass is claimed.
 
 In PID2564, mouse fallback opened Save/modal10/text index2. A diagnostic rotate
 attempt logged no eligible context; rotation0, zoom0, camera2772/1864 and all

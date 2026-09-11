@@ -18,7 +18,6 @@ function M:snapshot()
     modalX=read(0x1fe7c98),modalY=read(0x1fe7c9c),
     modalWidth=read(0x1fe7ca0),modalHeight=read(0x1fe7ca4),modalBorder=read(0x1fe7ca8),
     modalAnimation=read(0x1fe7cf8),modalClosing=read(0x1fe7cfc),
-    viewOffsetX=read(0x21aec58),viewOffsetY=read(0x21aec5c),
     textModal=read(0x1126604),textEditor=read(0x2403b00),
     width=read(0xf98350),height=read(0xf98354),sliding=read(0xf2b3a8),
     focused=self.platform:focused(),composing=self.platform.composing,

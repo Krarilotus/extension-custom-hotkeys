@@ -41,23 +41,24 @@ def test_reader_uses_actual_item_owner_and_rejects_foreign_or_shifted_geometry(l
     ''')
 
 
-def test_options_origin_follows_active_composition_and_native_viewport(lua):
+def test_options_origin_follows_input_composition_not_render_offsets(lua):
     lua.execute('''
       local options=require('code/options_context')
       local s={screen=14,modal=5,activeModalID=5,activeModalMenu=0xb971f0,
         textModal=5,textEditor=0,modal2=-1,modal3=-1,
-        modalX=148,modalY=56,modalWidth=500,modalHeight=350,modalBorder=0x200,
-        modalAnimation=0,modalClosing=0,viewOffsetX=240,viewOffsetY=60,
+        modalX=388,modalY=116,modalWidth=504,modalHeight=360,modalBorder=0x200,
+        modalAnimation=32,modalClosing=0,viewOffsetX=170,viewOffsetY=24,
         width=1280,height=720}
       local o=assert(options.origin(s));assert(o.x==388 and o.y==116)
-      s.modalBorder=2;o=assert(options.origin(s));assert(o.y==128)
-      s.screen=16;s.modalBorder=0x200;s.viewOffsetX=0;s.viewOffsetY=0
+      s.viewOffsetX=999;s.viewOffsetY=999
+      o=assert(options.origin(s));assert(o.x==388 and o.y==116)
+      s.screen=16;s.modalX=148;s.modalY=56
       s.width=800;s.height=600
       o=assert(options.origin(s));assert(o.x==148 and o.y==56)
       for _,case in ipairs({{'modal',10},{'activeModalID',10},
           {'activeModalMenu',0xb965f0},{'modalClosing',1},{'modalAnimation',1},
           {'modalX',-1},{'modalWidth',1000},{'modalY',0.5},{'modalBorder',-1},
-          {'textEditor',1},{'textModal',10},{'viewOffsetY',600}}) do
+          {'textEditor',1},{'textModal',10},{'modalBorder',2}}) do
         local key,value=case[1],case[2];local old=s[key];s[key]=value
         assert(options.origin(s)==nil,key);s[key]=old
       end
