@@ -17,6 +17,8 @@ local de={title='Eigene Tastenkürzel',profile='Profil',new='Neues Profil',searc
   ['menu.previous']='Vorheriges Bedienelement', ['menu.activate']='Bedienelement aktivieren',
   ['menu.back']='Zurück', ['editor.capture']='Gewähltes Tastenkürzel ändern'}
 local M={}
+en.mainHelp1='Change keyboard shortcuts.';en.mainHelp2='Create, import and export profiles.'
+de.mainHelp1='Tastenkürzel anpassen.';de.mainHelp2='Profile erstellen und austauschen.'
 en['view.rotate-left']='Rotate view left';de['view.rotate-left']='Ansicht nach links drehen'
 en['view.rotate-right']='Rotate view right';de['view.rotate-right']='Ansicht nach rechts drehen'
 en['view.toggle-zoom']='Toggle zoom';de['view.toggle-zoom']='Zoom umschalten'

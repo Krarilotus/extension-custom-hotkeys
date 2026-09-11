@@ -1,4 +1,5 @@
 return {
+ mainHelp1='Modifier les raccourcis clavier.',mainHelp2='Créer et échanger des profils.',
  ['view.rotate-left']='Tourner la vue à gauche', ['view.rotate-right']='Tourner la vue à droite',
  ['view.toggle-zoom']='Changer le zoom', ['view.lower-buildings']='Abaisser les bâtiments',
  ['view.toggle-interface']="Afficher ou masquer la barre d'outils",['group.view']='Affichage',

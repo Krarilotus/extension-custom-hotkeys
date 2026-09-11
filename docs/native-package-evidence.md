@@ -24,7 +24,9 @@ modal2041, priority-110000, profile Default. From the visible main-menu entry:
 
 Native fonts were English with Windows German key names (TABULATOR/EINGABE).
 The main-menu entry also showed a large outlined rectangle beneath its label;
-the visual origin and design fit still need investigation. Minimum resolution,
+the later native table audit identified this as original help item1
+(menu-local155,490,335x85, renderer0x4F6A60). A localized hover description now
+uses that area; its native appearance still needs verification. Minimum resolution,
 other native languages and physical key capture were not tested here.
 
 Normal Alt+F4 closed the game. Process absence was verified, desktop released

@@ -1,4 +1,5 @@
 return {
+ mainHelp1='Personaliza los atajos de teclado.',mainHelp2='Crea e intercambia perfiles.',
  ['view.rotate-left']='Girar la vista a la izquierda', ['view.rotate-right']='Girar la vista a la derecha',
  ['view.toggle-zoom']='Cambiar zoom', ['view.lower-buildings']='Bajar edificios',
  ['view.toggle-interface']='Mostrar u ocultar la barra', ['group.view']='Vista',

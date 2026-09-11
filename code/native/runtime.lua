@@ -104,6 +104,15 @@ function M.start(entries,language)
     local ok,problem=pcall(function()
       game.Rendering.drawBlendedBlackBox(game.Rendering.pencilRenderCore,s.x,s.y,s.x+s.width,s.y+s.height,0x14)
       view:draw(view.labels('title'),s.x+6,s.y+5,nil,nil,s.width-12,'main-entry')
+      if items[count+1].hovering~=0 then
+        -- The native main menu already owns this help rectangle (item1,
+        -- menu-local155,490,335x85). Paint only while our entry owns hover.
+        local x=tonumber(main.pMenu.xPosition)+155
+        local y=tonumber(main.pMenu.yPosition)+490
+        game.Rendering.drawColorBox(game.Rendering.pencilRenderCore,x,y,x+334,y+84,0)
+        view:draw(view.labels('mainHelp1'),x+6,y+8,nil,nil,323,'main-help-1')
+        view:draw(view.labels('mainHelp2'),x+6,y+32,nil,nil,323,'main-help-2')
+      end
     end)
     game.Rendering.pDrawBufferChoiceValue[0]=old
     if not ok then log(ERROR,tostring(problem)) end
