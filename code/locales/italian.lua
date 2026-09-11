@@ -1,4 +1,5 @@
 return {
+ focusOpen='Centra e apri: ',returnFrom='Torna da: ',
  import='Importa profilo',export='Esporta profilo',exported='Profilo esportato.',
  importName='Inserisci un nuovo nome. Invio conferma; Esc annulla.',
  fileError='Profilo non disponibile. Controlla i file di importazione/esportazione.',

@@ -6,8 +6,8 @@ def setup(lua):
       world=require('code/world_actions').new({resolve=function() return raw end,
         snapshot=function() return s end,
         stance=function(tribe,value) calls[#calls+1]={'stance',tribe,value} end,
-        armory=function() return b end,
-        bookmark=function(v) if v~=nil then mark=v end;return mark end,
+        building=function() return b end,
+        bookmark=function(_,v) if v~=nil then mark=v end;return mark end,
         viewportTile=function() return 321 end,
         focus=function(x,y) calls[#calls+1]={'focus',x,y} end,
         focusTile=function(tile) calls[#calls+1]={'tile',tile} end,
@@ -62,6 +62,35 @@ def test_signpost_cycle_is_bounded_and_skips_missing_or_reused_buildings(lua):
       assert(calls[1][2]==11 and calls[1][3]==21)
       assert(world:dispatch('camera.cycle.signposts',c));assert(index==0 and #calls==2)
       index=8;assert(not world:dispatch('camera.cycle.signposts',c) and #calls==2)
+    ''')
+
+
+def test_building_shortcuts_keep_separate_bookmarks_and_validate_current_owner(lua):
+    setup(lua)
+    lua.execute('''
+      local marks={}
+      world.adapter.bookmark=function(spec,v)
+        if v~=nil then marks[spec.name]=v end
+        return marks[spec.name] or -1
+      end
+      for _,spec in ipairs(require('code/building_actions')) do
+        b.type=spec.types[1];b.owner=1
+        local before=#calls
+        assert(world:dispatch('menu.open.'..spec.name,c))
+        assert(#calls==before+1 and calls[#calls][1]=='open' and marks[spec.name]==nil)
+        b.owner=2;assert(not world:dispatch('menu.open.'..spec.name,c));b.owner=1
+        b.type=99;assert(not world:dispatch('menu.open.'..spec.name,c));b.type=spec.types[1]
+        raw.modal='covered';assert(not world:dispatch('menu.open.'..spec.name,c));raw.modal=''
+        if spec.bookmark then
+          assert(world:dispatch('menu.focus.'..spec.name,c));assert(marks[spec.name]==321)
+        else assert(not world:dispatch('menu.focus.'..spec.name,c)) end
+      end
+      assert(world:dispatch('camera.return.granary',c))
+      assert(marks.granary==-1 and marks.armory==321 and marks.market==321)
+      b.type=26;b.x=400
+      assert(not world:dispatch('menu.focus.market',c))
+      assert(marks.market==321)
+      assert(world:dispatch('menu.open.market',c)) -- Opening does not move the camera.
     ''')
 
 

@@ -23,12 +23,18 @@ for _,pan in ipairs({{'up',17},{'left',30},{'down',31},{'right',32}}) do
   entries[#entries+1]={id='camera.pan.'..pan[1],contexts=world,states={'live-sp'},
     command=false,behavior='hold-local',default={scan=pan[2],extended=false,mods=0}}
 end
-for _,action in ipairs({{'menu.focus.armory',30,4},{'menu.open.armory',30,1},
-    {'camera.return.armory',30,2},{'camera.cycle.signposts',31,4},
+for _,action in ipairs({{'camera.cycle.signposts',31,4},
     {'unit.stance.stand-ground',16,0},{'unit.stance.defensive',17,4},
     {'unit.stance.aggressive',18,0}}) do
   entries[#entries+1]={id=action[1],contexts=world,states={'live-sp'},command=action[1]:sub(1,5)=='unit.',
     default={scan=action[2],extended=false,mods=action[3]}}
+end
+for _,building in ipairs(require('code/building_actions')) do
+  for _,verb in ipairs(building.bookmark and {'menu.focus.','menu.open.','camera.return.'} or {'menu.open.'}) do
+    local mods=verb=='menu.focus.' and (building.focusMods or 0) or (verb=='menu.open.' and 1 or 2)
+    entries[#entries+1]={id=verb..building.name,contexts=world,states={'live-sp'},command=false,
+      default=building.scan and {scan=building.scan,extended=false,mods=mods} or false}
+  end
 end
 for _,control in ipairs(require('code/controls')) do
   entries[#entries+1]={id=control.id,contexts={'game.build'},states={'live-sp'},

@@ -25,6 +25,8 @@ de.import='Profil importieren';de.export='Profil exportieren';de.exported='Profi
 de.importName='Neuen Profilnamen eingeben. Enter bestätigt; Escape bricht ab.'
 de.fileError='Profildatei nicht verfügbar. Import-/Exportdateien prüfen.'
 en.open='Open: ';en.choose='Choose: ';de.open='Öffnen: ';de.choose='Wählen: '
+en.focusOpen='Focus and open: ';en.returnFrom='Return from: '
+de.focusOpen='Zeigen und öffnen: ';de.returnFrom='Zurück von: '
 for group,names in pairs({hotkeys={'Hotkeys','Tastenkürzel'},menu={'Menus','Menüs'},
   game={'Game','Spiel'},target={'Targeting','Zielen'},camera={'Camera','Kamera'},
   unit={'Units','Einheiten'},build={'Construction','Bauen'}}) do
@@ -63,12 +65,24 @@ function M.new(language,nativeText)
       chosen['target.fine.'..direction]=chosen.fine..chosen.directions[i]
     end
   end
-  local controls,cache={},{}
+  local controls,buildings,cache={},{},{}
   for _,control in ipairs(require('code/controls')) do controls[control.id]=control end
+  for _,building in ipairs(require('code/building_actions')) do
+    for _,verb in ipairs({'menu.focus.','menu.open.','camera.return.'}) do
+      buildings[verb..building.name]={text=building.text,verb=verb,name=building.name}
+    end
+  end
   return function(key)
     if cache[key] then return cache[key] end
     local control=controls[key]
-    if control then
+    local building=buildings[key]
+    if building and not chosen[key] then
+      local label=nativeText and nativeText(8,building.text)
+      label=label or building.name:gsub('-',' ')
+      local prefix=building.verb=='menu.focus.' and chosen.focusOpen
+        or (building.verb=='camera.return.' and chosen.returnFrom or chosen.open)
+      cache[key]=prefix..label
+    elseif control then
       local label=nativeText and nativeText(control.textGroup,control.text)
       label=label or key:match('([^.]+)$'):gsub('-',' ')
       local prefix=control.verb=='open' and chosen.open or chosen.choose

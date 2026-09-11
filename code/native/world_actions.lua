@@ -25,8 +25,11 @@ function M.new(scene,view)
       if s.tribe>=0 and s.tribe<1250 then s.tribeOwner=i(0x1667fa4+s.tribe*0x334) end
       return s
     end,
-    armory=function(player) return building(i(0x115bf04+player*0x39f4)) end,
-    bookmark=function(value) if value~=nil then write(0x1fea06c,value) end;return i(0x1fea06c) end,
+    building=function(spec,player) return building(i(spec.reference+player*0x39f4)) end,
+    bookmark=function(spec,value)
+      if value~=nil then write(spec.bookmark,value) end
+      return i(spec.bookmark)
+    end,
     viewportTile=function() return viewportTile() end,
     focus=function(x,y) focus(viewport,x,y) end,
     focusTile=function(tile) focusTile(viewport,tile) end,

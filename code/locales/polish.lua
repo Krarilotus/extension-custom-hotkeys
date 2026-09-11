@@ -1,4 +1,5 @@
 return {
+ focusOpen='Pokaż i otwórz: ',returnFrom='Wróć z: ',
  import='Importuj profil',export='Eksportuj profil',exported='Profil wyeksportowany.',
  importName='Podaj nową nazwę profilu. Enter zatwierdza; Esc anuluje.',
  fileError='Plik profilu jest niedostępny. Sprawdź pliki importu/eksportu.',

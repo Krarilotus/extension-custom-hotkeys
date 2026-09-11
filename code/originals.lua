@@ -4,10 +4,14 @@ local entries={}
 local function add(action,scan,mods,extended,retain)
   entries[#entries+1]={action=action,binding={scan=scan,extended=extended or false,mods=mods},retain=retain}
 end
-add('menu.focus.armory',30,0)
-add('menu.open.armory',30,1)
-add('camera.return.armory',30,2)
-add('camera.return.armory',30,3)
+for _,building in ipairs(require('code/building_actions')) do
+  if building.scan then
+    add('menu.focus.'..building.name,building.scan,0)
+    add('menu.open.'..building.name,building.scan,1)
+    add('camera.return.'..building.name,building.scan,2)
+    add('camera.return.'..building.name,building.scan,3)
+  end
+end
 for mods=0,3 do
   add('camera.cycle.signposts',31,mods)
   add('unit.stance.stand-ground',16,mods)

@@ -1,4 +1,5 @@
 return {
+ focusOpen='Centrer et ouvrir : ',returnFrom='Revenir de : ',
  import='Importer un profil',export='Exporter le profil',exported='Profil exporté.',
  importName='Saisissez un nouveau nom. Entrée valide ; Échap annule.',
  fileError="Profil indisponible. Vérifiez les fichiers d'import/export.",
