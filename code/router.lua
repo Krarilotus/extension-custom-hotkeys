@@ -15,12 +15,16 @@ function M.new(catalog, bindings, adapter)
   return self
 end
 
-function M:barrier()
+function M:cancelGestures()
+  -- Native cancellation may inspect another key's ownership. Revoke every
+  -- gesture first so table traversal order cannot preserve an old native hold.
+  for _, held in pairs(self.held) do held.blocked = true end
   if self.adapter.cancelPending then self.adapter.cancelPending() end
-  for _, held in pairs(self.held) do
-    held.blocked = true
-    self:cancelHold(held)
-  end
+  for _, held in pairs(self.held) do self:cancelHold(held) end
+end
+
+function M:barrier()
+  self:cancelGestures()
   self:cancelCapture()
   self.context = nil
 end
@@ -76,9 +80,8 @@ function M:refresh()
   local current = self:readContext()
   if not current or current.owner ~= 'hotkeys.capture' then self:cancelCapture() end
   if not Context.same(self.context, current) then
-    if self.adapter.cancelPending then self.adapter.cancelPending() end
     -- A change cancels gestures, but preserves down/up forwarding ownership.
-    for _, held in pairs(self.held) do held.blocked = true; self:cancelHold(held) end
+    self:cancelGestures()
     self.context = current
   end
   return current

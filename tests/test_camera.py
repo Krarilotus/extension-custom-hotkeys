@@ -53,3 +53,39 @@ def test_profile_apply_cancels_local_pan_without_new_command(lua):
       assert(router:handle(repeat_event(17)) and not flags.up)
       assert(router:handle(event(17,'up')) and not flags.up)
     ''')
+
+
+def test_transition_revokes_all_gestures_before_any_native_cancellation(lua):
+    lua.execute("""
+      for _,transition in ipairs({'barrier','refresh','apply','capture'}) do
+        local raw=facts('game.build')
+        local router,exposed,releases=nil,false,0
+        local catalog=Catalog.new({
+          {id='camera.pan.up',contexts={'game.build'},states={'live-sp'},
+           command=false,behavior='hold-local',default=key(17)},
+          {id='camera.pan.left',contexts={'game.build'},states={'live-sp'},
+           command=false,behavior='hold-local',default=key(30)}})
+        local function observeCancellation()
+          for _,held in pairs(router and router.held or {}) do
+            if not held.blocked then exposed=true end
+          end
+        end
+        router=Router.new(catalog,Catalog.defaults(catalog),{
+          resolve=function() return raw end,dispatch=function() return true end,
+          recover=function() end,canRecover=function() return false end,
+          cancelPending=observeCancellation,
+          cancelLocalHold=function() releases=releases+1;observeCancellation() end})
+        assert(router:handle(event(17)));assert(router:handle(event(30)))
+        assert(not router:handle(event(72))) -- A forwarded native arrow also owns input.
+        exposed=false
+        if transition=='barrier' then router:barrier()
+        elseif transition=='refresh' then raw.text=true;router:refresh()
+        elseif transition=='apply' then assert(router:apply(Catalog.defaults(catalog)))
+        else router:startCapture(function() end) end
+        assert(not exposed,'cancellation exposed an old gesture: '..transition)
+        assert(releases==2 and not router.blocked)
+        assert(router:handle(event(17,'up')) and router:handle(event(30,'up')))
+        assert(not router:handle(event(72,'up'))) -- Preserve native release forwarding.
+        assert(releases==2)
+      end
+    """)
