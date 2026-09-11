@@ -16,17 +16,18 @@ function M.start(entries,language)
   local platform=Platform.new(tonumber(ffi.cast('int32_t *',0xf983e4)[0]))
   local scene=Scene.new(platform)
   local catalog=Catalog.new(entries)
-  local view,cursor,navigation
+  local view,cursor,navigation,targeting
   local router=Router.new(catalog,Catalog.defaults(catalog),{
     resolve=function() return scene:resolve(view) end,
     dispatch=function(id,context)
       if id=='hotkeys.open' then return view:open() end
       if id=='menu.next' then return navigation:move(1,context) end
       if id=='menu.previous' then return navigation:move(-1,context) end
-      if id=='menu.activate' then return navigation:activate(context) end
+      if id=='menu.activate' or id=='game.menu.activate' then return navigation:activate(context) end
+      if id:sub(1,7)=='target.' then return targeting:dispatch(id,context) end
       error('action.not-integrated: '..id)
     end,
-    canRecover=function(c) return c and c.owner:sub(1,5)=='menu.' end,
+    canRecover=function(c) return c and (c.owner:sub(1,5)=='menu.' or c.owner=='game.build' or c.owner=='game.status') end,
     recover=function() return view:open() end,
     cancelLocalHold=function() end,
     cancelPending=function() if cursor then cursor:cancel() end end,
@@ -42,7 +43,8 @@ function M.start(entries,language)
   local reader=require('code/native/menu_reader').new()
   navigation=require('code/navigation').new({
     controls=function(context)
-      if not context or context.owner:sub(1,5)~='menu.' then return nil end
+      if not context or (context.owner:sub(1,5)~='menu.' and context.owner~='game.build'
+          and context.owner~='game.status') then return nil end
       local s=scene:snapshot()
       if tostring(s.screen)~=context.screen or s.modal~=-1 or s.modal2~=-1 or s.modal3~=-1 then return nil end
       return reader:read(remote.interface.menuAddress(s.screen),s)
@@ -50,6 +52,15 @@ function M.start(entries,language)
     point=function(row) return row.x+math.floor(row.width/2),row.y+math.floor(row.height/2) end,
     hit=function(address) return ffi.cast('MenuItem *',address)[0].hovering~=0 end,
   },cursor)
+  targeting=require('code/targeting').new(cursor,navigation,function()
+    -- setupViewport(0x4E66F0) stores its pixel rectangle here. The similarly
+    -- named fields at +0x78/+0x88 are map offsets/tile counts, not screen pixels.
+    local p=ffi.cast('int32_t *',0x233a300)
+    local x,y,w,h=tonumber(p[0]),tonumber(p[1]),tonumber(p[2]),tonumber(p[3])
+    local s=scene:snapshot()
+    if x<0 or y<0 or w<64 or h<64 or x+w>s.width or y+h>s.height then return nil end
+    return x,y,w,h
+  end)
   local chain=require('code/native/chain').install(remote.interface.chain(),router,platform,
     function(event) return view:input(event) end,function(message,_,lparam)
       if pointer:observe(message,lparam) then navigation:cancel() end
@@ -57,7 +68,7 @@ function M.start(entries,language)
   local inputFrame=require('code/native/input_frame').install(cursor,router)
   local runtime={lock=lock,platform=platform,scene=scene,catalog=catalog,router=router,
     profiles=profiles,view=view,chain=chain,cursor=cursor,navigation=navigation,
-    inputFrame=inputFrame,pointer=pointer,pins={}}
+    inputFrame=inputFrame,pointer=pointer,targeting=targeting,pins={}}
   local main=api.ui.Menu:fromPointer(remote.interface.menuAddress(41),41)
   local count=main.menuItemsCount
   assert(count>=1 and count<=4096,'menu.main-size')

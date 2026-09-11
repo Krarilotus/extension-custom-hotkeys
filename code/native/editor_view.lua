@@ -59,7 +59,8 @@ function M:owns()
 end
 function M:open()
   local c=self.scene:resolve(self)
-  if self.opened or not c or c.owner:sub(1,5)~='menu.' then return false end
+  if self.opened or not c or (c.owner:sub(1,5)~='menu.' and c.owner~='game.build'
+      and c.owner~='game.status') then return false end
   self.controller=Controller.new(self.profiles,self.catalog,self.router,self.labels,string.lower,rows)
   self.focus,self.text,self.error,self.opened=7,nil,nil,true
   self.parentScreen=self.scene.current.screen

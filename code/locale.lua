@@ -17,6 +17,17 @@ local de={title='Eigene Tastenkürzel',profile='Profil',new='Neues Profil',searc
   ['menu.previous']='Vorheriges Bedienelement', ['menu.activate']='Bedienelement aktivieren',
   ['menu.back']='Zurück', ['editor.capture']='Gewähltes Tastenkürzel ändern'}
 local M={}
+en['game.menu.activate']='Activate gameplay control'
+de['game.menu.activate']='Bedienelement im Spiel aktivieren'
+en['target.center']='Center targeting cursor';de['target.center']='Zielcursor zentrieren'
+en['target.confirm']='Confirm target';de['target.confirm']='Ziel bestätigen'
+en['target.cancel']='Cancel target or selection';de['target.cancel']='Ziel oder Auswahl abbrechen'
+for key,names in pairs({up={'up','oben'},down={'down','unten'},left={'left','links'},right={'right','rechts'}}) do
+  en['target.'..key]='Move target '..names[1]
+  de['target.'..key]='Zielcursor nach '..names[2]
+  en['target.fine.'..key]='Move target '..names[1]..' precisely'
+  de['target.fine.'..key]='Zielcursor fein nach '..names[2]
+end
 function M.new(language)
   local chosen=language=='german' and de or en
   return function(key) return chosen[key] or en[key] or key end

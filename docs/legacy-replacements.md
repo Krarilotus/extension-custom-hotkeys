@@ -11,7 +11,7 @@ Legacy audit: `caa50aba9fc85c5fc766c413b23085ddfbba4a79`, `port/o_keys.lua`.
 | Action identity | Proposed default | Native behavior to preserve |
 |---|---|---|
 | camera.pan.up/left/down/right | W/A/S/D | Local held pan, bounded by the actual active gameplay screen; cleanup on release/focus/transition. |
-| camera.focus.armory | Alt+A | Original A obtains the local player's armory building, saves the previous view and focuses its location. This does not open the armory panel. |
+| menu.focus.armory | Alt+A | Original A obtains the local player's armory, saves the previous view, focuses its location **and opens its status panel**. The tail branch 0x4B418C -> 0x4B3B12 -> 0x4B3A35 reaches the native status opener at 0x4B3A45. |
 | menu.open.armory | Ctrl+A | Original Ctrl+A opens the status panel for that armory through 0x463310. Retain this existing route and make it configurable. |
 | camera.return.armory | Shift+A | Original Shift+A returns to the saved view and clears it; it may close an active building panel. Preserve native validity checks. |
 | camera.cycle.signposts | Alt+S | Original S cycles the eight native signpost building references and focuses their coordinates, skipping missing entries. Local camera action, not a construction/selection action. |
