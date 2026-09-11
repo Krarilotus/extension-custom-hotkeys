@@ -18,7 +18,7 @@ function M.start(entries,language)
   local catalog=Catalog.new(entries,require('code/originals'))
   local controls={}
   for _,control in ipairs(require('code/controls')) do controls[control.id]=control end
-  local view,cursor,navigation,targeting,camera,worldActions,quickslot
+  local view,cursor,navigation,targeting,camera,worldActions,quickslot,lowering
   local router
   router=Router.new(catalog,Catalog.defaults(catalog),{
     resolve=function() if quickslot and quickslot.active then return nil end;return scene:resolve(view) end,
@@ -29,6 +29,7 @@ function M.start(entries,language)
       if id=='menu.previous' then return navigation:move(-1,context) end
       if id=='menu.activate' or id=='game.menu.activate' then return navigation:activate(context) end
       if id:sub(1,7)=='target.' then return targeting:dispatch(id,context) end
+      if id=='view.lower-buildings' then cursor:cancel();return lowering:start(context) end
       if id:sub(1,11)=='camera.pan.' then cursor:cancel();return camera:start(id,context) end
       if controls[id] then return navigation:activateMatching(controls[id],context) end
       if id:sub(1,5)=='view.' or id:sub(1,11)=='unit.group.' or id:sub(1,13)=='camera.group.'
@@ -37,8 +38,12 @@ function M.start(entries,language)
     end,
     canRecover=function(c) return c and (c.owner:sub(1,5)=='menu.' or c.owner=='game.build' or c.owner=='game.status') end,
     recover=function() return view:open() end,
-    cancelLocalHold=function(id) if camera then camera:release(id) end end,
+    cancelLocalHold=function(id)
+      if id=='view.lower-buildings' and lowering then lowering:release()
+      elseif camera then camera:release(id) end
+    end,
     cancelPending=function()
+      if lowering then lowering:release() end
       if quickslot then quickslot:cancel() end
       if cursor then cursor:cancel() end
     end,
@@ -51,6 +56,7 @@ function M.start(entries,language)
     require('code/native/text').label))
   camera=require('code/native/camera').new(platform,router)
   worldActions=require('code/native/world_actions').new(scene,view)
+  lowering=require('code/native/lowering').new(scene,view,platform,router)
   local pointer=require('code/native/pointer').new(platform,scene)
   cursor=require('code/cursor').new(require('code/native/mouse').new(scene,
     function()
@@ -100,10 +106,10 @@ function M.start(entries,language)
     end,function(message,_,lparam)
       if pointer:observe(message,lparam) then quickslot:cancel();navigation:cancel() end
     end)
-  local inputFrame=require('code/native/input_frame').install(cursor,router,camera,quickslot)
+  local inputFrame=require('code/native/input_frame').install(cursor,router,camera,quickslot,lowering)
   local runtime={lock=lock,platform=platform,scene=scene,catalog=catalog,router=router,
     profiles=profiles,view=view,chain=chain,cursor=cursor,navigation=navigation,
-    inputFrame=inputFrame,quickslot=quickslot,pointer=pointer,targeting=targeting,camera=camera,worldActions=worldActions,pins={}}
+    inputFrame=inputFrame,lowering=lowering,quickslot=quickslot,pointer=pointer,targeting=targeting,camera=camera,worldActions=worldActions,pins={}}
   local main=api.ui.Menu:fromPointer(remote.interface.menuAddress(41),41)
   local count=main.menuItemsCount
   assert(count>=1 and count<=4096,'menu.main-size')

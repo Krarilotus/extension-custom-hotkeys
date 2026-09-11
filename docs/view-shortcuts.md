@@ -32,12 +32,46 @@ original pan-up flag. Forwarded native input retains that behavior; the semantic
 zoom action follows the distinct Z branch. Original X/C/Z modifier aliases are
 included in conflict detection.
 
-V and Ctrl+Down lower buildings through `0x4F6FD0` and separately held native
-flags. Their replacement is not implemented yet: these bindings remain native
-and cannot be displaced by a custom assignment. They are not incorrectly
-advertised as pan-down. Native restore callers `0x434509` and `0x443A63` require
-the actual mouse/keyboard hold state; do not emulate lowering with an unowned
-sticky flag. This is a remaining view-workflow requirement.
+`view.lower-buildings` now defaults to held V. Original V modifier aliases and
+Ctrl+Down remain native alternatives; reassigning either requires an assigned
+lowering replacement. The extension calls the original0x4F6FD0 with3 once on
+activation, maintains only its local V input flag and releases through the same
+native handler with4 when no valid native mouse/keyboard hold remains. It never
+implements a new map transformation or writes simulation state directly.
+
+The existing OpenSHC `Input/ModifierKeyState/updateCtrlShiftAltKeyStateMemory.cpp`
+provided the missing release owner. Assembly0x468A20 confirms that GetAsyncKeyState
+for V clears offset0x14 (F224FC) when released; Down clears offset0x10 (F224F8).
+WinMain0x57C2D8 calls that poll before the existing native input-frame site at
+0x57C310 ->0x468100. The extension reasserts its rebound hold at that existing
+callback, after polling and before native input. No additional hook is installed.
+It performs one flag write per active hold frame; lowering itself is not called
+repeatedly. Idle work is skipped, and camera/lowering share one context refresh.
+
+Release preserves a separately forwarded V or Ctrl+Down/right-mouse hold only
+while the current native world still owns it. Quarantined/consumed keys or stale
+raw flags cannot retain the extension's lowering after a focus/modal transition.
+All held gestures are revoked before any native cancellation callback, removing
+table-order-dependent preservation of an old key. The extension's own V flag is
+cleared even if the native ownership proof fails. Native handoff/physical key
+acceptance remains separate from these component guarantees.
+
+Native diagnostic PID5756 on12 September2026 loaded the prepared Nicaea hk save.
+Mouse preparation used Castle Builder, normal Load and the minimap to show the
+castle. F10 started the production lowering adapter; walls/tower visibly lowered,
+VHold=1 and current lowered mode3. F2 release restored the visible tower/walls,
+VHold=0/current mode4. A second lower then F11 Load opened modal9 and restored
+VHold=0/mode4. F10 was rejected while Load remained active; no frame failure,
+error header only. Config/executable match docs/quickload.md. Task receipts are
+`native-evidence/lowering-5756*`; static ordering proof is
+`ModifierKeyState-lowering-lifetime.asm.txt`. Game5756 closed normally, process
+absence verified, baseline restored and desktop released00:39:58CEST (2m36s of5m),
+handing the slot to the waiting aic-tactics worker. No save was overwritten.
+After this native run, the release path was hardened to clear its owned flag
+before an ownership-probe error; that fault-injection case has component coverage
+and was not fault-injected in the native process.
+These diagnostic F keys bypass physical lookup and do not establish physical V,
+rebound key release, mixed mouse/key holds, keyboard-only, MP or replay acceptance.
 
 Component checks cover orientation wrap, both zoom states, busy/right-held and
 pending-rotation rejection, text/modal/replay/authority guards, and the corrected

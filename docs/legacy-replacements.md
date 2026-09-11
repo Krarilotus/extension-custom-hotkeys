@@ -49,8 +49,8 @@ for the exact limited native outcomes.
 Unassigned original arrow keys retain native forwarding as a familiar alternative
 to WASD. Assigning an arrow to another custom action still requires an assigned
 replacement for the corresponding native action. Ctrl+Left/Right/Up are view
-rotation/zoom; V and Ctrl+Down remain protected native lowering keys until their
-replacement is implemented. See [view shortcuts](view-shortcuts.md).
+rotation/zoom; V and Ctrl+Down now have a configurable held lowering replacement; native
+alternatives are preserved unless reassigned. See [view shortcuts](view-shortcuts.md).
 An extension pan releases only its own hold and preserves an
 eligible forwarded arrow gesture; all owned holds stop on context/focus changes.
 Physical arrow/keypad overlap still needs native acceptance.

@@ -170,7 +170,7 @@ def test_lord_focus_and_cycle_validate_reference_and_bound_native_lookups(lua):
     ''')
 
 
-def test_arrow_view_conflicts_are_distinct_from_pan_and_unavailable_lowering(lua):
+def test_arrow_view_conflicts_require_their_actual_replacements(lua):
     lua.execute('''
       local catalog=Catalog.new(require('code/entries'),require('code/originals'))
       local defaults=assert(Catalog.validate(catalog,Catalog.defaults(catalog)))
@@ -182,8 +182,11 @@ def test_arrow_view_conflicts_are_distinct_from_pan_and_unavailable_lowering(lua
       for _,key in ipairs({{scan=80,extended=true,mods=1},
           {scan=80,extended=true,mods=3},{scan=47,extended=false,mods=0}}) do
         defaults=Catalog.defaults(catalog);defaults['target.center']=key
+        defaults['view.lower-buildings']=false
         local ok,reason,detail=Catalog.validate(catalog,defaults)
         assert(not ok and reason=='binding.native-conflict' and detail[2]=='view.lower-buildings')
+        defaults['view.lower-buildings']={scan=24,extended=false,mods=0}
+        assert(Catalog.validate(catalog,defaults))
       end
     ''')
 

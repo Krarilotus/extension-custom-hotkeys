@@ -5,7 +5,9 @@ local all={'menu.main','menu.custom-scenarios','menu.campaigns','menu.missions',
 local world={'game.build','game.status'}
 local navigation={'menu.main','menu.custom-scenarios','menu.campaigns','menu.missions',
   'game.build','game.status','game.options','game.load'}
-local entries={{id='game.quickload',contexts=world,states={'live-sp'},command=false,
+local entries={{id='view.lower-buildings',contexts=world,states={'live-sp'},command=false,
+  behavior='hold-local',default={scan=47,extended=false,mods=0}},
+  {id='game.quickload',contexts=world,states={'live-sp'},command=false,
   default={scan=38,extended=false,mods=1}},
   {id='game.quicksave',contexts=world,states={'live-sp'},command=false,
   default={scan=31,extended=false,mods=1}},

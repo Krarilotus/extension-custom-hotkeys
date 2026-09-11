@@ -1,17 +1,22 @@
 local ffi=require('ffi')
 local M={}
 local installed
-function M.install(cursor,router,camera,quickslot)
+function M.install(cursor,router,camera,quickslot,lowering)
   assert(not installed,'input-frame.installed')
   local result={}
   local nativeMouse=ffi.cast('void *',0xf2c9b0)
   local function advance()
-    if camera.count>0 then camera:beforeFrame(router:refresh()) end
+    if camera.count>0 or (lowering and lowering.active) then
+      local context=router:refresh()
+      if camera.count>0 then camera:beforeFrame(context) end
+      if lowering and lowering.active then lowering:beforeFrame(context) end
+    end
     if quickslot and quickslot.active then quickslot:beforeFrame() end
     if cursor.pending then cursor:beforeFrame() end
   end
   result.callback=ffi.cast('void (__cdecl *)(void *)',function(mouse)
-    if (not cursor.pending and camera.count==0 and not (quickslot and quickslot.active)) or mouse~=nativeMouse then return end
+    if (not cursor.pending and camera.count==0 and not (quickslot and quickslot.active)
+        and not (lowering and lowering.active)) or mouse~=nativeMouse then return end
     local ok,err=pcall(advance)
     if not ok then
       result.failure=tostring(err);router.blocked=true
