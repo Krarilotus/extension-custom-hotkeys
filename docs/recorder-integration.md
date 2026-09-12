@@ -41,8 +41,15 @@ map-extensions 1.0.0. Legacy was absent; diagnostic hooks were disabled.
 
 These checks establish this single-player composition and the recorded trade;
 they do not prove every Hotkeys command or a keyboard-only gameplay route.
-Rebinding/search input did not complete in the second native run and remains
-unverified for this combination. Held-key restore, changed-profile playback,
+The exact published Hotkeys archive was retested in PID21560 without diagnostics:
+F12, Shift+Tab twice and Enter activated search; physical S filtered 211 entries
+to 188; Enter accepted the field, the next Enter entered capture, and Ctrl+F11
+was recorded correctly. Apply/reopen preserved the binding. Keyboard navigation
+to Reset then Apply restored Ctrl+Tab. This checks the editor from the main menu
+with Recorder/Automarket loaded, not a complete live-game keyboard route.
+Earlier mouse attempts had not established field activation; the final keyboard
+route resolved the uncertainty without a production code change.
+Held-key restore, changed-profile playback,
 command-bearing backward restore and 1100-speed performance remain acceptance
 gaps. The final Recorder component suite passed 472 tests (one skip, 3189
   subtests); Hotkeys component results are recorded in the implementation PR.
@@ -61,5 +68,10 @@ Native receipts: [package/source hashes](recorder-native-build.json),
 
 ![Finished native Recorder and Automarket playback](images/recorder-automarket-finished.png)
 
-Both test games exited normally; process absence was checked before final
-desktop release at 06:25:06 CEST. No desktop reservation is held for review.
+All test games exited normally; process absence was checked before final
+desktop release at 06:49:52 CEST. Temporary task-only logging was removed before
+the exact-archive editor retest. No desktop reservation is held for review.
+
+![Exact preview search with Recorder loaded](images/recorder-editor-search.png)
+
+![Applied binding after reopening](images/recorder-editor-reopened.png)
