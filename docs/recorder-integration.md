@@ -57,10 +57,11 @@ gaps. The final Recorder component suite passed 472 tests (one skip, 3189
 Multiplayer assessment: Hotkeys reuses native submission rather than modifying
 simulation state; Recorder already validates Automarket protocol ID, payload
 size, owning player, flags and fee. This is a sound basis for integration, not
-evidence of two-peer synchronization. The native Hotkeys resolver still rejects
-multiplayer, so this preview does not enable live MP hotkeys. Physical two-PC
-testing is deferred to the user; identical extension/protocol versions and a
-command-count/state-checkpoint comparison are required before removing that gate.
+evidence of two-peer synchronization. The 0.1.2 preview tested here rejected
+multiplayer. The later [0.1.3 preview](multiplayer-preview.md) enables live MP
+testing at the user's request. Physical two-PC testing is deferred to the user;
+identical extension/protocol versions and command-count/state-checkpoint
+comparisons are required for acceptance.
 
 Native receipts: [package/source hashes](recorder-native-build.json),
 [four-command journal](recorder-automarket-commands.json), and
