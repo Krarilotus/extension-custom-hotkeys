@@ -2,8 +2,10 @@
 
 The 760×552 native dialog shows 16 rows instead of six. Native font19 provides
 16-pixel line spacing in 20-pixel rows; font17 gives a smaller title. Action and
-Key are separate columns. Alternating rows and a selection background separate
-the table from bordered buttons and key fields. Native font measurement/clipping
+Key are separate columns. The original Save/Load table renderer4692E0 supplies
+striped red rows and selection. The UI owner's renderButtonBackground/463A90
+supplies normal SHC buttons, including keyboard-focus highlighting. Borders read
+the native palette rather than assuming a display pixel format. Native font measurement/clipping
 and layout-sensitive key labels remain shared with the previous editor.
 
 Click a binding row or press Enter on the selected row to capture a key. Delete
@@ -59,3 +61,9 @@ Receipts under the task's `native-evidence/`: `dense-4500*`, `dense-22404*`.
 The later message-reset refinement is component-tested, not rerun natively.
 Minimum resolution, other native languages, complete profile persistence and
 full gameplay/multiplayer/replay acceptance remain outstanding.
+
+The user rejected the custom olive palette in the later11ba28f package preview.
+It has been replaced with the original SHC table/button draw primitives and the
+native modal's own framed, dimmed background. No new graphics are bundled. This
+styling revision requires a new native visual check; PID22404/31580 above show
+the superseded palette.

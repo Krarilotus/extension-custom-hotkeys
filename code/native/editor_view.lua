@@ -289,13 +289,12 @@ function M:renderButton(id)
   local ok,err=pcall(function()
     local render=game.Rendering;local core=render.pencilRenderCore
     local isRow=id<=rows
-    local color=selected and 0xFFFFDF or 0xD5DEEB
+    local skin=require('code/native/editor_skin')
+    local color=selected and skin.selectedText or skin.text
     if isRow then
-      if selected then render.drawColorBox(core,s.x,s.y,s.x+s.width,s.y+s.height,0x39C8)
-      elseif id%2==0 then render.drawColorBox(core,s.x,s.y,s.x+s.width,s.y+s.height,0x18C3) end
+      skin.row(e.first+id-2,selected)
     else
-      render.drawColorBox(core,s.x,s.y,s.x+s.width,s.y+s.height,selected and 0x4208 or 0x2945)
-      render.drawBorderBox(core,s.x,s.y,s.x+s.width,s.y+s.height,selected and 0xCEB3 or 0x7B4D)
+      skin.button(selected)
     end
     local font=isRow and Geometry.bodyFont or Geometry.buttonFont
     local labelWidth=s.width-16
@@ -303,12 +302,12 @@ function M:renderButton(id)
     if binding then
       keyLayout=self:layout('key-'..id,binding,174,Geometry.bodyFont)
       labelWidth=s.width-206
-      render.drawBorderBox(core,s.x+s.width-190,s.y+2,s.x+s.width-6,s.y+s.height-2,selected and 0xA510 or 0x5289)
+      skin.border(s.x+s.width-190,s.y+2,s.x+s.width-6,s.y+s.height-2)
     end
     local result=self:layout(id,label,labelWidth,font,editing)
     if result.selectionEnd then
-      render.drawColorBox(core,s.x+8+result.selectionStart,s.y+3,
-        s.x+8+result.selectionEnd,s.y+s.height-3,0x5289)
+      skin.border(s.x+8+result.selectionStart,s.y+3,
+        s.x+8+result.selectionEnd,s.y+s.height-3)
     end
     self:drawEncoded(result.text,s.x+8,s.y+3,color,font)
     if keyLayout then
@@ -322,12 +321,12 @@ end
 function M:render(x,y,width,height)
   if not self.opened then return end
   local render=game.Rendering;local core=render.pencilRenderCore
-  render.drawColorBox(core,x+6,y+6,x+width-6,y+height-6,0x1082)
+  -- The native modal already paints its framed, dimmed background.
+  -- Keep that game-owned surface instead of covering it with a custom palette.
   self:draw(self.labels(self.page=='profiles' and 'profiles' or 'title'),x+20,y+18,0xCCFAFF,Geometry.titleFont,450,'title')
   local e=self.controller
   if self.page=='bindings' then
-    render.drawColorBox(core,x+18,y+92,x+width-18,y+436,0x1082)
-    render.drawBorderBox(core,x+18,y+92,x+width-18,y+436,0x6B2B)
+    require('code/native/editor_skin').border(x+18,y+92,x+width-18,y+436)
     self:draw(self.labels('action'),x+28,y+96,0xCCFAFF,Geometry.bodyFont,460,'column-action')
     self:draw(self.labels('binding'),x+530,y+96,0xCCFAFF,Geometry.bodyFont,170,'column-binding')
     self:draw(tostring(e.selected)..' / '..tostring(#e.rows),x+20,y+510,nil,Geometry.bodyFont,110,'count')
