@@ -4,6 +4,10 @@ local M={}
 local live={}
 function M.prepare(modulePath)
   local recorder
+  local access=modules.ui:access()
+  local cffi=modules.cffi:cffi()
+  local addresses=require('code/addresses')
+  for name,value in pairs(require('code/address_bindings').resolve(core,utils,access.game,cffi)) do addresses[name]=value end
   local catalog=require('code/catalog').production()
   local profiles=require('code/profiles')
   local codec={encode=function(value) return json:encode(value) end,
@@ -14,8 +18,6 @@ function M.prepare(modulePath)
   end
   local store,exchange=profileStore(),profileStore('exchange')
   local chain,library=require('code/native/interface').open(core)
-  local access=modules.ui:access()
-  local cffi=modules.cffi:cffi()
   local state=modules.luajit:createState({name='custom-hotkeys',
     requireHandler=function(_,path)
       local base
@@ -28,6 +30,7 @@ function M.prepare(modulePath)
       local text=f:read('*all');f:close();return text
     end,
     interface={env=_ENV,extra={manager=access.manager,chain=function() return chain end,
+      nativeAddresses=function() return addresses end,
       recorderInputGeneration=function() return recorder and recorder.read() or 0 end,
       installInputFrame=function(callback) return require('code/input_patch').install(core,callback) end,
       menuAddress=function(id)
@@ -48,9 +51,6 @@ function M.prepare(modulePath)
   local prepared={state=state,library=library,store=store,
     connectRecorder=function(value) recorder=value end}
   live[#live+1]=prepared
-  local image=state:executeString("return require('code/native/identity').file()",
-    'custom-hotkeys/identity',true)
-  assert(require('code/executable').check(image,io,sha.sha256))
   state:importHeaderFile('ucp/modules/ui/ui/headers/latest/ui.h')
   -- Resolve the UI owner's original entry points during module loading. Later
   -- enable-time Recorder hooks legitimately replace some of their prologues.

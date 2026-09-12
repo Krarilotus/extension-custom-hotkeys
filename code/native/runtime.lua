@@ -1,3 +1,4 @@
+local A=require('code/addresses')
 -- Dedicated LuaJIT state: consume the UI owner's published primitives and
 -- manager without changing the shared UI state or installing a second WndProc.
 local ffi=require('ffi')
@@ -13,7 +14,7 @@ local View=require('code/native/editor_view')
 local M={}
 function M.start(language)
   local lock=assert(require('code/native/profile_lock').acquire())
-  local platform=Platform.new(tonumber(ffi.cast('int32_t *',0xf983e4)[0]))
+  local platform=Platform.new(tonumber(ffi.cast('int32_t *',A.gameWindow)[0]))
   local scene=Scene.new(platform,function() return remote.interface.recorderInputGeneration() end)
   local catalog=Catalog.production()
   local selectors=require('code/controls')
@@ -47,6 +48,7 @@ function M.start(language)
       elseif camera then camera:release(id) end
     end,
     cancelPending=function()
+      if navigation then navigation:cancel() end
       if lowering then lowering:release() end
       if quickslot then quickslot:cancel() end
       if cursor then cursor:cancel() end
@@ -72,12 +74,12 @@ function M.start(language)
   targeting=require('code/targeting').new(cursor,navigation,function()
     -- setupViewport(0x4E66F0) stores its pixel rectangle here. The similarly
     -- named fields at +0x78/+0x88 are map offsets/tile counts, not screen pixels.
-    local p=ffi.cast('int32_t *',0x233a300)
+    local p=ffi.cast('int32_t *',A.viewportRectangle)
     local x,y,w,h=tonumber(p[0]),tonumber(p[1]),tonumber(p[2]),tonumber(p[3])
     local s=scene:snapshot()
     if x<0 or y<0 or w<64 or h<64 or x+w>s.width or y+h>s.height then return nil end
-    return x,y,w,h,tostring(ffi.cast('int32_t *',0x21aec50)[0])..':'..
-      tostring(ffi.cast('int32_t *',0x21aec54)[0])..':'..x..':'..y..':'..w..':'..h
+    return x,y,w,h,tostring(ffi.cast('int32_t *',A.cameraX)[0])..':'..
+      tostring(ffi.cast('int32_t *',A.cameraY)[0])..':'..x..':'..y..':'..w..':'..h
   end)
   quickslot=require('code/native/quickslot').new(scene,view,worldActions,cursor,reader)
   local chain=require('code/native/chain').install(remote.interface.chain(),router,platform,
@@ -87,7 +89,7 @@ function M.start(language)
     end,function(message,_,lparam)
       if pointer:observe(message,lparam) then quickslot:cancel();navigation:cancel() end
     end)
-  local inputFrame=require('code/native/input_frame').install(cursor,router,camera,quickslot,lowering)
+  local inputFrame=require('code/native/input_frame').install(cursor,router,camera,quickslot,lowering,navigation)
   local runtime={lock=lock,platform=platform,scene=scene,catalog=catalog,router=router,
     profiles=profiles,view=view,chain=chain,cursor=cursor,navigation=navigation,
     inputFrame=inputFrame,lowering=lowering,quickslot=quickslot,pointer=pointer,targeting=targeting,camera=camera,worldActions=worldActions,pins={}}

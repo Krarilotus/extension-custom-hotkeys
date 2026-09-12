@@ -1,3 +1,4 @@
+local A=require('code/addresses')
 local ffi=require('ffi')
 local Options=require('code/options_context')
 local Load=require('code/load_context')
@@ -13,24 +14,24 @@ function M.new(platform,recorderInputGeneration)
   return setmetatable({platform=platform,generation=0,recorderInputGeneration=recorderInputGeneration},M)
 end
 function M:snapshot()
-  local s={screen=read(0x1fe7d1c),tab=read(0x1fe7d20),subtab=read(0x1fe7d24),
-    delay=read(0x1fe7d14),newPlayer=read(0x1fe7e64),mode=read(0x1fe7d78),
-    modal=read(0x1fe7cbc),modal2=read(0x24036a4),modal3=read(0x1667f24),
-    activeModalID=read(0x1fe7c94),activeModalMenu=read(0x1fe7cb4),
-    modalX=read(0x1fe7c98),modalY=read(0x1fe7c9c),
-    modalWidth=read(0x1fe7ca0),modalHeight=read(0x1fe7ca4),modalBorder=read(0x1fe7ca8),
-    modalAnimation=read(0x1fe7cf8),modalClosing=read(0x1fe7cfc),
-    textModal=read(0x1126604),textEditor=read(0x2403b00),
-    width=read(0xf98350),height=read(0xf98354),sliding=read(0xf2b3a8),
+  local s={screen=read(A.screen),tab=read(A.tab),subtab=read(A.subtab),
+    delay=read(A.screenDelay),newPlayer=read(A.newPlayer),mode=read(A.gameMode),
+    modal=read(A.primaryModal),modal2=read(A.secondaryModal),modal3=read(A.tertiaryModal),
+    activeModalID=read(A.activeModalID),activeModalMenu=read(A.activeModalMenu),
+    modalX=read(A.modalX),modalY=read(A.modalY),
+    modalWidth=read(A.modalWidth),modalHeight=read(A.modalHeight),modalBorder=read(A.modalBorder),
+    modalAnimation=read(A.modalAnimation),modalClosing=read(A.modalClosing),
+    textModal=read(A.textModal),textEditor=read(A.textEditor),
+    width=read(A.screenWidth),height=read(A.screenHeight),sliding=read(A.toolbarSliding),
     focused=self.platform:focused(),composing=self.platform.composing,
     platformGeneration=self.platform.generation,
     inputGeneration=self.recorderInputGeneration()}
-  if s.modal==9 and s.activeModalMenu==0xb97688 then
-    s.loadArray=read(0xb97688);s.textIndex=read(0x1652740);s.textState=read(0x11265a8)
-    s.loadCount=read(0x112661c);s.loadOffset=read(0x1126628)
-    s.loadSelected=read(0x1126624);s.loadRows=read(0x112662c)
+  if s.modal==9 and s.activeModalMenu==A.loadMenu then
+    s.loadArray=read(A.loadMenu);s.textIndex=read(A.textEntries);s.textState=read(A.textDialog)
+    s.loadCount=read(A.loadCount);s.loadOffset=read(A.loadOffset)
+    s.loadSelected=read(A.loadSelected);s.loadRows=read(A.loadRows)
     if s.loadCount>=0 and s.loadCount<=500 then
-      s.loadIdentity=ffi.string(ffi.cast('const char *',0x1126e28),s.loadCount*4)
+      s.loadIdentity=ffi.string(ffi.cast('const char *',A.loadIndices),s.loadCount*4)
     end
   end
   return s

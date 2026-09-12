@@ -1,3 +1,4 @@
+local A=require('code/addresses')
 local ffi=require('ffi')
 local Traversal=require('code/menu_traversal')
 local M={}
@@ -42,7 +43,7 @@ function M:read(menuAddress, state, origin,includeDisabled)
     local action=n(ffi.cast('uintptr_t',r.menuItemActionHandler.simple))
     -- 0x440410 only clears the interaction return flag. Its rectangle is the
     -- bottom help/cost display, not a selectable action.
-    if action~=0 and action~=0x440410 and width>0 and height>0 and width<=state.width and height<=state.height
+    if action~=0 and action~=A.ignoreMenuAction and width>0 and height>0 and width<=state.width and height<=state.height
         and x>=0 and y>=0 and x+width<=state.width and y+height<=state.height then
       rows[#rows+1]={index=index,address=n(ffi.cast('uintptr_t',array+index-1)),
         x=x,y=y,width=width,height=height,parameter=n(r.callbackParameter.parameter),

@@ -32,6 +32,12 @@ function M.new(scene,reader)
     end,
     point=function(row) return row.x+math.floor(row.width/2),row.y+math.floor(row.height/2) end,
     hit=function(address) return ffi.cast('MenuItem *',address)[0].hovering~=0 end,
+    invoke=function(row)
+      -- MenuItem::handleMouseInteraction passes this parameter to the same
+      -- cdecl callback for kinds2/3/4. Keep native eligibility/submission code;
+      -- selecting a building never writes its placement ID or moves the cursor.
+      ffi.cast('MenuItem *',row.address)[0].menuItemActionHandler.simple(row.parameter)
+    end,
   }
 end
 return M

@@ -1,9 +1,9 @@
 name: custom-hotkeys
 display-name: Custom Hotkeys (development)
-version: 0.1.4
+version: 0.1.5
 author: Krarilotus
 type: module
-game: [SHC==1.41]
+game: [SHC==1.41, SHCE==1.41]
 dependencies:
   framework: ">=3.0.7"
   luajit: "=1.0.0"

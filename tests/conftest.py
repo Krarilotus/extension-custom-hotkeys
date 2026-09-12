@@ -10,7 +10,11 @@ def lua(request):
     runtime = importlib.import_module('lupa.' + request.param).LuaRuntime(unpack_returned_tuples=True)
     runtime.globals().source_root = ROOT.as_posix()
     runtime.execute("package.path = source_root .. '/?.lua;' .. package.path")
-    runtime.execute('''
+    import json
+    addresses = json.loads((ROOT / 'tests/fixtures/reference_addresses.json').read_text())
+    runtime.globals().reference_addresses = runtime.table_from(addresses)
+    runtime.execute("package.loaded['code/addresses'] = reference_addresses")
+    runtime.execute(''' 
       Binding = require('code/binding')
       Catalog = require('code/catalog')
       Context = require('code/context')

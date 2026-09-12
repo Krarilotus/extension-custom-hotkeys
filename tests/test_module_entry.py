@@ -45,12 +45,12 @@ def test_bootstrap_uses_ucp_game_language_only_after_init(lua):
       sha={sha256=function() return 'hash' end}
       json={encode=function() return 'receipt' end};log=function() end
       package.loaded['code/native/interface']={open=function() return {},{} end}
-      package.loaded['code/native/identity']={file=function() return 'game.exe' end}
+      package.loaded['code/address_bindings']={resolve=function()
+        assert(not initialized);return reference_addresses end}
       package.loaded['ui']=nil
       package.preload['ui']=function()
         assert(not initialized,'UI entry points resolved after enable-time hooks')
         uiLoads=uiLoads+1;return {} end
-      package.loaded['code/executable']={check=function() return true end}
       package.loaded['code/native/runtime']={start=function(language)
         assert(language=='german')
         return {view={modalID=2041},chain={priority=-110000},

@@ -1,10 +1,11 @@
+local A=require('code/addresses')
 local ffi=require('ffi')
 local M={}
 function M.new(scene,resolve,pointer)
-  local mouse=ffi.cast('uint8_t *',0xf2c9b0)
+  local mouse=ffi.cast('uint8_t *',A.mouseState)
   local raw=ffi.cast('int16_t *',mouse+0x1f4)
-  local native=ffi.cast('void (__thiscall *)(void *, short, short, int)',0x468030)
-  local reset=ffi.cast('void (__thiscall *)(void *)',0x4689d0)
+  local native=ffi.cast('void (__thiscall *)(void *, short, short, int)',A.mouseInput)
+  local reset=ffi.cast('void (__thiscall *)(void *)',A.resetMouse)
   local codes={left={1,2},right={3,4}}
   local adapter={}
   function adapter.resolve() return resolve() end

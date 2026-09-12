@@ -1,7 +1,8 @@
+local A=require('code/addresses')
 local ffi=require('ffi')
 local Encoding=require('code/native/encoding')
 local M={}
-local width=ffi.cast('int (__thiscall *)(void *, const char *, int)',0x471690)
+local width=ffi.cast('int (__thiscall *)(void *, const char *, int)',A.textWidth)
 function M.width(encoded,font) return tonumber(width(game.Rendering.textManager,encoded,font or 0x12)) end
 function M.codepage()
   local value=tonumber(ffi.cast('int32_t *',game.Rendering.textManager)[4])

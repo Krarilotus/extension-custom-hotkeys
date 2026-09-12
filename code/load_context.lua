@@ -1,3 +1,4 @@
+local A=require('code/addresses')
 -- The verified SHC1.41 Load dialog has a list, sorting and buttons, no text field.
 -- Save10, confirmation11 and the map/lobby editors are different owners.
 local M={}
@@ -6,8 +7,8 @@ local function integer(n,lo,hi)
 end
 function M.owns(s)
   local valid=type(s)=='table' and (s.screen==14 or s.screen==16)
-    and s.modal==9 and s.activeModalID==9 and s.activeModalMenu==0xb97688
-    and s.loadArray==0x601a88 and s.textModal==9 and s.textEditor==0
+    and s.modal==9 and s.activeModalID==9 and s.activeModalMenu==A.loadMenu
+    and s.loadArray==A.loadItems and s.textModal==9 and s.textEditor==0
     and s.modal2==-1 and s.modal3==-1 and s.textIndex==4 and s.textState==1
     and integer(s.loadCount,0,500) and s.loadRows==16
     and integer(s.loadOffset,0,math.max(0,s.loadCount-1))
@@ -33,15 +34,15 @@ function M.controls(rows,s)
   local out={}
   for _,row in ipairs(rows) do
     local p=row.parameter
-    if row.action==0x4948c0 and row.kind==3 and integer(p,0,15) then
+    if row.action==A.loadRowAction and row.kind==3 and integer(p,0,15) then
       if s.loadOffset+p<s.loadCount then out[#out+1]=row end
-    elseif row.action==0x4943b0 then
+    elseif row.action==A.loadAction then
       if row.kind==3 and (p==17 or (p==2 and s.loadSelected~=-1))
           or row.kind==2 and ((p==-1 and s.loadOffset>0)
             or (p==-2 and s.loadOffset<math.max(0,s.loadCount-s.loadRows))) then
         out[#out+1]=row
       end
-    elseif row.action==0x492de0 and row.kind==3 and (p==0 or p==1) then
+    elseif row.action==A.loadSortAction and row.kind==3 and (p==0 or p==1) then
       out[#out+1]=row
     end
     -- Scrollbar dragging and any newly injected/unverified controls stay mouse-only.

@@ -1,9 +1,10 @@
+local A=require('code/addresses')
 -- Reuse SHC's Save/Load table skin and the UI owner's ordinary button skin.
 -- Reference 492C90 calls 4692E0(selected,row,0); 492A90 calls 463A90(0,-1).
 -- These draw primitives use ButtonState, never Save/Load entries or callbacks.
 local ffi=require('ffi')
-local tableCell=ffi.cast('void (__thiscall *)(void *,int,int,int)',0x4692e0)
-local border=ffi.cast('unsigned short *',0xdf33b4)
+local tableCell=ffi.cast('void (__thiscall *)(void *,int,int,int)',A.renderTableCell)
+local border=ffi.cast('unsigned short *',A.tableBorderColor)
 local M={text=0xC2F0EB,selectedText=0xCCFAFF}
 function M.row(index,selected)
   tableCell(game.Rendering.pencilRenderCore,selected and 1 or 0,index,0)

@@ -1,3 +1,4 @@
+local A=require('code/addresses')
 local ffi=require('ffi')
 local Context=require('code/context')
 local Gameplay=require('code/gameplay')
@@ -8,13 +9,13 @@ local Plan=require('code/quickload_plan')
 local M={}
 local NAME='Custom Hotkeys Quick'
 local function read(address) return tonumber(ffi.cast('int32_t *',address)[0]) end
-local text=ffi.cast('void *',0x1652740)
-local setName=ffi.cast('void (__thiscall *)(void *,int,const char *)',0x469800)
-local hit=ffi.cast('int (__thiscall *)(void *,int,int,int,int)',0x4680c0)
-local enter=ffi.cast('void (__thiscall *)(void *)',0x469870)
+local text=ffi.cast('void *',A.textEntries)
+local setName=ffi.cast('void (__thiscall *)(void *,int,const char *)',A.setTextEntry)
+local hit=ffi.cast('int (__thiscall *)(void *,int,int,int,int)',A.mouseInsideBox)
+local enter=ffi.cast('void (__thiscall *)(void *)',A.acceptTextEntry)
 local function name()
   -- Native entry2 has250 bytes. Never use an unbounded ffi.string on game data.
-  local value=ffi.string(ffi.cast('const char *',0x1652740+0x150+2*250),250)
+  local value=ffi.string(ffi.cast('const char *',A.textEntries+0x150+2*250),250)
   return value:match('^([^%z]*)%z')
 end
 function M.new(scene,view,world,cursor,reader)
@@ -26,9 +27,9 @@ function M.new(scene,view,world,cursor,reader)
         or s.player~=token.player or s.synchronyMode~=token.synchronyMode
         or s.platformGeneration~=token.platformGeneration or s.width~=token.width or s.height~=token.height
         or s.modal2~=-1 or s.modal3~=-1 or s.textEditor~=0
-        or read(0x1fe7d7c)~=0 or (s.synchronyMode==99 and read(0x191def8)~=1) then return nil end
-    s.textIndex=read(0x1652740);s.textState=read(0x11265a8)
-    s.operation=read(0x1126600)
+        or read(A.scenarioRestriction)~=0 or (s.synchronyMode==99 and read(A.sessionHost)~=1) then return nil end
+    s.textIndex=read(A.textEntries);s.textState=read(A.textDialog)
+    s.operation=read(A.confirmationState)
     if s.modal==-1 and s.textModal==0 then return s,'done' end
     if s.modal==14 and s.textModal==14 and s.activeModalID==14 and s.operation==(token.action=='game.quickload' and 31 or 32) then
       return s,'progress'
@@ -38,11 +39,11 @@ function M.new(scene,view,world,cursor,reader)
       return nil
     end
     if s.modal==10 and s.textModal==10 and s.activeModalID==10
-        and s.activeModalMenu==0xb96290 and read(0xb96290)==0x6022f8
-        and s.textIndex==2 and s.textState==3 and read(0x1652744)==1
-        and read(0x165274c)==1 and Origin.read(s) then return s,'name' end
+        and s.activeModalMenu==A.confirmationMenu and read(A.confirmationMenu)==A.saveItems
+        and s.textIndex==2 and s.textState==3 and read(A.textSubmitted)==1
+        and read(A.textEntryState)==1 and Origin.read(s) then return s,'name' end
     if s.modal==11 and s.textModal==11 and s.activeModalID==11
-        and s.activeModalMenu==0xb97ad8 and read(0xb97ad8)==0x602c08
+        and s.activeModalMenu==A.saveMenu and read(A.saveMenu)==A.confirmationItems
         and s.textIndex==9 and s.textState==3 and s.operation==30
         and name()==NAME and Origin.read(s) then return s,'confirm' end
   end
@@ -56,13 +57,13 @@ function M.new(scene,view,world,cursor,reader)
   end
   function adapter.observe(token)
     local s,kind=snapshot(token)
-    if ownReturn and read(0x1652748)==0 then ownReturn=false end
+    if ownReturn and read(A.textCancelled)==0 then ownReturn=false end
     if kind=='name' and ownReturn and name()~=NAME then return nil end
     return kind
   end
   function adapter.submitName(token)
     local _,kind=snapshot(token)
-    if kind~='name' or read(0x1652748)~=0 then return false end
+    if kind~='name' or read(A.textCancelled)~=0 then return false end
     assert(#NAME<250 and not NAME:find('%z'),'quicksave.name')
     setName(text,2,NAME)
     if name()~=NAME then return false end
@@ -88,7 +89,7 @@ function M.new(scene,view,world,cursor,reader)
     local filtered=Load.controls(result,s)
     if not filtered then return nil end
     for _,row in ipairs(result) do
-      if row.action==0x492ba0 and row.kind==6 and row.parameter==0
+      if row.action==A.loadScrollAction and row.kind==6 and row.parameter==0
           and row.height>=64 and row.width>=10 and row.width<=64 then
         filtered[#filtered+1]=row
       end
@@ -113,21 +114,21 @@ function M.new(scene,view,world,cursor,reader)
           if row.kind~=6 then return ffi.cast('MenuItem *',address)[0].hovering~=0 end
           -- Native scrollbar hover is only set after a press. Prove its rectangle
           -- with the same read-only native hit test before introducing that press.
-          return hit(ffi.cast('void *',0xf2c9b0),row.x,row.y,row.width,row.height)~=0
+          return hit(ffi.cast('void *',A.mouseState),row.x,row.y,row.width,row.height)~=0
         end
       end
       return false
     end,
   },cursor)
   function adapter.confirm(token)
-    return navigation:activateMatching({action=0x494950,parameter=22,kind=3},
+    return navigation:activateMatching({action=A.saveAction,parameter=22,kind=3},
       Context.resolve(adapter.context(token)))
   end
   local function slotName(identity,index)
     local a,b,c,d=identity:byte(index*4+1,index*4+4)
     local nativeIndex=a+b*256+c*65536+d*16777216
     if nativeIndex>499 then return nil end
-    local data=ffi.string(ffi.cast('const char *',0x11bf130+0xbc8+nativeIndex*1001),1001)
+    local data=ffi.string(ffi.cast('const char *',A.saveList+0xbc8+nativeIndex*1001),1001)
     return data:match('^([^%z]*)%z')
   end
   function adapter.loadStep(token)
@@ -163,7 +164,7 @@ function M.new(scene,view,world,cursor,reader)
     if ownReturn then
       -- Remove only our pending Return before forwarding a user's new input.
       -- This is local input debt, never a game/session state write.
-      ffi.cast('int32_t *',0x1652748)[0]=0
+      ffi.cast('int32_t *',A.textCancelled)[0]=0
       ownReturn=false
     end
   end

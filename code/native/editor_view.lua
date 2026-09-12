@@ -1,3 +1,4 @@
+local A=require('code/addresses')
 local ffi=require('ffi')
 local Controller=require('code/editor')
 local Text=require('code/text_edit')
@@ -18,8 +19,7 @@ function M.new(profiles,catalog,router,scene,platform,labels)
   self.menuID=manager.getAvailableMenuID(2040)
   self.modalID=manager.getAvailableModalMenuID(2041)
   local function pin(value) self.pins[#self.pins+1]=value;return value end
-  self.resetMouse=ffi.cast('void (__thiscall *)(void *)',remote.interface.core.AOBScan(
-    '33 C0 39 81 D8 01 00 00 89 81 D8 01 00 00 75 ? 89 41 28 89 41 2C 89 41 30'))
+  self.resetMouse=ffi.cast('void (__thiscall *)(void *)',A.resetMouse)
   self.controls={}
   local action=pin(ffi.cast('void (__cdecl *)(int)',function(id)
     local ok,err=pcall(self.activate,self,id)
@@ -60,7 +60,7 @@ function M.new(profiles,catalog,router,scene,platform,labels)
       items[#items+1]={menuItemType=6,position={position={x=722,y=Geometry.listY}},
         itemWidth=18,itemHeight=rows*Geometry.rowHeight,
         menuItemActionHandler={scrollbar=scroll},callbackParameter={parameter=0},
-        menuItemRenderFunction={scrollbar=ffi.cast('void (__cdecl *)(int,int,int,int,bool)',0x492c60)},
+        menuItemRenderFunction={scrollbar=ffi.cast('void (__cdecl *)(int,int,int,int,bool)',A.renderScrollbar)},
         firstItemTypeData={itemsToSkip=20},menuItemRenderFunctionType=4}
     end
     items[#items+1]={menuItemType=0x66}

@@ -1,6 +1,7 @@
+local A=require('code/addresses')
 local ffi=require('ffi')
 local Context=require('code/context')
-local fields={right=0x112b088,left=0x112b08c,down=0x112b090,up=0x112b094}
+local fields={right=A.panRight,left=A.panLeft,down=A.panDown,up=A.panUp}
 local keys={right={0x27,77},left={0x25,75},down={0x28,80},up={0x26,72}}
 local M={}
 function M.new(platform,router)
