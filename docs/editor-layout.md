@@ -65,5 +65,16 @@ full gameplay/multiplayer/replay acceptance remain outstanding.
 The user rejected the custom olive palette in the later11ba28f package preview.
 It has been replaced with the original SHC table/button draw primitives and the
 native modal's own framed, dimmed background. No new graphics are bundled. This
-styling revision requires a new native visual check; PID22404/31580 above show
+styling revision passed a new native visual check; PID22404/31580 above show
 the superseded palette.
+
+PID31988 loaded frozen10a6792 ZIP (137996bytes, SHA256
+c6998f3a0853fc17865573eabdedcbb96578bb9f51b4b981bf07c0f624841bd7),
+with the same reference/dependencies and1280x720 English/German-key environment.
+F12 opened the16-row editor; the Grid profile saved in PID31580 was active after
+restart. Native red row stripes, selected/hovered rows and normal SHC buttons
+rendered on both pages. End reached211/211, showing12 grid slots; physical scan44
+displayed German Y as expected. Cancel returned normally without Apply. Error log
+had headers only. Closed/absence verified/released03:45:25 CEST (1m36s of4m).
+Receipts: task native-evidence/skin-31988*. This checks the new skin and profile
+restart, not the outstanding grid geometry/complete gameplay acceptance.
