@@ -20,7 +20,7 @@ def test_module_starts_once_after_native_initialization(lua):
       local callbacks,starts={},0
       hooks={registerHookCallback=function(name,callback)
         assert(name=='afterInit');callbacks[#callbacks+1]=callback end}
-      package.loaded['code/launch']={start=function(path)
+      package.loaded['code/launch']={prepare=function(path) return path end,start=function(path)
         assert(path=='ucp/modules/custom-hotkeys');starts=starts+1
         return {receipt={installed=true}} end}
       json={encode=function() return 'receipt' end};log=function() end
@@ -46,6 +46,7 @@ def test_bootstrap_uses_ucp_game_language_only_after_init(lua):
       json={encode=function() return 'receipt' end};log=function() end
       package.loaded['code/native/interface']={open=function() return {},{} end}
       package.loaded['code/native/identity']={file=function() return 'game.exe' end}
+      package.loaded['ui']={}
       package.loaded['code/executable']={check=function() return true end}
       package.loaded['code/native/runtime']={start=function(language)
         assert(language=='german')

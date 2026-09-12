@@ -5,12 +5,14 @@ if not ok then
   local labels=require('code/activation_text').new(data.version.getGameLanguage())
   error(labels(reason)..' ['..tostring(reason)..']')
 end
+local launch=require('code/launch')
+local prepared=launch.prepare('ucp/modules/custom-hotkeys')
 local M={}
 function M:enable()
   assert(not self.started,'Custom Hotkeys is already enabled; restart required')
   self.started=true
   hooks.registerHookCallback('afterInit',function()
-    self.runtime=require('code/launch').start('ucp/modules/custom-hotkeys')
+    self.runtime=launch.start(prepared)
     log(INFO,'Custom Hotkeys initialized: '..json:encode(self.runtime.receipt))
   end)
 end

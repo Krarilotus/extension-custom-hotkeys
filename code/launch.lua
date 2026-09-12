@@ -2,12 +2,8 @@ local M={}
 -- Registered native callbacks cannot be unregistered by winProcHandler 1.0.0.
 -- Pin their state before initialization, including a partially failed startup.
 local live={}
-function M.start(modulePath)
-  local compatible,recorder=pcall(require('code/recorder').connect,modules,allActiveExtensions)
-  if not compatible then
-    error(require('code/activation_text').new(data.version.getGameLanguage())('activation.recorder-api')
-      ..' ['..tostring(recorder)..']')
-  end
+function M.prepare(modulePath)
+  local recorder
   local catalog=require('code/catalog').production()
   local profiles=require('code/profiles')
   local codec={encode=function(value) return json:encode(value) end,
@@ -32,7 +28,7 @@ function M.start(modulePath)
       local text=f:read('*all');f:close();return text
     end,
     interface={env=_ENV,extra={manager=access.manager,chain=function() return chain end,
-      recorderInputState=recorder.read,
+      recorderInputState=function() return recorder and recorder.read() end,
       installInputFrame=function(callback) return require('code/input_patch').install(core,callback) end,
       menuAddress=function(id)
         local p=access.manager.lookupMenu(id)
@@ -49,11 +45,28 @@ function M.start(modulePath)
       end,
       gameLanguage=function() return data.version.getGameLanguage() end}}
   })
-  live[#live+1]={state=state,library=library,store=store}
+  local prepared={state=state,library=library,store=store,
+    connectRecorder=function(value) recorder=value end}
+  live[#live+1]=prepared
   local image=state:executeString("return require('code/native/identity').file()",
     'custom-hotkeys/identity',true)
   assert(require('code/executable').check(image,io,sha.sha256))
   state:importHeaderFile('ucp/modules/ui/ui/headers/latest/ui.h')
+  -- Resolve the UI owner's original entry points during module loading. Later
+  -- enable-time Recorder hooks legitimately replace some of their prologues.
+  assert(state:executeString("require('ui'); return true",'custom-hotkeys/ui-bindings',true)==true,
+    'ui.bindings-unavailable')
+  return prepared
+end
+
+function M.start(prepared)
+  local compatible,recorder=pcall(require('code/recorder').connect,modules,allActiveExtensions)
+  if not compatible then
+    error(require('code/activation_text').new(data.version.getGameLanguage())('activation.recorder-api')
+      ..' ['..tostring(recorder)..']')
+  end
+  prepared.connectRecorder(recorder)
+  local state=prepared.state
   local receipt=state:executeString([[
     _G.customHotkeys=require('code/native/runtime').start(remote.interface.gameLanguage())
     return {installed=true,modal=customHotkeys.view.modalID,priority=customHotkeys.chain.priority,
@@ -61,11 +74,12 @@ function M.start(modulePath)
   ]],'custom-hotkeys/bootstrap',true)
   assert(type(receipt)=='table' and receipt.installed,'runtime.initialize')
   if recorder.observe then
-    live[#live].stopObserving=recorder.observe(function()
+    prepared.stopObserving=recorder.observe(function()
       assert(state:executeString('customHotkeys.router:barrier(); return true',
         'custom-hotkeys/recorder-transition',true)==true,'hotkeys.recorder-cancellation')
     end)
   end
-  return {state=state,library=library,store=store,receipt=receipt}
+  prepared.receipt=receipt
+  return prepared
 end
 return M
