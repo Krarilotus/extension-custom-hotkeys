@@ -11,14 +11,14 @@ local Platform=require('code/native/win32')
 local Scene=require('code/native/scene')
 local View=require('code/native/editor_view')
 local M={}
-function M.start(entries,language)
+function M.start(language)
   local lock=assert(require('code/native/profile_lock').acquire())
   local platform=Platform.new(tonumber(ffi.cast('int32_t *',0xf983e4)[0]))
   local scene=Scene.new(platform)
-  local catalog=Catalog.new(entries,require('code/originals'))
-  require('code/presets').attach(catalog)
+  local catalog=Catalog.production()
+  local selectors=require('code/controls')
   local controls={}
-  for _,control in ipairs(require('code/controls')) do controls[control.id]=control end
+  for _,control in ipairs(selectors) do controls[control.id]=control end
   local view,cursor,navigation,targeting,camera,worldActions,quickslot,lowering
   local router
   router=Router.new(catalog,Catalog.defaults(catalog),{
@@ -30,7 +30,7 @@ function M.start(entries,language)
       if id=='menu.previous' then return navigation:move(-1,context) end
       if id=='menu.activate' or id=='game.menu.activate' then return navigation:activate(context) end
       if id:sub(1,10)=='grid.slot.' then
-        return navigation:activateGrid(tonumber(id:sub(11)),require('code/controls'),context)
+        return navigation:activateGrid(tonumber(id:sub(11)),selectors,context)
       end
       if id:sub(1,7)=='target.' then return targeting:dispatch(id,context) end
       if id=='view.lower-buildings' then cursor:cancel();return lowering:start(context) end
@@ -68,36 +68,7 @@ function M.start(entries,language)
       return scene:resolve(view)
     end,pointer))
   local reader=require('code/native/menu_reader').new()
-  navigation=require('code/navigation').new({
-    gridControls=function(context)
-      if not context or context.owner~='game.build' then return nil end
-      local s=scene:snapshot()
-      if tostring(s.screen)~=context.screen or s.modal~=-1 or s.modal2~=-1 or s.modal3~=-1 then return nil end
-      return reader:read(remote.interface.menuAddress(s.screen),s,nil,true)
-    end,
-    controls=function(context)
-      if not context or (context.owner:sub(1,5)~='menu.' and context.owner~='game.build'
-          and context.owner~='game.status' and context.owner~='game.options' and context.owner~='game.load') then return nil end
-      local s=scene:snapshot()
-      if context.owner=='game.load' then
-        local load=require('code/load_context')
-        if tostring(s.screen)~=context.screen or not load.owns(s) then return nil end
-        local origin=load.origin(s)
-        if not origin then return nil end
-        return load.controls(reader:read(s.activeModalMenu,s,origin),s)
-      end
-      if context.owner=='game.options' then
-        if tostring(s.screen)~=context.screen or not require('code/options_context').owns(s) then return nil end
-        local origin=require('code/options_context').origin(s)
-        if not origin then return nil end
-        return reader:read(s.activeModalMenu,s,origin)
-      end
-      if tostring(s.screen)~=context.screen or s.modal~=-1 or s.modal2~=-1 or s.modal3~=-1 then return nil end
-      return reader:read(remote.interface.menuAddress(s.screen),s)
-    end,
-    point=function(row) return row.x+math.floor(row.width/2),row.y+math.floor(row.height/2) end,
-    hit=function(address) return ffi.cast('MenuItem *',address)[0].hovering~=0 end,
-  },cursor)
+  navigation=require('code/navigation').new(require('code/native/menu_adapter').new(scene,reader),cursor)
   targeting=require('code/targeting').new(cursor,navigation,function()
     -- setupViewport(0x4E66F0) stores its pixel rectangle here. The similarly
     -- named fields at +0x78/+0x88 are map offsets/tile counts, not screen pixels.
@@ -120,53 +91,7 @@ function M.start(entries,language)
   local runtime={lock=lock,platform=platform,scene=scene,catalog=catalog,router=router,
     profiles=profiles,view=view,chain=chain,cursor=cursor,navigation=navigation,
     inputFrame=inputFrame,lowering=lowering,quickslot=quickslot,pointer=pointer,targeting=targeting,camera=camera,worldActions=worldActions,pins={}}
-  local main=api.ui.Menu:fromPointer(remote.interface.menuAddress(41),41)
-  local count=main.menuItemsCount
-  assert(count>=1 and count<=4096,'menu.main-size')
-  -- Preserve all current entries (including another extension's additions).
-  -- Explicit allocation avoids the UI count-constructor/reallocation defects.
-  local items=ffi.new('MenuItem[?]',count+3)
-  ffi.copy(items,main.menuItems,count*ffi.sizeof('MenuItem'))
-  local action=ffi.cast('void (__cdecl *)(int)',function()
-    local ok,problem=pcall(view.open,view)
-    if not ok then log(ERROR,tostring(problem)) end
-  end)
-  local render=ffi.cast('void (__cdecl *)(int)',function()
-    -- Painting remains visible when another window has focus. Eligibility is
-    -- checked separately when the native control attempts an action.
-    local s=scene:snapshot()
-    if s.screen~=41 or s.modal~=-1 or s.modal2~=-1 or s.modal3~=-1 then return end
-    local s=game.Rendering.ButtonState
-    local old=game.Rendering.pDrawBufferChoiceValue[0]
-    game.Rendering.pDrawBufferChoiceValue[0]=0
-    local ok,problem=pcall(function()
-      game.Rendering.drawBlendedBlackBox(game.Rendering.pencilRenderCore,s.x,s.y,s.x+s.width,s.y+s.height,0x14)
-      view:draw(view.labels('title'),s.x+6,s.y+5,nil,nil,s.width-12,'main-entry')
-      if items[count+1].hovering~=0 then
-        -- The native main menu already owns this help rectangle (item1,
-        -- menu-local155,490,335x85). Paint only while our entry owns hover.
-        local x=tonumber(main.pMenu.xPosition)+155
-        local y=tonumber(main.pMenu.yPosition)+490
-        game.Rendering.drawColorBox(game.Rendering.pencilRenderCore,x,y,x+334,y+84,0)
-        view:draw(view.labels('mainHelp1'),x+6,y+8,nil,nil,323,'main-help-1')
-        view:draw(view.labels('mainHelp2'),x+6,y+32,nil,nil,323,'main-help-2')
-      end
-    end)
-    game.Rendering.pDrawBufferChoiceValue[0]=old
-    if not ok then log(ERROR,tostring(problem)) end
-  end)
-  items[count]={menuItemType=0x01000000,menuItemActionHandler={simple=action},
-    menuItemRenderFunction={simple=render},menuPointer=main.pMenu}
-  items[count+1]={menuItemType=0x02000003,menuItemRenderFunctionType=1,
-    -- The knight's native Bink animation repaints the right column. Use the
-    -- gap below the last main button and above the original y=490 hit area.
-    position={position={x=155,y=462}},itemWidth=335,itemHeight=24,
-    callbackParameter={parameter=1},menuPointer=main.pMenu}
-  items[count+2].menuItemType=0x66
-  -- Group callbacks must be resolved by the native constructor, as for the
-  -- UI owner's explicit-array menu creation. Keep the current menu object.
-  game.UI.Menu(main.pMenu,items)
-  runtime.pins={main,items,action,render}
+  runtime.pins=require('code/native/main_menu').install(scene,view)
   return runtime
 end
 return M

@@ -3,18 +3,15 @@ local M={}
 -- Pin their state before initialization, including a partially failed startup.
 local live={}
 function M.start(modulePath)
-  local entries=require('code/entries')
-  local catalog=require('code/catalog').new(entries,require('code/originals'))
-  require('code/presets').attach(catalog)
+  local catalog=require('code/catalog').production()
   local profiles=require('code/profiles')
-  local store=require('code/store').new(require('code/ucp_storage').new(io),
-    {encode=function(value) return json:encode(value) end,
-     decode=function(value) return json:decode(value) end},sha.sha256,
-    function(value) return profiles.validate(catalog,value) end)
-  local exchange=require('code/store').new(require('code/ucp_storage').new(io,'exchange'),
-    {encode=function(value) return json:encode(value) end,
-     decode=function(value) return json:decode(value) end},sha.sha256,
-    function(value) return profiles.validate(catalog,value) end)
+  local codec={encode=function(value) return json:encode(value) end,
+    decode=function(value) return json:decode(value) end}
+  local function profileStore(namespace)
+    return require('code/store').new(require('code/ucp_storage').new(io,namespace),
+      codec,sha.sha256,function(value) return profiles.validate(catalog,value) end)
+  end
+  local store,exchange=profileStore(),profileStore('exchange')
   local chain,library=require('code/native/interface').open(core)
   local access=modules.ui:access()
   local cffi=modules.cffi:cffi()
@@ -44,7 +41,7 @@ function M.start(modulePath)
         if not previous and err~='store.missing' then return nil,err end
         return exchange:save(document)
       end,
-      bootstrap=function() return {entries=entries,language=data.version.getGameLanguage()} end}}
+      gameLanguage=function() return data.version.getGameLanguage() end}}
   })
   live[#live+1]={state=state,library=library,store=store}
   local image=state:executeString("return require('code/native/identity').file()",
@@ -52,8 +49,7 @@ function M.start(modulePath)
   assert(require('code/executable').check(image,io,sha.sha256))
   state:importHeaderFile('ucp/modules/ui/ui/headers/latest/ui.h')
   local receipt=state:executeString([[
-    local options=remote.interface.bootstrap()
-    _G.customHotkeys=require('code/native/runtime').start(options.entries,options.language)
+    _G.customHotkeys=require('code/native/runtime').start(remote.interface.gameLanguage())
     return {installed=true,modal=customHotkeys.view.modalID,priority=customHotkeys.chain.priority,
       profile=customHotkeys.profiles.committed.active}
   ]],'custom-hotkeys/bootstrap',true)

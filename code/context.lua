@@ -1,5 +1,19 @@
 local M = {}
 local states = {menu=true, ['live-sp']=true, ['live-mp']=true, replay=true}
+local identityFields = {'owner','screen','panel','modal','focus','selection',
+  'targeting','state','authority','generation'}
+
+---@class HotkeyContext
+---@field owner string
+---@field screen string
+---@field panel string
+---@field modal string
+---@field focus string
+---@field selection string
+---@field targeting string
+---@field state 'menu'|'live-sp'|'live-mp'|'replay'
+---@field authority boolean
+---@field generation integer
 
 -- The native adapter must prove every field, including explicit false values.
 -- A menu ID alone, an imported symbol name or a cached gameplay flag is insufficient.
@@ -16,15 +30,13 @@ function M.resolve(facts)
       or facts.generation < 0 or facts.generation ~= math.floor(facts.generation)
       or facts.generation > 9007199254740991 then return nil end
   local c = {}
-  for _, key in ipairs({'owner','screen','panel','modal','focus','selection',
-      'targeting','state','authority','generation'}) do c[key] = facts[key] end
+  for _, key in ipairs(identityFields) do c[key] = facts[key] end
   return c
 end
 
 function M.same(a, b)
   if not a or not b then return a == b end
-  for _, key in ipairs({'owner','screen','panel','modal','focus','selection',
-      'targeting','state','authority','generation'}) do
+  for _, key in ipairs(identityFields) do
     if a[key] ~= b[key] then return false end
   end
   return true

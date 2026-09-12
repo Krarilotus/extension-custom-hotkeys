@@ -96,4 +96,12 @@ function M.validate(catalog, bindings)
   return normalized
 end
 
+-- Both the framework and private LuaJIT state construct this same definition.
+-- Mutable profile/router instances remain private to their owning state.
+function M.production()
+  local catalog=M.new(require('code/entries'),require('code/originals'))
+  require('code/presets').attach(catalog)
+  return catalog
+end
+
 return M

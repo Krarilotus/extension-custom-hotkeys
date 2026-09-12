@@ -31,17 +31,18 @@ function M.install(interface, router, platform, exclusiveInput, mouseInput)
     return platform:modifiers()
   end,
   function(hwnd) return platform:owns(hwnd) end, exclusiveInput)
+  -- Keep one protected observer instead of allocating a closure per message.
+  local function observe(message,wparam,lparam)
+    if platform:observe(message) then router:barrier() end
+    -- Real mouse input takes ownership before the native handler sees it.
+    if mouseInput and message>=0x200 and message<=0x20e then mouseInput(message,wparam,lparam) end
+  end
   result.callback = ffi.cast(signature, function(priority, hwnd, message, wparam, lparam)
     -- HWNDs are numeric keys here; separately boxed pointer cdata must not
     -- split gesture debt into a different Lua table on every callback.
     local window = tonumber(ffi.cast('uintptr_t',hwnd))
     if platform:owns(window) then
-      local ok, err = pcall(function()
-        if platform:observe(message) then router:barrier() end
-        -- A real mouse gesture takes over before the original handler sees it.
-        -- Cancelling first lets that handler retain the user's real input.
-        if mouseInput and message>=0x200 and message<=0x20e then mouseInput(message,wparam,lparam) end
-      end)
+      local ok, err = pcall(observe,message,wparam,lparam)
       if not ok then result.failure=tostring(err); router.blocked=true end
     end
     -- No Lua error may escape the C callback. An uncertain downstream failure

@@ -1,6 +1,7 @@
 local Binding = require('code/binding')
 local Context = require('code/context')
 local Catalog = require('code/catalog')
+local empty = {}
 local M = {}
 M.__index = M
 
@@ -60,7 +61,17 @@ function M:apply(bindings,options)
     if binding then
       local key = Binding.key(binding)
       self.index[key] = self.index[key] or {}
-      table.insert(self.index[key], self.catalog.actions[id])
+      local action=self.catalog.actions[id]
+      for owner in pairs(action.contexts) do
+        local states=self.index[key][owner] or {}
+        self.index[key][owner]=states
+        for state in pairs(action.states) do
+          -- Catalog.validate proved unique ownership for each overlapping
+          -- context/state. Compile on Apply, never scan other menus on input.
+          assert(not states[state],'binding.conflict')
+          states[state]=action
+        end
+      end
     end
   end
   local nativeAssignments={}
@@ -183,16 +194,12 @@ function M:handle(event)
     return true
   end
   if self.blocked then return false end
-  local candidates = self.index[physical + 256 * event.mods] or {}
-  local chosen
-  for _, action in ipairs(candidates) do
-    if Context.allows(action, context) then
-      if chosen then return false end
-      chosen = action
-    end
-  end
+  local owners = self.index[physical + 256 * event.mods]
+  local states = owners and owners[context.owner]
+  local chosen = states and states[context.state]
+  if chosen and not Context.allows(chosen,context) then chosen=nil end
   if not chosen then
-    for _, action in ipairs(self.nativeMasks[physical + 256 * event.mods] or {}) do
+    for _, action in ipairs(self.nativeMasks[physical + 256 * event.mods] or empty) do
       if Context.allows(action, context) then
         if not Context.same(context, self:readContext()) then self:barrier(); return false end
         held.consumed = true

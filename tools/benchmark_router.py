@@ -3,14 +3,20 @@ from pathlib import Path
 import importlib
 import json
 import platform
+import argparse
 
 ROOT = Path(__file__).resolve().parents[1]
 results = []
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--source', type=Path, default=ROOT)
+args = parser.parse_args()
 for engine in ('lua54', 'luajit21'):
     lua = importlib.import_module('lupa.' + engine).LuaRuntime(unpack_returned_tuples=True)
-    lua.globals().source_root = ROOT.as_posix()
+    lua.globals().source_root = args.source.resolve().as_posix()
     lua.execute('''
       package.path=source_root..'/?.lua;'..package.path
+      -- Production callbacks run without tracing: benchmark that policy.
+      if jit then jit.off() end
       local Catalog=require('code/catalog')
       local Router=require('code/router')
       local entries={}

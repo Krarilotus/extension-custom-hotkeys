@@ -1,3 +1,7 @@
+---@class HotkeyBinding
+---@field scan integer Set-1 physical position, 1..127
+---@field extended boolean E0 prefix
+---@field mods integer Ctrl=1, Shift=2, Alt=4
 local M = {}
 local function integer(n, lo, hi)
   return type(n) == 'number' and n == math.floor(n) and n >= lo and n <= hi
@@ -15,6 +19,9 @@ end
 
 -- Set-1 scan code plus the E0 bit. Ctrl=1, Shift=2, Alt=4; sides are aliases.
 -- E1/Pause and modifier-only bindings are deliberately unsupported.
+---@param value unknown
+---@return HotkeyBinding? binding
+---@return string? error
 function M.validate(value)
   if type(value) ~= 'table' then return nil, 'binding.type' end
   for key in pairs(value) do
