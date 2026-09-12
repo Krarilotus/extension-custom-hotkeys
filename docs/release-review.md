@@ -31,8 +31,8 @@ unchanged. Native launcher integration still needs acceptance.
   once. Type annotations document binding and context contracts without a new
   runtime type system or dependency.
 - Editor rows and profile lists already cache their view until it changes;
-  text measurements, key labels and native menu arrays also retain their existing
-  caches. These were audited and reused rather than replaced with another cache.
+  text measurements and key labels retain their existing caches. Native controls
+  are read from the active owner's array and rechecked before activation.
 - `files.xml` is the source of the installable payload for both builders. Only
   runtime code, definition, required configuration and README are installed.
   Test tools, investigations, screenshots and online descriptions stay outside
@@ -54,8 +54,10 @@ input remained blocked (LuaJIT0.62 to0.52 microseconds; Lua5.4 timings varied
 rendering, command submission and scheduler noise; it is not a game FPS claim.
 
 The extension installs no simulation-tick callback. Its existing local-input
-frame callback returns immediately while idle and advances only an active
-cursor/quickslot or held camera/lowering gesture. Grid work happens on keypress,
+frame callback returns immediately while idle. It advances an active native
+navigation/cursor/quickslot or held camera/lowering gesture, retires translated
+mouse holds, and observes world lifetime while local bookmarks exist. It performs
+no per-frame unit/building census. Grid work happens on keypress,
 not each simulation step. Actual native 1100-speed, command-count and multiplayer
 performance acceptance remains required; component results do not establish it.
 

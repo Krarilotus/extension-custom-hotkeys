@@ -103,6 +103,13 @@ English game with German Windows key labels; Legacy absent.
   full RNG checkpoints. F12/Cancel worked during playback. Error log was header-only;
   normal close/PID absence verified, desktop released17:31:32, baselines restored.
 
+- PID30484, 97cfe4b: keyboard navigation reached main Options, Gameplay Options
+  and Sound Options. The speed slider displayed60->59->60 and music0->1->0
+  through the original slider handler/state. Keyboard Back returned from both
+  subdialogs; Load opened the task quickslot and F12 opened the239-action editor.
+  Normal process exit and desktop handoff verified18:09:05. This session was not
+  finalized as a Recorder recording and is not additional playback evidence.
+
 These processes exited normally and desktop reservations were released. Earlier
 Alt+F4-only captures were not finalized and remain unaccepted; the later normal
 mission-exit capture above is the completed playback evidence. Earlier native
