@@ -37,3 +37,18 @@ def test_grid_reuses_native_activation_revalidation(lua):
       controls={row};cursor.pending=true
       assert(not nav:activateGrid(1,{selector},context));assert(clicks==1)
     ''')
+
+
+def test_different_icon_heights_keep_visual_left_to_right_order(lua):
+    lua.execute('''
+      local Grid=require('code/grid');local selectors={};local rows={}
+      for i,geometry in ipairs({{0,110,20},{30,100,40},{60,90,60},{90,140,20}}) do
+        selectors[i]={id='build.select.'..i,action=2,parameter=i,help=i}
+        rows[i]={address=i,x=geometry[1],y=geometry[2],height=geometry[3],
+          kind=3,action=2,parameter=i,help=i}
+      end
+      for slot=1,4 do assert(Grid.select(rows,selectors,slot)==slot) end
+      rows[2].disabled=true
+      assert(Grid.select(rows,selectors,2)==nil)
+      assert(Grid.select(rows,selectors,3)==3)
+    ''')

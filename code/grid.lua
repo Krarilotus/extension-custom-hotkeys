@@ -17,6 +17,22 @@ function M.select(rows,selectors,slot)
     end
   end
   table.sort(commands,function(a,b) return a.y==b.y and a.x<b.x or a.y<b.y end)
+  -- Native building icons have different heights. Their top edge is not a
+  -- grid row: e.g. the short ox tether would sort before the taller woodcutter.
+  -- Group vertically overlapping rectangles, then read each band left to right.
+  local ordered,index={},1
+  while index<=#commands do
+    local band={commands[index]}
+    local bottom=commands[index].y+(commands[index].height or 1)
+    index=index+1
+    while index<=#commands and commands[index].y<bottom do
+      local row=commands[index];band[#band+1]=row
+      bottom=math.max(bottom,row.y+(row.height or 1));index=index+1
+    end
+    table.sort(band,function(a,b) return a.x==b.x and a.y<b.y or a.x<b.x end)
+    for _,row in ipairs(band) do ordered[#ordered+1]=row end
+  end
+  commands=ordered
   -- Overlapping controls have no unambiguous visual slot.
   for i=2,#commands do
     if commands[i].x==commands[i-1].x and commands[i].y==commands[i-1].y then return nil end
