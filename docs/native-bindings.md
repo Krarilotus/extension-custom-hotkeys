@@ -5,7 +5,8 @@ runtime game addresses. `address_bindings.lua` resolves named functions and data
 through UCP's cached `core.AOBScan` and `utils.AOBExtract` during preparation,
 before enable-time hooks. The UI dependency supplies its existing mouse state,
 hit-test function and button surface. The dedicated LuaJIT state receives one
-copy of these bindings; input dispatch performs no scans or remote address reads.
+copy of these bindings; input dispatch performs no scans or per-binding remote
+lookups. Active menu lookup still uses the UI manager's live API.
 
 Native structure fields retain their ABI offsets. The viewport rectangle offset
 is extracted from the original setup function; menu arrays are extracted from
@@ -98,7 +99,8 @@ Final-diff review removed obsolete executable/identity adapters and production
 reference-address literals. Simple building/category/Grid actions no longer use
 positional click transport. Sliders, traversal focus and explicit world targeting
 still require the native cursor adapter. Bindings resolve once before enable-time
-patches and copy once into LuaJIT, with no input-frame scans or remote lookups.
+patches and copy once into LuaJIT, with no input-frame scans or per-binding
+remote lookups.
 
 ## Compatibility limits
 
