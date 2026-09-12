@@ -74,3 +74,19 @@ def test_modern_pointer_modes_reuse_selection_order_and_cancel(lua):
       button,deselect=p.resolve('pointer.select',s);assert(not deselect)
       s.selectedCount=0;assert(p.resolve('pointer.order',s)=='right')
     ''')
+
+
+def test_editor_mouse_controls_remain_native_except_during_capture(lua):
+    lua.execute('''
+      current=facts('hotkeys.editor');local passed,exclusive=0,0
+      local h=require('code/messages').new(router,function(...)
+        passed=passed+1;return 17 end,
+        function() return {mods=0,altgr=false,win=false,composing=false} end,
+        function() return true end,function() exclusive=exclusive+1;return true end)
+      assert(h(4,9,0x201,1,123)==17 and h(4,9,0x202,0,123)==17)
+      assert(passed==2 and exclusive==0)
+      current=facts('hotkeys.capture');local captured
+      router:startCapture(function(b) captured=b end)
+      assert(h(4,9,0x207,16,123)==0 and h(4,9,0x208,0,123)==0)
+      assert(captured.button=='middle' and passed==2 and exclusive==0)
+    ''')

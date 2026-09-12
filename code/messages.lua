@@ -74,7 +74,9 @@ function M.new(router, nextProc, modifierState, ownsWindow, exclusiveInput)
         entered = true
         local routed,target=router:handle(event)
         if routed then return true,target end
-        if exclusiveInput and exclusiveInput(event)==true then return true end
+        -- Editor mouse controls retain their native UI handler. Mouse capture
+        -- is already exclusive in the router, before this keyboard-only path.
+        if not button and exclusiveInput and exclusiveInput(event)==true then return true end
         -- An exclusive editor may close before its release/character arrives.
         -- Keep that gesture suppressed until the next fresh down.
         return debt[physical]~=nil
