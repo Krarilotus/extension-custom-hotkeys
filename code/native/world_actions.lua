@@ -27,6 +27,7 @@ local clearGroup=ffi.cast('void (__thiscall *)(void *,int)',A.clearGroup)
 local assignGroup=ffi.cast('void (__thiscall *)(void *,int,int)',A.assignGroup)
 local tribeUnit=ffi.cast('int (__thiscall *)(void *,int,int)',A.tribeUnit)
 local deselect=ffi.cast('void (__thiscall *)(void *)',A.submitDeselect)
+local clearSelection=ffi.cast('void (__thiscall *)(void *)',A.clearLocalSelection)
 local function lord(id)
   if id<1 or id>(A.unitCapacity-1) then return nil end
   local offset=id*0x490
@@ -39,7 +40,15 @@ function M.new(scene,view,pointer,pointerClick)
     resolve=function() return scene:resolve(view) end,
     pointerAllowed=function(position) return pointer:insideWorld(position) end,
     pointerClick=pointerClick,
-    deselect=function() deselect(ffi.cast('void *',A.units)) end,
+    deselect=function()
+      if i(A.units)<1 or i(A.units)>A.unitCapacity then return false end
+      local units=ffi.cast('void *',A.units)
+      -- Original pointer-selection sequence: clear local highlighted units,
+      -- then submit the synchronized tribe deselection. The queued command
+      -- alone does not clear the local selection before the next left click.
+      clearSelection(units);deselect(units)
+      return true
+    end,
     -- Local bookmarks end at load entry or leaving the world. Read only while
     -- bookmarks exist; Recorder's observer additionally covers direct restores.
     sameWorld=function()

@@ -3,6 +3,7 @@ return {
  ['mouse.x1']='Pulsante mouse 4', ['mouse.x2']='Pulsante mouse 5',
  ['pointer.primary']='Selezione / ordine classico', ['pointer.secondary']='Annulla / contesto classico',
  ['pointer.select']='Seleziona o conferma bersaglio', ['pointer.order']='Ordine contestuale o annulla',
+ ['pointer.select-add']='Aggiungi alla selezione', ['pointer.order-queued']='Accoda ordine contestuale',
  assignBookmark='Memorizza posizione visuale ',recallBookmark='Vai alla posizione visuale ',
  text='Testo',['menu.back']='Indietro',['editor.capture']='Modifica il tasto selezionato',
  ['group.navigation']='Menu',

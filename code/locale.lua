@@ -50,6 +50,8 @@ en['pointer.primary']='Classic selection / order';de['pointer.primary']='Klassis
 en['pointer.secondary']='Classic cancel / context';de['pointer.secondary']='Klassischer Abbruch / Kontext'
 en['pointer.select']='Select or confirm target';de['pointer.select']='Auswählen oder Ziel bestätigen'
 en['pointer.order']='Contextual order or cancel';de['pointer.order']='Kontextbefehl oder abbrechen'
+en['pointer.select-add']='Add to selection';de['pointer.select-add']='Zur Auswahl hinzufügen'
+en['pointer.order-queued']='Queue contextual order';de['pointer.order-queued']='Kontextbefehl einreihen'
 en.gridSlot='Panel grid slot ';de.gridSlot='Rasterplatz im Menü '
 en['group.grid']='Grid';de['group.grid']='Raster'
 en['preset.game-default']='Game Default';de['preset.game-default']='Spielstandard'

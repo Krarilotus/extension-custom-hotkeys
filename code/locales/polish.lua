@@ -3,6 +3,7 @@ return {
  ['mouse.x1']='Przycisk myszy 4', ['mouse.x2']='Przycisk myszy 5',
  ['pointer.primary']='Klasyczny wybór / rozkaz', ['pointer.secondary']='Klasyczne anulowanie / kontekst',
  ['pointer.select']='Wybierz lub potwierdź cel', ['pointer.order']='Rozkaz kontekstowy lub anulowanie',
+ ['pointer.select-add']='Dodaj do zaznaczenia', ['pointer.order-queued']='Dodaj rozkaz do kolejki',
  assignBookmark='Zapisz pozycję kamery ',recallBookmark='Przejdź do pozycji kamery ',
  text='Tekst',['menu.back']='Wstecz',['editor.capture']='Zmień wybrany skrót',
  ['group.navigation']='Menu',

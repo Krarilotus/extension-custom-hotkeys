@@ -21,10 +21,11 @@ def test_building_assignment_recall_focus_and_uid_reuse(lua):
     lua.execute('''
       assert(w:dispatch('unit.group.assign.1',c))
       assert(#calls==1 and calls[1][1]=='clear' and calls[1][2]==1)
-      s.building=0
+      -- SHC retains selectedBuilding after closing its status panel.
+      s.screen=14
       assert(w:dispatch('unit.group.recall.1',c,true))
       assert(#calls==2 and calls[2][1]=='open' and calls[2][2]==7)
-      s.building=7
+      s.screen=16
       assert(w:dispatch('unit.group.recall.1',c,true))
       assert(#calls==3 and calls[3][1]=='focus')
       -- A new object in the same slot/position must never inherit the bookmark.

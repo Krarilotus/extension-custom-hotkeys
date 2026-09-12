@@ -15,13 +15,13 @@ function M.new(scene,reader)
       if not context or (context.owner:sub(1,5)~='menu.' and context.owner~='game.build'
           and context.owner~='game.status' and context.owner~='game.options' and context.owner~='game.load') then return nil end
       local s=scene:snapshot()
-      if context.owner=='game.load' then
+      if context.owner=='game.load' or context.owner=='menu.load' then
         if tostring(s.screen)~=context.screen or not Load.owns(s) then return nil end
         local origin=Load.origin(s)
         if not origin then return nil end
         return Load.controls(reader:read(s.activeModalMenu,s,origin),s)
       end
-      if context.owner=='game.options' then
+      if context.owner=='game.options' or context.owner=='menu.options' then
         if tostring(s.screen)~=context.screen or not Options.owns(s) then return nil end
         local origin=Options.origin(s)
         if not origin then return nil end

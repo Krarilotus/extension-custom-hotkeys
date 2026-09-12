@@ -6,7 +6,7 @@ local function integer(n,lo,hi)
   return type(n)=='number' and n==math.floor(n) and n>=lo and n<=hi
 end
 function M.owns(s)
-  local valid=type(s)=='table' and (s.screen==14 or s.screen==16)
+  local valid=type(s)=='table' and (s.screen==14 or s.screen==16 or s.screen==41)
     and s.modal==9 and s.activeModalID==9 and s.activeModalMenu==A.loadMenu
     and s.loadArray==A.loadItems and s.textModal==9 and s.textEditor==0
     and require('code/modal_context').background(s) and s.textIndex==4 and s.textState==1

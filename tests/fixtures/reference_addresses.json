@@ -167,5 +167,6 @@
   "groupStride": 20000,
   "tribeStride": 820,
   "tribeCapacity": 1250,
-  "selectionBytes": 400
+  "selectionBytes": 400,
+  "clearLocalSelection": 5460304
 }

@@ -37,7 +37,7 @@ function M:dispatch(id,context,nativeBinding,event)
     end
     local button,deselect=require('code/pointer_actions').resolve(id,s)
     if not button then return false end
-    if deselect then a.deselect() end
+    if deselect and a.deselect()==false then return false end
     if event and event.button then
       if button==event.button then return 'pointer-native' end
       return button
@@ -79,7 +79,7 @@ function M:dispatch(id,context,nativeBinding,event)
     end
     if not first then return false end
     if first.uid then
-      if focus or s.building==first.id then a.focus(first.x+2,first.y+2)
+      if focus or (s.screen==16 and s.building==first.id) then a.focus(first.x+2,first.y+2)
       else a.openBuilding(first.id) end
       self.groupCursor=group;return true
     end
@@ -91,7 +91,7 @@ function M:dispatch(id,context,nativeBinding,event)
   local group=id:match('^unit%.group%.assign%.([0-9])$')
   if group then
     group=tonumber(group)
-    if s.building and s.building>0 and s.selectedCount==0 then
+    if s.screen==16 and s.building and s.building>0 and s.selectedCount==0 then
       local b=a.buildingByID(s.building)
       if not ownedBuilding(b,s.player) then return false end
       a.clearGroup(group)

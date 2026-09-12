@@ -10,6 +10,8 @@ function M.attach(catalog)
   modern['pointer.primary']=false;modern['pointer.secondary']=false
   modern['pointer.select']={button='left',mods=0}
   modern['pointer.order']={button='right',mods=0}
+  modern['pointer.select-add']={button='left',mods=2}
+  modern['pointer.order-queued']={button='right',mods=2}
   local classic=Catalog.defaults(catalog)
   for direction,scan in pairs({up=72,left=75,down=80,right=77}) do
     classic['camera.pan.'..direction]=key(scan,0,true)

@@ -38,6 +38,11 @@ function M.prepare(modulePath)
         if not p then return nil end
         return cffi.tonumber(cffi.cast('unsigned long',p))
       end,
+      modalMenuAddress=function(id)
+        local p=access.manager.lookupModalMenu(id)
+        if not p then return nil end
+        return cffi.tonumber(cffi.cast('unsigned long',p.pointerToMenu))
+      end,
       modalBounds=function(id)
         local p=access.manager.lookupModalMenu(id)
         if not p then return nil end

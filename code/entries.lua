@@ -6,6 +6,7 @@ for _,screen in ipairs(require('code/menu_screens')) do
 end
 all[#all+1]='game.build';all[#all+1]='game.status'
 local world={'game.build','game.status'}
+parents[#parents+1]='menu.options';parents[#parents+1]='menu.load'
 local navigation={'game.build','game.status','game.options','game.load'}
 for _,owner in ipairs(parents) do navigation[#navigation+1]=owner end
 local entries={{id='view.lower-buildings',contexts=world,states={'live-sp','live-mp'},command=false,
@@ -26,7 +27,7 @@ local entries={{id='view.lower-buildings',contexts=world,states={'live-sp','live
     default={scan=28,extended=false,mods=0}},
   {id='game.menu.activate',contexts={'game.build','game.status','game.options','game.load'},states={'live-sp','live-mp'},command=true,
     default={scan=28,extended=false,mods=0}}}
-for _,id in ipairs({'primary','secondary','select','order'}) do
+for _,id in ipairs({'primary','secondary','select','order','select-add','order-queued'}) do
   entries[#entries+1]={id='pointer.'..id,contexts=world,states={'live-sp','live-mp'},
     command=true,introduced=3,default=(id=='primary' or id=='secondary')
       and {button=id=='primary' and 'left' or 'right',mods=0} or false}

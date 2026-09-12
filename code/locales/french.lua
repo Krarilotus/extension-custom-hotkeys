@@ -3,6 +3,7 @@ return {
  ['mouse.x1']='Bouton de souris 4', ['mouse.x2']='Bouton de souris 5',
  ['pointer.primary']='Sélection / ordre classique', ['pointer.secondary']='Annuler / contexte classique',
  ['pointer.select']='Sélectionner ou confirmer la cible', ['pointer.order']='Ordre contextuel ou annuler',
+ ['pointer.select-add']='Ajouter à la sélection', ['pointer.order-queued']='Mettre un ordre en attente',
  assignBookmark='Enregistrer la position caméra ',recallBookmark='Aller à la position caméra ',
  text='Texte',['menu.back']='Retour',['editor.capture']='Modifier le raccourci sélectionné',
  ['group.navigation']='Menus',

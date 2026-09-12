@@ -3,9 +3,13 @@ local A=require('code/addresses')
 -- Check its actual active composition copy, never a registered hidden menu.
 local M={}
 function M.owns(s)
-  return type(s)=='table' and (s.screen==14 or s.screen==16)
-    and s.modal==5 and s.activeModalID==5 and s.activeModalMenu==A.optionsMenu
-    and s.textModal==5 and s.textEditor==0 and require('code/modal_context').background(s)
+  if type(s)~='table' or s.textEditor~=0 or not require('code/modal_context').background(s) then return false end
+  if s.screen==41 then
+    return s.modal==44 and s.activeModalID==44 and s.textModal==44
+      and A.mainOptionsMenu~=nil and s.activeModalMenu==A.mainOptionsMenu
+  end
+  return (s.screen==14 or s.screen==16) and s.modal==5 and s.activeModalID==5
+    and s.activeModalMenu==A.optionsMenu and s.textModal==5
 end
 function M.origin(s)
   if not M.owns(s) then return nil end

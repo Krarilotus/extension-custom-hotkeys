@@ -3,6 +3,7 @@ return {
  ['mouse.x1']='Botón del ratón 4', ['mouse.x2']='Botón del ratón 5',
  ['pointer.primary']='Selección / orden clásica', ['pointer.secondary']='Cancelar / contexto clásico',
  ['pointer.select']='Seleccionar o confirmar objetivo', ['pointer.order']='Orden contextual o cancelar',
+ ['pointer.select-add']='Añadir a la selección', ['pointer.order-queued']='Encolar orden contextual',
  assignBookmark='Guardar posición de cámara ',recallBookmark='Ir a la posición de cámara ',
  text='Texto',['menu.back']='Atrás',['editor.capture']='Cambiar el atajo seleccionado',
  ['group.navigation']='Menús',

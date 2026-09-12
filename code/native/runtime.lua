@@ -13,6 +13,7 @@ local Scene=require('code/native/scene')
 local View=require('code/native/editor_view')
 local M={}
 function M.start(language)
+  A.mainOptionsMenu=assert(remote.interface.modalMenuAddress(44),'ui.main-options-unavailable')
   local lock=assert(require('code/native/profile_lock').acquire())
   local platform=Platform.new(tonumber(ffi.cast('int32_t *',A.gameWindow)[0]))
   local scene=Scene.new(platform,function() return remote.interface.recorderInputGeneration() end)

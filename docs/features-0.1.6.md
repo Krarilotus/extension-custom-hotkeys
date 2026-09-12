@@ -44,6 +44,18 @@ copying recruitment/market command tables. The input hook only refreshes mouse
 ownership while translated buttons are held and checks bookmark lifetime while
 bookmarks exist. The existing optional Recorder observer clears local bookmarks.
 
+Native acceptance exposed that queued deselection alone leaves the local unit
+highlights active. The original pointer handler calls deselectAllUnitsOneByOne
+before queueClickNavigateMenuOrEscape. Modern selection now uses that same pair,
+with the local-clear function resolved by UCP AOBScan. Its body and call sequence
+were inspected; the signature is unique in both local executable fixtures.
+It is an event-time native operation, with no per-frame unit scan added.
+Main-menu Options uses UI's registered modal 44; Load retains its verified list
+owner and now also works from screen 41. Map descriptions, chat and name fields
+remain distinct text owners. Native tests also exposed a stale selectedBuilding
+value after closing a status panel: recall now requires screen 16 before treating
+that building as already selected.
+
 Native scenarios still to record for this candidate: assignment/recall and
 identity reuse; Modern selection/drag/orders/cancel and HUD ownership; keyboard
 placement/recruitment/trade; fresh recording/playback and state restore.

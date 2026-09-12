@@ -54,6 +54,8 @@ function M:resolve(editor)
   local world=require('code/native/gameplay').resolve(s,ownedModal)
   if not world and not menus[s.screen] then return nil end
   local owner,focus=world and world.owner or 'menu.'..menus[s.screen],''
+  if not world and options then owner='menu.options' end
+  if not world and load then owner='menu.load' end
   if editor and editor.opened and s.modal==editor.modalID then
     owner=editor.controller.capturing and 'hotkeys.capture' or 'hotkeys.editor'
     focus=tostring(editor.focus)
