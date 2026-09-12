@@ -22,8 +22,17 @@ mouse gesture is generated for simple buttons. The original toolbar handler
 retains tutorial, player and game-state validation; actual placement still uses
 the normal native validated command path.
 
-Positional sliders and explicit keyboard world targeting still use the native
-mouse-input adapter. Traversal navigation can move the pointer to show focus;
+Focused sliders use their registered handler and native MenuItem slider state.
+Event1 reads bounds/current value, event7 supplies the owner's increment, and
+event2 submits one bounded change. The handler is queried again to reflect native
+rejection or normalization. The field at +0x20 is thumb width, not step size;
+using separate value buffers leaves the native thumb/label stale. This was traced
+in MenuItem::handleMenuElementsCallbacks (reference0x4F45E1..0x4F48E8) and the
+Gameplay Options handler, then reproduced in native PID30536. Research addresses
+are evidence only; production uses the UI ABI and registered callback.
+
+Explicit keyboard world targeting uses the native mouse-input adapter.
+Traversal navigation can move the pointer to show focus;
 direct building and Grid selection do not. Recorder input ownership notifications
 and the shared winProcHandler chain remain in use. Legacy source is unchanged.
 

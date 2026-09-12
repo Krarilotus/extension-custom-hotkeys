@@ -4,7 +4,8 @@ local Load=require('code/load_context')
 local Dialog=require('code/dialog_context')
 local M={}
 function M.new(scene,reader)
-  local minimum,maximum,value=ffi.new('int[1]'),ffi.new('int[1]'),ffi.new('int[1]')
+  local step=ffi.new('int[1]')
+  local sliderOffset=ffi.offsetof('MenuItem','secondItemTypeData')
   return {
     gridControls=function(context)
       if not context or (context.owner~='game.build' and context.owner~='game.status') then return nil end
@@ -40,16 +41,24 @@ function M.new(scene,reader)
       ffi.cast('MenuItem *',row.address)[0].menuItemActionHandler.simple(row.parameter)
     end,
     adjust=function(row,delta)
-      -- Same slider ABI as MenuItem input: event1 reads bounds/current value;
-      -- event2 submits a bounded step through the native control's own handler.
+      -- MenuItem input passes its own slider state to the handler. Rendering
+      -- reads that same state; separate value buffers leave the thumb stale.
       local item=ffi.cast('MenuItem *',row.address)[0]
-      minimum[0]=0;maximum[0]=0;value[0]=0
-      item.menuItemActionHandler.slider(row.parameter,1,minimum,maximum,value)
-      local lo,hi,current=tonumber(minimum[0]),tonumber(maximum[0]),tonumber(value[0])
+      local state=ffi.cast('int *',ffi.cast('uint8_t *',row.address)+sliderOffset)
+      local handler=item.menuItemActionHandler.slider
+      handler(row.parameter,1,state,state+1,state+2)
+      local lo,hi,current=tonumber(state[0]),tonumber(state[1]),tonumber(state[2])
       if lo>hi or current<lo or current>hi then return end
-      local step=math.max(1,tonumber(item.firstItemTypeData.itemsToSkip))
-      value[0]=math.max(lo,math.min(hi,current+delta*step))
-      if value[0]~=current then item.menuItemActionHandler.slider(row.parameter,2,minimum,maximum,value) end
+      -- Event7 lets the owner set its step (e.g. Automarket). The type-data
+      -- field at +0x20 is the thumb's pixel width, not an increment.
+      step[0]=1;handler(row.parameter,7,state,state+1,step)
+      if step[0]<1 then return end
+      state[2]=math.max(lo,math.min(hi,current+delta*tonumber(step[0])))
+      if state[2]~=current then
+        handler(row.parameter,2,state,state+1,state+2)
+        -- Reflect native rejection/normalization, including session authority.
+        handler(row.parameter,1,state,state+1,state+2)
+      end
     end,
   }
 end
