@@ -1,4 +1,10 @@
 return {
+ profiles='Perfiles',
+ bindings='Atajos',
+ action='Acción',
+ binding='Tecla',
+ listHint='Intro: cambiar / Supr: borrar',
+ profilesHint='Aplicar guarda los cambios.',
  assignGroup='Asignar la selección al grupo ',
  recallGroup='Seleccionar grupo ',focusGroup='Centrar en el grupo ',
  ['unit.group.next']='Seleccionar grupo siguiente',

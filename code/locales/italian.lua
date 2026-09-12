@@ -1,4 +1,10 @@
 return {
+ profiles='Profili',
+ bindings='Scorciatoie',
+ action='Azione',
+ binding='Tasto',
+ listHint='Invio: modifica / Canc: cancella',
+ profilesHint='Applica salva le modifiche.',
  assignGroup='Assegna la selezione al gruppo ',
  recallGroup='Seleziona il gruppo ',focusGroup='Centra sul gruppo ',
  ['unit.group.next']='Seleziona il gruppo successivo',

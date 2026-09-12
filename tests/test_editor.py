@@ -32,6 +32,8 @@ def test_capture_conflict_keeps_existing_binding(lua):
       assert(editor.error=='binding.conflict')
       assert(profiles.draft.profiles.Default.bindings['unit.move'].scan==50)
       assert(not editor.capturing and #calls==0)
+      assert(editor:capture() and editor.error==nil and editor.reassignment==nil)
+      editor:cancelCapture()
       editor:cancel(); assert(editor.closed and not profiles.draft)
     ''')
 

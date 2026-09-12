@@ -5,9 +5,11 @@ local Encoding=require('code/native/encoding')
 local Binding=require('code/binding')
 local Layout=require('code/text_layout')
 local NativeText=require('code/native/text')
+local Geometry=require('code/editor_layout')
+local Scrollbar=require('code/editor_scrollbar')
 local M={}
 M.__index=M
-local rows=6
+local rows=Geometry.rows
 function M.new(profiles,catalog,router,scene,platform,labels)
   local self=setmetatable({profiles=profiles,catalog=catalog,router=router,scene=scene,
     platform=platform,labels=labels,opened=false,focus=1,pins={},textCache={},keyNames={},
@@ -27,27 +29,46 @@ function M.new(profiles,catalog,router,scene,platform,labels)
     local ok,err=pcall(self.renderButton,self,id)
     if not ok then log(ERROR,tostring(err)) end
   end))
-  local items={{menuItemType=0x01000000,menuItemActionHandler={simple=action},
-    menuItemRenderFunction={simple=render}}}
-  local function button(id,x,y,width,label)
-    self.controls[#self.controls+1]={id=id,label=label}
-    items[#items+1]={menuItemType=0x02000003,menuItemRenderFunctionType=1,
-      position={position={x=x,y=y}},itemWidth=width,itemHeight=26,
-      callbackParameter={parameter=id}}
+  self.tables={};self.pages={}
+  local scroll=pin(ffi.cast('void (__cdecl *)(int,int,int *,int *,int *)',function(_,operation,minimum,maximum,current)
+    local ok,err=pcall(function()
+      local enabled=self.opened and self.page=='bindings' and not self.text
+      if operation==2 or operation==3 or operation==5 or operation==6 then
+        enabled=enabled and self:owns() and not self.platform.composing
+      end
+      local low,high,value=Scrollbar.update(self.controller,operation,tonumber(current[0]),
+        enabled)
+      minimum[0],maximum[0],current[0]=low,high,value
+      if enabled and self.controls[self.focus].id<=rows then
+        self.focus=4+self.controller.selected-self.controller.first
+      end
+    end)
+    if not ok then minimum[0],maximum[0],current[0]=0,0,0;log(ERROR,tostring(err)) end
+  end))
+  for _,page in ipairs({'bindings','profiles'}) do
+    local controls=Geometry.controls(page);self.pages[page]=controls
+    local items={{menuItemType=0x01000000,menuItemActionHandler={simple=action},
+      menuItemRenderFunction={simple=render}}}
+    for _,c in ipairs(controls) do
+      items[#items+1]={menuItemType=0x02000003,menuItemRenderFunctionType=1,
+        position={position={x=c.x,y=c.y}},itemWidth=c.width,itemHeight=c.height,
+        callbackParameter={parameter=c.id}}
+    end
+    if page=='bindings' then
+      -- Original type6 input owns wheel, track paging and thumb dragging.
+      -- Load's renderer492C60 only consumes ButtonState and supplied thumb data.
+      items[#items+1]={menuItemType=6,position={position={x=722,y=Geometry.listY}},
+        itemWidth=18,itemHeight=rows*Geometry.rowHeight,
+        menuItemActionHandler={scrollbar=scroll},callbackParameter={parameter=0},
+        menuItemRenderFunction={scrollbar=ffi.cast('void (__cdecl *)(int,int,int,int,bool)',0x492c60)},
+        firstItemTypeData={itemsToSkip=20},menuItemRenderFunctionType=4}
+    end
+    items[#items+1]={menuItemType=0x66}
+    self.tables[page]=pin(ffi.new('MenuItem[?]',#items,items))
   end
-  button(101,20,48,300,'profile');button(102,328,48,32,'<');button(103,368,48,32,'>')
-  button(104,408,48,212,'new');button(105,20,86,430,'search');button(106,458,86,162,'groups')
-  for row=1,rows do button(row,20,128+(row-1)*26,600,'') end
-  button(116,20,292,292,'import');button(117,328,292,292,'export')
-  button(107,20,324,112,'capture');button(115,140,324,104,'swap')
-  button(108,252,324,104,'clear');button(109,364,324,120,'reset')
-  button(110,492,324,128,'resetProfile')
-  button(111,20,362,36,'<');button(112,64,362,36,'>')
-  button(113,328,362,140,'apply');button(114,480,362,140,'cancel')
-  items[#items+1]={menuItemType=0x66}
-  self.menu=api.ui.Menu:createMenu({menuID=self.menuID,
-    menuItems=pin(ffi.new('MenuItem[?]',#items,items))})
-  self.modal=api.ui.ModalMenu:createModalMenu({modalMenuID=self.modalID,width=648,height=440,
+  self.page='bindings';self.controls=self.pages.bindings
+  self.menu=api.ui.Menu:createMenu({menuID=self.menuID,menuItems=self.tables.bindings})
+  self.modal=api.ui.ModalMenu:createModalMenu({modalMenuID=self.modalID,width=Geometry.width,height=Geometry.height,
     x=-1,y=-1,borderStyle=512,backgroundColor=0,menu=self.menu,
     menuModalRenderFunction=function(x,y,width,height)
       local ok,err=pcall(self.render,self,x,y,width,height)
@@ -67,7 +88,8 @@ function M:open()
   if self.opened or not c or (c.owner:sub(1,5)~='menu.' and c.owner~='game.build'
       and c.owner~='game.status') then return false end
   self.controller=Controller.new(self.profiles,self.catalog,self.router,self.labels,string.lower,rows)
-  self.focus,self.text,self.error,self.opened=7,nil,nil,true
+  self:setPage('bindings')
+  self.focus,self.text,self.error,self.opened=4,nil,nil,true
   self.parentScreen=self.scene.current.screen
   game.UI.activateModalMenu(game.UI.MenuModalComposition1,self.modalID,false)
   self.resetMouse(game.Input.mouseState)
@@ -83,8 +105,25 @@ function M:close(apply)
   self.resetMouse(game.Input.mouseState)
   return true
 end
+function M:setPage(page)
+  assert(self.tables[page],'editor.page')
+  self.router:barrier()
+  self.page=page;self.controls=self.pages[page];self.text=nil;self.focus=1
+  local x,y=self.menu.menu.xPosition,self.menu.menu.yPosition
+  game.UI.Menu(self.menu.pMenu,self.tables[page])
+  self.menu.menu.xPosition,self.menu.menu.yPosition=x,y
+  self.menu.menuItems=self.tables[page]
+  self.resetMouse(game.Input.mouseState)
+end
+function M:visible(id)
+  if type(id)~='number' then return false end
+  if id<=rows and not (self.controller and self.controller.rows[self.controller.first+id-1]) then return false end
+  if id==115 and not (self.controller and self.controller.reassignment) then return false end
+  for _,control in ipairs(self.controls) do if control.id==id then return true end end
+  return false
+end
 function M:activate(id)
-  if not self:owns() then return false end
+  if not self:owns() or not self:visible(id) then return false end
   if self.controller.capturing then
     if id==114 then self.controller:cancelCapture() end
     return true
@@ -93,7 +132,8 @@ function M:activate(id)
   for i,c in ipairs(self.controls) do if c.id==id then self.focus=i;break end end
   self.error,self.notice=nil,nil
   local e=self.controller
-  if id<=rows then e:choose(e.first+id-1)
+  if id<=rows then e:choose(e.first+id-1);e:capture()
+  elseif id==118 then self:setPage(self.page=='bindings' and 'profiles' or 'bindings')
   elseif id==101 or id==102 or id==103 then
     local v=e:view();local current=1
     for i,name in ipairs(v.profiles) do if name==v.active then current=i end end
@@ -123,8 +163,6 @@ function M:activate(id)
   elseif id==108 then e:clear()
   elseif id==109 then e:resetAction()
   elseif id==110 then e:resetProfile()
-  elseif id==111 then e:navigate(-rows)
-  elseif id==112 then e:navigate(rows)
   elseif id==113 then self:close(true)
   elseif id==114 then self:close(false) end
   return true
@@ -170,11 +208,16 @@ function M:input(event)
   if event.repeated or event.altgr then return true end
   -- Fixed editor navigation is separate from configurable physical bindings.
   if event.value==9 then
-    self.focus=(self.focus+(event.mods==2 and -2 or 0))%#self.controls+1
-  elseif event.value==38 then self.controller:navigate(-1)
-  elseif event.value==40 then self.controller:navigate(1)
-  elseif event.value==33 then self.controller:navigate(-rows)
-  elseif event.value==34 then self.controller:navigate(rows)
+    repeat self.focus=(self.focus+(event.mods==2 and -2 or 0))%#self.controls+1
+    until self:visible(self.controls[self.focus].id)
+    local id=self.controls[self.focus].id
+    if id<=rows then self.controller:choose(self.controller.first+id-1) end
+  elseif self.page=='bindings' and (event.value==38 or event.value==40 or event.value==33 or event.value==34
+      or event.value==36 or event.value==35) then
+    local delta=({[38]=-1,[40]=1,[33]=-rows,[34]=rows,[36]=-#self.controller.rows,[35]=#self.controller.rows})[event.value]
+    self.controller:navigate(delta)
+    self.focus=3+self.controller.selected-self.controller.first+1
+  elseif self.page=='bindings' and event.value==46 and self.controls[self.focus].id<=rows then self.controller:clear()
   elseif event.value==13 then self:activate(self.controls[self.focus].id)
   elseif event.value==27 then self:activate(114) end
   return true
@@ -220,7 +263,7 @@ function M:draw(text,x,y,color,font,width,slot)
   self:drawEncoded(result.text,x,y,color,font)
 end
 function M:renderButton(id)
-  if not self.opened then return end
+  if not self.opened or not self:visible(id) then return end
   local e=self.controller;local v=e:view();local label,selected,binding='',false,nil
   if id<=rows then
     local row=v.rows[id]
@@ -229,7 +272,7 @@ function M:renderButton(id)
     for i,c in ipairs(self.controls) do if c.id==id then
       label=(c.label=='<' or c.label=='>') and c.label or self.labels(c.label)
       selected=i==self.focus;break end end
-    if id==101 then label=self.labels('profile')..': '..v.active end
+    if id==101 or (id==118 and self.page=='bindings') then label=self.labels('profile')..': '..v.active end
     if id==105 then label=self.labels('search')..': '..e.query end
     if id==106 then label=self.labels('groups')..': '..(e.group and self.labels('group.'..e.group) or self.labels('all')) end
     if self.text and ((id==104 and self.text.kind=='profile') or (id==105 and self.text.kind=='search')
@@ -244,34 +287,54 @@ function M:renderButton(id)
   local old=game.Rendering.pDrawBufferChoiceValue[0]
   game.Rendering.pDrawBufferChoiceValue[0]=0
   local ok,err=pcall(function()
-    game.Rendering.drawBlendedBlackBox(game.Rendering.pencilRenderCore,s.x,s.y,
-      s.x+s.width,s.y+s.height,selected and 8 or 0x14)
-    local labelWidth=s.width-12
+    local render=game.Rendering;local core=render.pencilRenderCore
+    local isRow=id<=rows
+    local color=selected and 0xFFFFDF or 0xD5DEEB
+    if isRow then
+      if selected then render.drawColorBox(core,s.x,s.y,s.x+s.width,s.y+s.height,0x39C8)
+      elseif id%2==0 then render.drawColorBox(core,s.x,s.y,s.x+s.width,s.y+s.height,0x18C3) end
+    else
+      render.drawColorBox(core,s.x,s.y,s.x+s.width,s.y+s.height,selected and 0x4208 or 0x2945)
+      render.drawBorderBox(core,s.x,s.y,s.x+s.width,s.y+s.height,selected and 0xCEB3 or 0x7B4D)
+    end
+    local font=isRow and Geometry.bodyFont or Geometry.buttonFont
+    local labelWidth=s.width-16
     local keyLayout
     if binding then
-      keyLayout=self:layout('key-'..id,binding,math.floor(labelWidth/2),0x12)
-      labelWidth=labelWidth-keyLayout.width-18
+      keyLayout=self:layout('key-'..id,binding,174,Geometry.bodyFont)
+      labelWidth=s.width-206
+      render.drawBorderBox(core,s.x+s.width-190,s.y+2,s.x+s.width-6,s.y+s.height-2,selected and 0xA510 or 0x5289)
     end
-    local result=self:layout(id,label,labelWidth,0x12,editing)
+    local result=self:layout(id,label,labelWidth,font,editing)
     if result.selectionEnd then
-      game.Rendering.drawBlendedBlackBox(game.Rendering.pencilRenderCore,
-        s.x+6+result.selectionStart,s.y+3,s.x+6+result.selectionEnd,s.y+s.height-3,4)
+      render.drawColorBox(core,s.x+8+result.selectionStart,s.y+3,
+        s.x+8+result.selectionEnd,s.y+s.height-3,0x5289)
     end
-    self:drawEncoded(result.text,s.x+6,s.y+5,selected and 0xFFFFFF or 0xB8EEFB)
+    self:drawEncoded(result.text,s.x+8,s.y+3,color,font)
     if keyLayout then
-      self:drawEncoded(keyLayout.text,s.x+s.width-6-keyLayout.width,s.y+5,
-        selected and 0xFFFFFF or 0xB8EEFB)
+      self:drawEncoded(keyLayout.text,s.x+s.width-14-keyLayout.width,s.y+3,color,Geometry.bodyFont)
     end
-    if result.caret then self:drawEncoded('|',s.x+6+result.caret,s.y+5,0xFFFFFF) end
+    if result.caret then self:drawEncoded('|',s.x+8+result.caret,s.y+3,0xFFFFFF,font) end
   end)
   game.Rendering.pDrawBufferChoiceValue[0]=old
   if not ok then error(err) end
 end
 function M:render(x,y,width,height)
   if not self.opened then return end
-  game.Rendering.drawBlendedBlackBox(game.Rendering.pencilRenderCore,x+6,y+6,x+width-6,y+height-6,0x14)
-  self:draw(self.labels('title'),x+20,y+18,0xCCFAFF,0xF)
+  local render=game.Rendering;local core=render.pencilRenderCore
+  render.drawColorBox(core,x+6,y+6,x+width-6,y+height-6,0x1082)
+  self:draw(self.labels(self.page=='profiles' and 'profiles' or 'title'),x+20,y+18,0xCCFAFF,Geometry.titleFont,450,'title')
   local e=self.controller
+  if self.page=='bindings' then
+    render.drawColorBox(core,x+18,y+92,x+width-18,y+436,0x1082)
+    render.drawBorderBox(core,x+18,y+92,x+width-18,y+436,0x6B2B)
+    self:draw(self.labels('action'),x+28,y+96,0xCCFAFF,Geometry.bodyFont,460,'column-action')
+    self:draw(self.labels('binding'),x+530,y+96,0xCCFAFF,Geometry.bodyFont,170,'column-binding')
+    self:draw(tostring(e.selected)..' / '..tostring(#e.rows),x+20,y+510,nil,Geometry.bodyFont,110,'count')
+    self:draw(self.labels('listHint'),x+132,y+510,nil,Geometry.bodyFont,300,'hint')
+  else
+    self:draw(self.labels('profilesHint'),x+28,y+64,nil,Geometry.bodyFont,width-56,'profiles-hint')
+  end
   local message=self.text and self.labels(self.text.kind=='import' and 'importName' or 'editing')
     or (e.capturing and self.labels('press')) or (self.notice and self.labels(self.notice))
   local err=self.error or e.error
@@ -280,7 +343,6 @@ function M:render(x,y,width,height)
       or (err:sub(1,6)=='store.' and 'fileError' or 'invalid'))
     if e.reassignment then message=message..' '..self.labels(e.reassignment.other) end
   end
-  if message then self:draw(message,x+20,y+407,0xCCFAFF,nil,width-40,'message') end
-  self:draw(tostring(e.selected)..' / '..tostring(#e.rows),x+118,y+368,nil,nil,200,'count')
+  if message then self:draw(message,x+20,y+482,0xCCFAFF,Geometry.bodyFont,width-40,'message') end
 end
 return M

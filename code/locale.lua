@@ -16,6 +16,12 @@ local de={title='Eigene Tastenkürzel',profile='Profil',new='Neues Profil',searc
   default='Standard', ['hotkeys.open']='Tastenkürzel öffnen', ['menu.next']='Nächstes Bedienelement',
   ['menu.previous']='Vorheriges Bedienelement', ['menu.activate']='Bedienelement aktivieren',
   ['menu.back']='Zurück', ['editor.capture']='Gewähltes Tastenkürzel ändern'}
+en.profiles='Profiles';de.profiles='Profile'
+en.bindings='Hotkeys';de.bindings='Tastenkürzel'
+en.action='Action';de.action='Aktion'
+en.binding='Key';de.binding='Taste'
+en.listHint='Enter: change key / Delete: clear';de.listHint='Enter: ändern / Entf: löschen'
+en.profilesHint='Changes are saved with Apply.';de.profilesHint='Änderungen werden mit Übernehmen gespeichert.'
 local M={}
 en.assignGroup='Assign selection to group ';de.assignGroup='Auswahl zu Gruppe zuweisen: '
 en.recallGroup='Select group ';de.recallGroup='Gruppe auswählen: '

@@ -49,6 +49,18 @@ function M:choose(row)
   return self:navigate(row-self.selected)
 end
 
+-- Native scrollbar offsets are zero-based; keep the selected row visible.
+function M:scroll(offset)
+  if self.closed or self.capturing or type(offset)~='number'
+      or offset~=math.floor(offset) then return false end
+  local first=math.max(0,math.min(math.max(0,#self.rows-self.pageSize),offset))+1
+  if first==self.first then return true end
+  self.first=first
+  self.selected=math.max(first,math.min(self.selected,math.min(#self.rows,first+self.pageSize-1)))
+  self.reassignment=nil;self.cachedView=nil
+  return true
+end
+
 function M:perform(operation,...)
   if self.closed or self.capturing then return nil,'editor.busy' end
   self.reassignment=nil
@@ -67,6 +79,7 @@ function M:capture()
   if self.closed or self.capturing or not self.rows[self.selected] then return false end
   local action=self.rows[self.selected].id
   self.capturing=true
+  self.error,self.detail,self.reassignment=nil,nil,nil
   self.cachedView=nil
   self.router:startCapture(function(binding,err)
     if self.closed then return end

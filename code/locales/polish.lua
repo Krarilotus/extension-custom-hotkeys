@@ -1,4 +1,10 @@
 return {
+ profiles='Profile',
+ bindings='Skróty',
+ action='Akcja',
+ binding='Klawisz',
+ listHint='Enter: zmień / Delete: wyczyść',
+ profilesHint='Zastosuj zapisuje zmiany.',
  assignGroup='Przypisz zaznaczenie do grupy ',
  recallGroup='Wybierz grupę ',focusGroup='Pokaż grupę ',
  ['unit.group.next']='Wybierz następną grupę',
