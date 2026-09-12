@@ -124,10 +124,24 @@ for key,names in pairs({up={'up','oben'},down={'down','unten'},left={'left','lin
   en['target.fine.'..key]='Move target '..names[1]..' precisely'
   de['target.fine.'..key]='Zielcursor fein nach '..names[2]
 end
+local aliases={en='english',american='english',de='german',fr='french',it='italian',
+  es='spanish',pl='polish',ru='russian',hu='hungarian',tr='turkish',zh='chinese',
+  ch='chinese',fa='persian',farsi='persian'}
+local supported={english=true,german=true,french=true,italian=true,spanish=true,
+  polish=true,russian=true,hungarian=true,turkish=true,chinese=true,persian=true}
+local function normalize(value)
+  if type(value)~='string' then return nil end
+  value=value:lower():match('^%s*(.-)%s*$'):match('^([^_-]+)')
+  value=aliases[value] or value
+  return supported[value] and value or nil
+end
 function M.new(language,nativeText)
-  language=type(language)=='string' and language:lower() or 'english'
+  -- CR.TEX's language marker reflects loaded translations even when the EXE
+  -- retains its original enum. The UCP provider remains the fallback.
+  local marker=nativeText and nativeText(6,0)
+  language=normalize(marker) or normalize(language) or 'english'
   local chosen=language=='german' and de or en
-  if language=='french' or language=='italian' or language=='spanish' or language=='polish' then
+  if language~='english' and language~='german' then
     chosen=require('code/locales/'..language)
     for i,direction in ipairs({'up','down','left','right'}) do
       chosen['camera.pan.'..direction]=chosen.pan..chosen.directions[i]

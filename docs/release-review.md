@@ -4,9 +4,10 @@ The module starts as soon as it is active in the launch configuration. There is
 no separate enabled option and no launcher customization panel. F12 opens the
 editor in supported contexts; Ctrl+Shift+F12 is reserved for recovery. Store
 descriptions cover en/de/fr/es/hu/tr/ru/ch/fa. In-game text uses the UCP
-`data.version.getGameLanguage()` API after `afterInit`, including American English
-and uppercase SPANISH normalization. This does not translate unsupported patched
-game fonts; native non-English font/language acceptance remains outstanding.
+loaded TextManager language marker with `data.version.getGameLanguage()` fallback
+after `afterInit`. Eleven catalogs and the game's active codepage are supported;
+native non-English font/language acceptance remains outstanding. The existing
+text model now supplies character boundaries to clipping and caret layout.
 
 `config.yml` requires only `ucp2-legacy.o_keys.enabled=false` when Legacy is
 present. It adds no load-order entry or Legacy dependency. The GUI's standard

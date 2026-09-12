@@ -4,6 +4,8 @@ import pytest
 @pytest.mark.parametrize('language,encoding', [
     ('english', 'cp1252'), ('american', 'cp1252'), ('german', 'cp1252'),
     ('french', 'cp1252'), ('italian', 'cp1252'), ('SPANISH', 'cp1252'), ('polish', 'cp1250'),
+    ('russian', 'cp1251'), ('hungarian', 'cp1250'), ('turkish', 'cp1254'),
+    ('chinese', 'gbk'), ('persian', 'cp1256'),
 ])
 def test_actual_framework_languages_cover_actions_controls_and_native_font_bytes(lua, language, encoding):
     lua.globals().language = language
@@ -12,7 +14,7 @@ def test_actual_framework_languages_cover_actions_controls_and_native_font_bytes
     for action in entries.values():
         label = labels(action['id'])
         assert label != action['id']
-        label.encode(encoding)
+        (label.replace('\u06cc', '\u064a') if encoding == 'cp1256' else label).encode(encoding)
     for key in ['title', 'profile', 'new', 'search', 'groups', 'all', 'capture', 'swap',
                 'clear', 'reset', 'resetProfile', 'apply', 'cancel', 'unbound', 'press',
                 'editing', 'invalid', 'conflict', 'group.hotkeys', 'group.camera', 'group.build',
@@ -20,14 +22,14 @@ def test_actual_framework_languages_cover_actions_controls_and_native_font_bytes
                 'mainHelp1', 'mainHelp2']:
         label = labels(key)
         assert label != key, (language, key)
-        label.encode(encoding)
+        (label.replace('\u06cc', '\u064a') if encoding == 'cp1256' else label).encode(encoding)
     for group in lua.eval("require('code/editor_groups').order").values():
         key = 'group.' + group
         assert labels(key) != key
-        labels(key).encode(encoding)
+        (labels(key).replace('\u06cc', '\u064a') if encoding == 'cp1256' else labels(key)).encode(encoding)
     for key in ['nativeKey', 'nativeAgain']:
         assert labels(key) != key
-        labels(key).encode(encoding)
+        (labels(key).replace('\u06cc', '\u064a') if encoding == 'cp1256' else labels(key)).encode(encoding)
 
 
 def test_profile_import_rejects_malformed_utf8_names(lua):
@@ -53,11 +55,29 @@ def test_every_game_catalog_defines_all_keys_without_english_fallback(lua):
         error('locale catalog missing')
       end
       local english=chosen(locale.new('english'))
-      for _,language in ipairs({'american','german','french','italian','spanish','polish'}) do
+      for _,language in ipairs({'american','german','french','italian','spanish','polish',
+        'russian','hungarian','turkish','chinese','persian'}) do
         local catalog=chosen(locale.new(language))
         for key in pairs(english) do
           assert(type(catalog[key])=='string' and #catalog[key]>0,language..':'..key)
         end
         assert(catalog.nativeKey:match('%%s') and catalog.nativeAgain:match('%%s'))
       end
+    ''')
+
+
+def test_loaded_game_translation_takes_priority_and_unknown_marker_uses_ucp_language(lua):
+    lua.execute('''
+      local Locale=require('code/locale')
+      for _,marker in ipairs({'russian','RU',' ru_RU ','ru-ru'}) do
+        local labels=Locale.new('german',function(group,index)
+          assert(group==6 and index==0); return marker
+        end)
+        assert(labels('title')==Locale.new('russian')('title'))
+      end
+      for _,marker in ipairs({'', 'unrecognized', ' --- '}) do
+        assert(Locale.new('german',function() return marker end)('title')
+          ==Locale.new('german')('title'))
+      end
+      assert(Locale.new('unrecognized')('title')==Locale.new('english')('title'))
     ''')

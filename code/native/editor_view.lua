@@ -272,15 +272,13 @@ function M:layout(slot,text,width,font,edit)
   local caret,anchor=edit and edit.caret,edit and edit.anchor
   if cached and cached.text==text and cached.width==width and cached.font==font
       and cached.caret==caret and cached.anchor==anchor then return cached.result end
-  local encoded=Encoding.display(text,self.codepage) or '?'
+  local encode=function(value) return Encoding.display(value,self.codepage) end
   local measure=function(value) return NativeText.width(value,font) end
   local result
   if edit then
-    -- Only representable single-byte text reaches the native fonts. Character
-    -- offsets therefore match encoded offsets; clamp on conversion failure.
-    result=Layout.field(encoded,caret,anchor,width,measure)
+    result=Layout.field(text,caret,anchor,width,measure,encode)
   else
-    local fitted=Layout.fit(encoded,width,measure)
+    local fitted=Layout.fit(text,width,measure,encode)
     result={text=fitted,width=measure(fitted)}
   end
   self.textCache[slot]={text=text,width=width,font=font,caret=caret,anchor=anchor,result=result}

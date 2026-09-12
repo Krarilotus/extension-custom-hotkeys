@@ -23,6 +23,7 @@ def test_control_labels_use_cached_native_game_language_text(lua):
     lua.execute('''
       local count=0
       local labels=require('code/locale').new('german',function(group,index)
+        if group==6 and index==0 then return 'german' end
         count=count+1;assert(group==8 and index==42);return 'Holzfäller' end)
       assert(labels('build.select.woodsman')=='Wählen: Holzfäller')
       assert(labels('build.select.woodsman')=='Wählen: Holzfäller' and count==1)

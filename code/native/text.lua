@@ -6,9 +6,9 @@ local width=ffi.cast('int (__thiscall *)(void *, const char *, int)',A.textWidth
 function M.width(encoded,font) return tonumber(width(game.Rendering.textManager,encoded,font or 0x12)) end
 function M.codepage()
   local value=tonumber(ffi.cast('int32_t *',game.Rendering.textManager)[4])
-  -- These are the original supported font/codepage paths. Additional patched
-  -- encodings need their font owner's contract, never an assumed ANSI fallback.
-  assert(value==1250 or value==1252,'text.game-codepage')
+  -- The loaded TextManager owns encoding, including translated installations.
+  -- Do not substitute the Windows locale or restrict it to original EXE enums.
+  assert(value>0,'text.game-codepage')
   return value
 end
 function M.label(group,index)
