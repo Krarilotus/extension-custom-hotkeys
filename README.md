@@ -1,17 +1,15 @@
 # Custom Hotkeys for Stronghold Crusader
 
-The 0.1.8 development source requires the shared uniqueness API in
-[UCP PR149](https://github.com/UnofficialCrusaderPatch/UnofficialCrusaderPatch3/pull/149)
-and its [RPS prerequisite](https://github.com/gynt/RuntimePatchingSystem/pull/16).
-It is not a standalone update for stock UCP 3.0.7. The published 0.1.7 preview
-remains unchanged until the framework prerequisite ships and its final
-minimum dependency version can be declared.
+Version 0.1.8 uses the existing UCP 3.0.7 `core.AOBScan` and
+`utils.AOBExtract` APIs. It fixes the overlapping player-lord signature;
+ambiguity is audited against executable fixtures during development.
+No replacement framework files or new scanner API are required.
 
 Development of one UCP3 extension for in-game rebinding, persistent local profiles
 and keyboard access to native menus, building placement and unit targeting.
 
 This is an incomplete test version, not an accepted release.
-The [0.1.7 candidate](docs/features-0.1.6.md) includes keyboard/mouse rebinding,
+The [0.1.8 candidate](docs/features-0.1.8.md) includes keyboard/mouse rebinding,
 building groups, camera bookmarks, keyboard targeting and native panel controls.
 UCP byte-pattern resolution and original button callbacks preserve the construction cursor.
 Crusader and Extreme are open for testing, including multiplayer and Recorder.

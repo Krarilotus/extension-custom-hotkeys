@@ -9,9 +9,9 @@ function M.resolve(core,utils,game,ffi)
     buttonSurface=pointer(game.Rendering.alphaAndButtonSurface)}
   local function scan(name,pattern,capture)
     if capture then
-      local _,value=utils.AOBExtractUnique(pattern,'custom-hotkeys.'..name)
+      local _,value=utils.AOBExtract(pattern)
       addresses[name]=value
-    else addresses[name]=core.AOBScanUnique(pattern,'custom-hotkeys.'..name) end
+    else addresses[name]=core.AOBScan(pattern) end
   end
   scan('acceptTextEntry','C7 41 08 01 00 00 00 C3 CC CC CC CC CC CC',false)
   scan('armoryBookmark','89 3D I(? ? ? ?) 5F 89 35 ? ? ? ? 89 35 ? ? ? ? 89 35 ? ? ? ? 89 35 ? ? ? ? 89 35 ? ? ? ? 89 35 ? ? ? ?',true)
@@ -174,24 +174,22 @@ function M.resolve(core,utils,game,ffi)
   addresses.modalClosing=addresses.primaryModal+64
   local function menuArray(name,owner)
     local operand=utils.bytesToAOBString(utils.intToBytes(addresses[owner]))
-    local _,array=utils.AOBExtractUnique('68 I(? ? ? ?) B9 '..operand..' E8 ? ? ? ?',
-      'custom-hotkeys.'..name)
+    local _,array=utils.AOBExtract('68 I(? ? ? ?) B9 '..operand..' E8 ? ? ? ?')
     addresses[name]=array
   end
   menuArray('loadItems','loadMenu')
   menuArray('saveItems','confirmationMenu')
   menuArray('confirmationItems','saveMenu')
-  local _,rectangleOffset=utils.AOBExtractUnique('8B 44 24 04 8B 54 24 0C 53 89 81 I(? ? ? ?) 89 81 ? ? ? ? 8B 44 24 14',
-    'custom-hotkeys.viewportRectangle')
+  local _,rectangleOffset=utils.AOBExtract('8B 44 24 04 8B 54 24 0C 53 89 81 I(? ? ? ?) 89 81 ? ? ? ? 8B 44 24 14')
   addresses.viewportRectangle=addresses.viewport+rectangleOffset
-  local _,groupStride,unitCapacity=utils.AOBExtractUnique(
-    '8B 44 24 04 69 C0 I(? ? ? ?) 03 C1 B9 I(? ? ? ?) 83 CA FF 89 10 89 50 04 83 C0 08','custom-hotkeys.groupStride/unitCapacity')
+  local _,groupStride,unitCapacity=utils.AOBExtract(
+    '8B 44 24 04 69 C0 I(? ? ? ?) 03 C1 B9 I(? ? ? ?) 83 CA FF 89 10 89 50 04 83 C0 08')
   addresses.groupStride,addresses.unitCapacity=groupStride,unitCapacity
-  local _,tribeStride,tribeCapacity=utils.AOBExtractUnique(
-    '69 C0 I(? ? ? ?) 8D 44 30 28 50 6A 00 68 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 83 C0 01 3D I(? ? ? ?) A3 ? ? ? ? 7C','custom-hotkeys.tribeStride/tribeCapacity')
+  local _,tribeStride,tribeCapacity=utils.AOBExtract(
+    '69 C0 I(? ? ? ?) 8D 44 30 28 50 6A 00 68 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 83 C0 01 3D I(? ? ? ?) A3 ? ? ? ? 7C')
   addresses.tribeStride,addresses.tribeCapacity=tribeStride,tribeCapacity
-  local _,selectionWords=utils.AOBExtractUnique(
-    '83 C0 01 83 C6 02 3D I(? ? ? ?) 7C ? 5D 33 C0 5E 5B 5F C2 08 00','custom-hotkeys.selectionBytes')
+  local _,selectionWords=utils.AOBExtract(
+    '83 C0 01 83 C6 02 3D I(? ? ? ?) 7C ? 5D 33 C0 5E 5B 5F C2 08 00')
   addresses.selectionBytes=selectionWords*2
   return addresses
 end

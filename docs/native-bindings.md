@@ -151,20 +151,18 @@ PEs have bounded native evidence; the four official variants have offline bindin
 evidence. Other variants still need fixtures and native acceptance;
 AOB matches alone do not prove compatibility.
 
-The 0.1.8 source uses shared `core.AOBScanUnique`/`utils.AOBExtractUnique`
-for all 155 patterns, including the input-frame hook and derived menu/stride
-bindings. Missing or ambiguous results include the binding name; no addresses
-are published and no extension hooks are registered before complete resolution.
-UI exports remain owned by UI. No extension scanner, PE parser, cache, new
-hook, fixed-address fallback or executable/Recorder activation lock was added.
+Version 0.1.8 uses stock `core.AOBScan` and `utils.AOBExtract` for all
+155 patterns, including derived menu/stride bindings. The existing UCP cache,
+scanner and operand decoder retain ownership. All addresses are resolved before
+publication and extension hook registration. UI exports remain owned by UI.
 
-This requires [UCP PR149](https://github.com/UnofficialCrusaderPatch/UnofficialCrusaderPatch3/pull/149)
-and [RPS PR16](https://github.com/gynt/RuntimePatchingSystem/pull/16). The prior
-RPS scanner did not strictly respect bounds and could over-read a region from
-an interior start. Its owner fix also handles boundary/overlapping matches and
-provides bounded first/second matches in main-image executable pages. UCP owns
-cache updates and the unchanged operand/capture decoder. Do not publish 0.1.8
-as a standalone stock-3.0.7 ZIP or claim the prerequisite has shipped.
+The proposed runtime uniqueness APIs were withdrawn from the module following
+the user's scope correction. Neither UCP PR149 nor RPS PR16 is a dependency.
+No custom framework files, private scanner, runtime duplicate scan, cache or
+activation gate is shipped. The stock first-match semantics remain unchanged;
+uniqueness is checked offline against the six available executable fixtures,
+not claimed as a runtime guarantee on unknown images. Any new framework API
+requires prior user agreement.
 
 Correction to the earlier fixture audit: its non-overlapping regex missed a
 second overlapping `playerLord` signature. In Crusader, starts 0x40FCE7 and
