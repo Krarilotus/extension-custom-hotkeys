@@ -7,3 +7,5 @@ Modülü UCP’de etkinleştirip oyunu başlatın: başlatıcıda başka bir ana
 UCP2-Legacy **gerekli değildir**. Etkinse kısayol değişiklikleri (`o_keys.enabled`) **kapalı olmalıdır**. Modül bu değeri zorunlu kılar ve etkinleşmeden önce denetler. Çakışmaları giderip oyunu yeniden başlatın.
 
 **Test sürümü:** fare tuşu atamaları, bina grupları, kayıtlı kamera konumları ve tam klavye kontrolü geliştirilmektedir. Çok oyunculu mod ve etkin Recorder ile kullanım, kabul testleri tamamlanana kadar engellenir. Yalnızca SHC 1.41; Extreme desteklenmez.
+
+![Oyun içi kısayol seçim menüsü](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/e27b392f32ca8cd3d3dd33b31a641451cfa23a6f/docs/images/hotkeys-ingame.jpg)

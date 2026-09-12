@@ -7,3 +7,5 @@ Activa el módulo en UCP e inicia el juego: funciona de inmediato, sin otro inte
 UCP2-Legacy **no es necesario**. Si está activo, sus modificaciones de atajos (`o_keys.enabled`) deben estar **desactivadas**. El módulo exige y comprueba ese valor antes de activarse. Resuelve los conflictos y reinicia el juego.
 
 **Versión de prueba:** la reasignación del ratón, los grupos de edificios, las posiciones de cámara y los recorridos completos con teclado siguen en desarrollo. El multijugador y la integración con Recorder activo están bloqueados hasta su validación. Solo SHC 1.41; esta versión no admite Extreme.
+
+![Menú de atajos dentro del juego](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/e27b392f32ca8cd3d3dd33b31a641451cfa23a6f/docs/images/hotkeys-ingame.jpg)

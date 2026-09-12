@@ -7,3 +7,5 @@
 **不需要**安装 UCP2-Legacy。如果已启用它，则必须**关闭**其快捷键修改选项（`o_keys.enabled`）。本模块会强制要求该值，并在激活前检查。请解决冲突后重新启动游戏。
 
 **测试版本：**鼠标按键重绑定、建筑编组、相机位置书签和完整键盘操作流程仍在开发中。多人游戏以及与已启用的 Recorder 配合使用，须通过验收后才会开放。仅支持 SHC 1.41；本测试版本不支持 Extreme。
+
+![游戏内快捷键选择菜单](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/e27b392f32ca8cd3d3dd33b31a641451cfa23a6f/docs/images/hotkeys-ingame.jpg)

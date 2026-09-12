@@ -7,3 +7,5 @@ Das Modul in UCP aktivieren und das Spiel starten: Es ist sofort aktiv, ohne zus
 UCP2-Legacy wird **nicht benötigt**. Wenn es aktiv ist, müssen seine Hotkey-Änderungen (`o_keys.enabled`) **ausgeschaltet** sein. Custom Hotkeys schreibt diesen Wert vor und prüft ihn vor der Aktivierung. Konflikte beheben und das Spiel neu starten.
 
 **Testversion:** Mausbelegung, Gebäudegruppen, Kameralesezeichen und vollständige Tastaturabläufe sind noch in Entwicklung. Multiplayer und die Kombination mit aktivem Recorder bleiben bis zur Abnahme gesperrt. Nur SHC 1.41; diese Testversion unterstützt Extreme nicht.
+
+![Tastenkürzel-Auswahlmenü im Spiel](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/e27b392f32ca8cd3d3dd33b31a641451cfa23a6f/docs/images/hotkeys-ingame.jpg)

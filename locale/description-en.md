@@ -7,3 +7,5 @@ Activate the module in UCP and start the game: it is active immediately, with no
 UCP2-Legacy is **not required**. If it is active, its hotkey modifications (`o_keys.enabled`) must be **off**; Custom Hotkeys requires that value and checks it before activation. Resolve conflicts and restart the game.
 
 **Test version:** mouse rebinding, building groups, camera bookmarks and complete keyboard workflows are still being developed. Multiplayer and active Recorder integration are blocked pending acceptance. SHC 1.41 only; Extreme is not supported by this test version.
+
+![In-game hotkey selection menu](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/e27b392f32ca8cd3d3dd33b31a641451cfa23a6f/docs/images/hotkeys-ingame.jpg)
