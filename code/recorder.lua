@@ -8,11 +8,13 @@ function M.connect(modules,extensions)
   end
   if not active then return {read=function() return idle end} end
   local recorder=modules.recorder
-  assert(recorder and recorder.inputStateVersion==1
+  assert(recorder,'recorder.module-unavailable')
+  assert(recorder.inputStateVersion==1
     and type(recorder.getInputState)=='function'
     and type(recorder.observeInputTransitions)=='function','activation.recorder-api')
   local function read() return recorder:getInputState() end
-  assert(require('code/recorder_context').validate(read()),'activation.recorder-api')
+  local state=read()
+  assert(require('code/recorder_context').validate(state),'recorder.state-unavailable')
   return {read=read,observe=function(callback) return recorder:observeInputTransitions(callback) end}
 end
 return M

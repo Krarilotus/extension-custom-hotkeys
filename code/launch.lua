@@ -5,7 +5,8 @@ local live={}
 function M.start(modulePath)
   local compatible,recorder=pcall(require('code/recorder').connect,modules,allActiveExtensions)
   if not compatible then
-    error(require('code/activation_text').new(data.version.getGameLanguage())('activation.recorder-api'))
+    error(require('code/activation_text').new(data.version.getGameLanguage())('activation.recorder-api')
+      ..' ['..tostring(recorder)..']')
   end
   local catalog=require('code/catalog').production()
   local profiles=require('code/profiles')
