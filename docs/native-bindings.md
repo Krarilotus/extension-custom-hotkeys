@@ -128,13 +128,34 @@ remote lookups.
 
 ## Compatibility limits
 
+Additional read-only verification used the official Firefly EFIGS and Polish
+1.41 update executables already available in the workspace. The production
+resolver and actual UCP AOBExtract resolved all 171 bindings; each of 155 patterns
+matched exactly once in each mapped executable. Their code sections equal the
+corresponding local Crusader/Extreme fixtures.
+
+| Official fixture | Executable SHA256 |
+|---|---|
+| EFIGS Crusader | `0d3d0d0be90a41d0c07d02cb41e6edc3e399288d16039db5b666392660fbda34` |
+| EFIGS Extreme | `70f083211e4260d877979e29bf5f5420aaa1c69fc5ee47057be458a84b5e6d0d` |
+| Polish Crusader | `2aab6b3da99148b0796bd00a92b4b19db7548d1e2c50fa4372035f716fd33cab` |
+| Polish Extreme | `e7e82625a39d3840bf44a84456967eeecafe7ec9d716afa67f1856ad59a9d460` |
+
+Patch provenance and per-pattern results are retained in task evidence. No
+installer was run and no other worker's installation was changed. Native
+Hotkeys acceptance on these official executables remains outstanding.
+
 Framework data/version.lua detects native version and Extreme markers; the module
 declares SHC1.41 and SHCE1.41 rather than an exact file identity. The two local
-PEs above are the tested matrix. Other language/distribution variants still need
-fixtures and native acceptance; AOB matches alone do not prove compatibility.
+PEs have bounded native evidence; the four official variants have offline binding
+evidence. Other variants still need fixtures and native acceptance;
+AOB matches alone do not prove compatibility.
 
 All 155 patterns were unique in both fixtures. Missing matches propagate UCP's
 initialization error before hooks. UCP3.0.7 returns the first match and exposes
-no uniqueness assertion; runtime ambiguity diagnostics remain a framework API
-gap, not a claimed protection in this preview. Occupied input sites are rejected
+no uniqueness assertion. Its lower-level `scanForAOB` supports subsequent/ranged
+searches, as the inspected AI Swapper implementation demonstrates; scanning all
+process memory for each binding would add substantial startup cost. Efficient
+runtime ambiguity diagnostics remain unfinished integration work, not a claimed
+protection or a user approval prerequisite. Occupied input sites are rejected
 by the displaced-byte check. No executable-hash or Recorder lock was restored.
