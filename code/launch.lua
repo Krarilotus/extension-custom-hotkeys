@@ -3,6 +3,10 @@ local M={}
 -- Pin their state before initialization, including a partially failed startup.
 local live={}
 function M.start(modulePath)
+  local compatible,recorder=pcall(require('code/recorder').connect,modules,allActiveExtensions)
+  if not compatible then
+    error(require('code/activation_text').new(data.version.getGameLanguage())('activation.recorder-api'))
+  end
   local catalog=require('code/catalog').production()
   local profiles=require('code/profiles')
   local codec={encode=function(value) return json:encode(value) end,
@@ -27,6 +31,7 @@ function M.start(modulePath)
       local text=f:read('*all');f:close();return text
     end,
     interface={env=_ENV,extra={manager=access.manager,chain=function() return chain end,
+      recorderInputState=recorder.read,
       installInputFrame=function(callback) return require('code/input_patch').install(core,callback) end,
       menuAddress=function(id)
         local p=access.manager.lookupMenu(id)
@@ -54,6 +59,12 @@ function M.start(modulePath)
       profile=customHotkeys.profiles.committed.active}
   ]],'custom-hotkeys/bootstrap',true)
   assert(type(receipt)=='table' and receipt.installed,'runtime.initialize')
+  if recorder.observe then
+    live[#live].stopObserving=recorder.observe(function()
+      assert(state:executeString('customHotkeys.router:barrier(); return true',
+        'custom-hotkeys/recorder-transition',true)==true,'hotkeys.recorder-cancellation')
+    end)
+  end
   return {state=state,library=library,store=store,receipt=receipt}
 end
 return M

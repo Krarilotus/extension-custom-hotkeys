@@ -21,7 +21,8 @@ function M.new(scene,view,world,cursor,reader)
   local ownReturn=false
   local function snapshot(token)
     local s=NativeGameplay.snapshot(scene:snapshot())
-    if not s or not Gameplay.live(s,true) or s.screen~=token.screen or s.mode~=token.mode
+    if not s or s.inputBlocked or s.inputGeneration~=token.inputGeneration
+        or not Gameplay.live(s,true) or s.screen~=token.screen or s.mode~=token.mode
         or s.player~=token.player or s.synchronyMode~=token.synchronyMode
         or s.platformGeneration~=token.platformGeneration or s.width~=token.width or s.height~=token.height
         or s.modal2~=-1 or s.modal3~=-1 or s.textEditor~=0
@@ -51,7 +52,7 @@ function M.new(scene,view,world,cursor,reader)
     if not s or not Context.same(context,Context.resolve(scene:resolve(view))) then return nil end
     if not world:dispatch(action=='game.quickload' and 'game.load.open' or 'game.save.open',context) then return nil end
     return {action=action or 'game.quicksave',screen=s.screen,mode=s.mode,player=s.player,synchronyMode=s.synchronyMode,
-      platformGeneration=s.platformGeneration,width=s.width,height=s.height}
+      platformGeneration=s.platformGeneration,inputGeneration=s.inputGeneration,width=s.width,height=s.height}
   end
   function adapter.observe(token)
     local s,kind=snapshot(token)

@@ -20,11 +20,8 @@ function M.check(config, activeExtensions)
   for _, extension in ipairs(activeExtensions) do
     if type(extension) ~= 'table' or type(extension.name) ~= 'string'
         or type(extension.version) ~= 'string' then return nil, 'activation.config-unavailable' end
-    -- Recorder owns playback, seek and state restoration. Native SP mode is
-    -- not evidence of live input authority. Until its public synchronous
-    -- ownership/generation contract is integrated, reject this combination
-    -- before either module enables instead of adding competing lifecycle hooks.
-    if extension.name == 'recorder' then return nil, 'activation.recorder-api' end
+    -- Recorder's public lifecycle is checked after all modules initialize.
+    -- Its presence alone does not distinguish ordinary recording from playback.
     if extension.name == 'ucp2-legacy' then
       found = true
       local effective = config[extension.name .. '-' .. extension.version]

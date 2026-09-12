@@ -8,10 +8,13 @@ local function read(address) return tonumber(ffi.cast('int32_t *',address)[0]) e
 -- World, lobby, save/name and other modal owners require their own completed
 -- positive native eligibility records before entering this table.
 local menus={[41]='main',[44]='custom-scenarios',[42]='campaigns',[38]='missions'}
-function M.new(platform)
-  return setmetatable({platform=platform,generation=0},M)
+function M.new(platform,recorderInputState)
+  assert(type(recorderInputState)=='function','recorder.input-reader')
+  return setmetatable({platform=platform,generation=0,recorderInputState=recorderInputState},M)
 end
 function M:snapshot()
+  local input=self.recorderInputState()
+  local valid=require('code/recorder_context').validate(input)
   local s={screen=read(0x1fe7d1c),tab=read(0x1fe7d20),subtab=read(0x1fe7d24),
     delay=read(0x1fe7d14),newPlayer=read(0x1fe7e64),mode=read(0x1fe7d78),
     modal=read(0x1fe7cbc),modal2=read(0x24036a4),modal3=read(0x1667f24),
@@ -22,7 +25,8 @@ function M:snapshot()
     textModal=read(0x1126604),textEditor=read(0x2403b00),
     width=read(0xf98350),height=read(0xf98354),sliding=read(0xf2b3a8),
     focused=self.platform:focused(),composing=self.platform.composing,
-    platformGeneration=self.platform.generation}
+    platformGeneration=self.platform.generation,
+    inputBlocked=not valid or input.blocked,inputGeneration=valid and input.generation or -1}
   if s.modal==9 and s.activeModalMenu==0xb97688 then
     s.loadArray=read(0xb97688);s.textIndex=read(0x1652740);s.textState=read(0x11265a8)
     s.loadCount=read(0x112661c);s.loadOffset=read(0x1126628)
@@ -37,11 +41,12 @@ function M:resolve(editor)
   local s=self:snapshot()
   if editor then require('code/editor_ownership').reconcile(editor,s) end
   local signature=table.concat({s.screen,s.tab,s.subtab,s.delay,s.newPlayer,s.mode,
-    s.modal,s.modal2,s.modal3,s.activeModalID,s.activeModalMenu,s.textModal,s.textEditor,s.platformGeneration},':')
+    s.modal,s.modal2,s.modal3,s.activeModalID,s.activeModalMenu,s.textModal,s.textEditor,s.platformGeneration,
+    s.inputGeneration,tostring(s.inputBlocked)},':')
   if signature~=self.signature then self.signature=signature;self.generation=self.generation+1 end
   self.current=s
   local options,load=Options.owns(s),Load.owns(s)
-  if not s.focused or self.platform.composing or s.delay~=-1 or s.newPlayer~=0
+  if s.inputBlocked or not s.focused or self.platform.composing or s.delay~=-1 or s.newPlayer~=0
       or (s.textModal~=0 and not options and not load) or s.textEditor~=0 or s.modal2~=-1 or s.modal3~=-1 then return nil end
   local ownedModal=editor and editor.opened and editor.parentScreen==s.screen and editor.modalID or nil
   if not ownedModal and options then ownedModal=5 end

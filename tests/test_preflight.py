@@ -32,12 +32,11 @@ def test_sparse_or_malformed_extension_list_cannot_hide_legacy(lua):
     ''')
 
 
-def test_recorder_requires_verified_public_input_ownership_contract(lua):
+def test_recorder_contract_is_checked_after_module_initialization(lua):
     lua.execute('''
       local P=require('code/preflight')
       for _,version in ipairs({'0.48.4','0.50.3','99.0.0'}) do
-        local ok,err=P.check({},{{name='recorder',version=version}})
-        assert(not ok and err=='activation.recorder-api')
+        assert(P.check({},{{name='recorder',version=version}}))
       end
       assert(P.check({},{{name='unrelated-extension',version='1.0.0'}}))
     ''')
