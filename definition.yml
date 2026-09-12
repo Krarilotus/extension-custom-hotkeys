@@ -3,7 +3,6 @@ display-name: Custom Hotkeys (development)
 version: 0.1.0
 author: Krarilotus
 type: module
-default: false
 game: [SHC==1.41]
 dependencies:
   framework: ">=3.0.7"

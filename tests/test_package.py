@@ -12,9 +12,9 @@ def test_committed_module_package_is_reproducible_and_excludes_test_data(tmp_pat
     assert receipt['sha256'] == other['sha256'] == hashlib.sha256(first.read_bytes()).hexdigest()
     with zipfile.ZipFile(first) as archive:
         names = set(archive.namelist())
-        assert {'init.lua', 'definition.yml', 'build.json', 'code/native/runtime.lua'} <= names
-        assert all(name in ('init.lua', 'definition.yml', 'README.md', 'build.json')
-                   or name.startswith(('code/', 'docs/')) for name in names)
+        assert {'init.lua', 'definition.yml', 'config.yml', 'build.json', 'code/native/runtime.lua'} <= names
+        assert all(name in ('init.lua', 'definition.yml', 'config.yml', 'README.md', 'build.json')
+                   or name.startswith('code/') for name in names)
         assert not any(name.endswith(('.exe', '.dll')) or 'probe' in name for name in names)
         embedded = json.loads(archive.read('build.json'))
         assert embedded['commit'] == receipt['commit']

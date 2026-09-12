@@ -3,7 +3,7 @@
 Development of one UCP3 extension for in-game rebinding, persistent local profiles
 and keyboard access to native menus, building placement and unit targeting.
 
-This repository is under development. It is not a playable or accepted release.
+This is an incomplete test version, not an accepted release.
 Native actions must retain the game's validation, authority and synchronized
 command path. Legacy hotkey modifications must be disabled before activation.
 
@@ -26,9 +26,19 @@ the cursor acknowledgement fix. Existing building panel/focus/return actions
 and a Ctrl+Tab toolbar replacement are now configurable; native acceptance of
 those additions remains pending.
 
-The [development package](docs/install-development.md) is built reproducibly
+Activate the module in UCP and start the game: no additional launcher switch or
+customization options are needed. Open **Custom Hotkeys** from the main menu or
+press **F12** in a supported menu/live single-player game. **Ctrl+Shift+F12** is
+the recovery shortcut if F12 was reassigned. Change bindings and select **Apply**
+to save them. The editor uses the **game language**, read through UCP after game
+initialization. Store descriptions use the launcher's language.
+
+Legacy is not a dependency. When present, its `o_keys.enabled` option is required
+to be false by `config.yml`, with a second runtime check before patches activate.
+
+The [development package](https://github.com/Krarilotus/extension-custom-hotkeys/blob/feat/binding-core/docs/install-development.md) is built reproducibly
 from a committed tree with `python tools/build.py`. Native acceptance of the
-packaged module is pending; task diagnostic results are not package acceptance.
+complete packaged workflow is pending; bounded native editor checks are recorded.
 
 Run `python -m pip install -r tests/requirements.txt` and
 `python -m pytest tests -q`. The same component cases run in Lua 5.4 and LuaJIT;

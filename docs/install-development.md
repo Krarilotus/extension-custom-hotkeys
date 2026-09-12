@@ -1,14 +1,18 @@
 # Local development module
 
-This is an incomplete development artifact. Do not publish it to the extension
-store or advertise keyboard-only, multiplayer, replay or Extreme compatibility.
+This is an incomplete development artifact. A draft Store 3.0.7 proposal and a
+downloadable test ZIP are being prepared; public Store publication remains held.
+Do not advertise keyboard-only, multiplayer, replay or Extreme compatibility.
 The native acceptance ledger remains authoritative.
 
 Commit the intended source, then run `python tools/build.py`. The builder reads
 that exact Git commit, excludes working changes and creates
 `dist/custom-hotkeys-0.1.0.zip` plus its SHA-256/file manifest. It does not bundle
 licensed game files, dependency binaries, task diagnostics or saved profiles.
-The ZIP has the standard UCP module root (`definition.yml`, `init.lua`, `code/`).
+The ZIP has the standard UCP module root (`definition.yml`, `config.yml`,
+`init.lua`, `code/`). The same `files.xml` controls both the local builder and
+the Store's official module packager. Store descriptions and screenshots are
+served online, not copied into every game installation.
 
 Use a separate test installation. Place the ZIP in `ucp/modules`, enable
 Custom Hotkeys in its test configuration and resolve the pinned dependencies.

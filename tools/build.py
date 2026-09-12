@@ -10,6 +10,7 @@ from pathlib import Path
 import re
 import subprocess
 import zipfile
+import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -21,9 +22,16 @@ def git(*args):
 def payload(revision):
     commit = git('rev-parse', '--verify', revision + '^{commit}').decode().strip()
     names = git('ls-tree', '-r', '--name-only', '-z', commit).decode().split('\0')
-    selected = sorted(name for name in names if name in ('init.lua', 'definition.yml', 'README.md')
-                      or name.startswith('code/') and name.endswith('.lua')
-                      or name.startswith('docs/') and name.endswith('.md'))
+    # Share the release packager's explicit manifest. Store descriptions/images
+    # stay online; audit documents and tooling do not belong in the game ZIP.
+    if 'files.xml' not in names:
+        raise ValueError('Committed tree does not contain the module entry points/manifest')
+    manifest = ET.fromstring(git('show', commit + ':files.xml'))
+    roots = [entry.attrib['src'] for entry in manifest.findall('./files/file')]
+    if not roots or any(not re.fullmatch(r'[A-Za-z0-9_.-]+', root) for root in roots):
+        raise ValueError('Package manifest requires explicit root files/directories')
+    selected = sorted(name for name in names
+                      if any(name == root or name.startswith(root + '/') for root in roots))
     files = {name: git('show', commit + ':' + name) for name in selected}
     if not {'init.lua', 'definition.yml', 'code/launch.lua', 'code/preflight.lua'} <= files.keys():
         raise ValueError('Committed tree does not contain the module entry points')
