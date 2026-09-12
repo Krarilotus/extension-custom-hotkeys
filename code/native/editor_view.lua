@@ -284,8 +284,8 @@ function M:renderButton(id)
     or (id==105 and self.text.kind=='search') or (id==116 and self.text.kind=='import')) and self.text.edit or nil
   if label=='' and not editing then return end
   local s=game.Rendering.ButtonState
-  local old=game.Rendering.pDrawBufferChoiceValue[0]
-  game.Rendering.pDrawBufferChoiceValue[0]=0
+  -- Inherit the native menu renderer's surface. Forcing texture surface0 hides
+  -- table/button graphics during gameplay, whose menu renderer owns surface1.
   local ok,err=pcall(function()
     local render=game.Rendering;local core=render.pencilRenderCore
     local isRow=id<=rows
@@ -318,7 +318,6 @@ function M:renderButton(id)
     end
     if result.caret then self:drawEncoded('|',s.x+8+result.caret,textY,0xFFFFFF,font) end
   end)
-  game.Rendering.pDrawBufferChoiceValue[0]=old
   if not ok then error(err) end
 end
 function M:render(x,y,width,height)

@@ -12,7 +12,8 @@ function M.button(selected)
   local r=game.Rendering;local state=r.ButtonState
   local interacting=state.interacting
   if selected then state.interacting=1 end
-  local ok,err=pcall(r.renderButtonBackground,r.alphaAndButtonSurface,0,0)
+  -- Native -1 chooses the current menu/game surface and restores it afterward.
+  local ok,err=pcall(r.renderButtonBackground,r.alphaAndButtonSurface,0,-1)
   state.interacting=interacting
   if not ok then error(err) end
 end
