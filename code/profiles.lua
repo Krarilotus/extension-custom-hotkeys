@@ -23,23 +23,29 @@ end
 
 function M.validate(catalog, document)
   if not fields(document, {schema=true, active=true, profiles=true})
-      or (document.schema ~= 1 and document.schema ~= 2) or not name(document.active)
+      or (document.schema ~= 1 and document.schema ~= 2 and document.schema ~= 3) or not name(document.active)
       or type(document.profiles) ~= 'table' then return nil, 'profiles.format' end
-  local result, count = {schema=2, active=document.active, profiles={}}, 0
+  local result, count = {schema=3, active=document.active, profiles={}}, 0
   for key, profile in pairs(document.profiles) do
     count = count + 1
     if count > (document.schema==1 and 32 or 64) or not name(key)
-        or not fields(profile, {bindings=true,preset=document.schema==2}) then
+        or not fields(profile, {bindings=true,preset=document.schema>=2}) then
       return nil, 'profiles.name'
     end
     if profile.preset~=nil and (type(profile.preset)~='string' or not catalog.presets
         or not catalog.presets[profile.preset]) then return nil,'profiles.preset' end
     local candidate=copy(profile.bindings)
-    if document.schema==1 and type(candidate)=='table' then
+    if document.schema<3 and type(candidate)=='table' then
       for _,action in ipairs(catalog.ordered) do
         -- Only known additions may be absent from an older schema. They start
         -- unbound so an upgrade cannot activate an unexpected command.
-        if action.introduced>1 and candidate[action.id]==nil then candidate[action.id]=false end
+        if action.introduced>document.schema and candidate[action.id]==nil then candidate[action.id]=false end
+        -- These numbers previously always passed to SHC, even when the editor
+        -- displayed an unbound custom recall. Preserve that existing behavior
+        -- as an explicit, now-rebindable default; keep actual custom choices.
+        if action.id:match('^unit%.group%.recall%.%d$') and candidate[action.id]==false then
+          candidate[action.id]=copy(action.default)
+        end
       end
     end
     local bindings, err, detail = Catalog.validate(catalog, candidate)
@@ -62,9 +68,9 @@ end
 function M.initial(catalog, launcherBindings)
   local bindings = assert(Catalog.validate(catalog, launcherBindings or Catalog.defaults(catalog)))
   if not catalog.presetOrder then
-    return {schema=2, active='Default', profiles={Default={bindings=bindings}}}
+    return {schema=3, active='Default', profiles={Default={bindings=bindings}}}
   end
-  local d={schema=2,active='Game Default',profiles={}}
+  local d={schema=3,active='Game Default',profiles={}}
   for _,preset in ipairs(catalog.presetOrder) do
     d.profiles[preset.name]={preset=preset.id,bindings=copy(preset.bindings)}
   end
@@ -171,7 +177,7 @@ end
 
 function M:export()
   local document = self.draft or self.committed
-  return {schema=2, active=document.active,
+  return {schema=3, active=document.active,
     profiles={[document.active]=copy(document.profiles[document.active])}}
 end
 

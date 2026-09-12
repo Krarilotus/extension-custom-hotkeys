@@ -1,10 +1,13 @@
 -- Native integration catalog grows here before the first public profile schema
 -- is released. These are implemented actions, never synthetic fixture commands.
-local parents={'menu.main','menu.custom-scenarios','menu.campaigns','menu.missions'}
-local all={'menu.main','menu.custom-scenarios','menu.campaigns','menu.missions','game.build','game.status'}
+local parents,all={},{}
+for _,screen in ipairs(require('code/menu_screens')) do
+  local owner='menu.'..screen[2];parents[#parents+1]=owner;all[#all+1]=owner
+end
+all[#all+1]='game.build';all[#all+1]='game.status'
 local world={'game.build','game.status'}
-local navigation={'menu.main','menu.custom-scenarios','menu.campaigns','menu.missions',
-  'game.build','game.status','game.options','game.load'}
+local navigation={'game.build','game.status','game.options','game.load'}
+for _,owner in ipairs(parents) do navigation[#navigation+1]=owner end
 local entries={{id='view.lower-buildings',contexts=world,states={'live-sp','live-mp'},command=false,
   behavior='hold-local',default={scan=47,extended=false,mods=0}},
   {id='game.quickload',contexts=world,states={'live-sp'},command=false,
@@ -23,13 +26,25 @@ local entries={{id='view.lower-buildings',contexts=world,states={'live-sp','live
     default={scan=28,extended=false,mods=0}},
   {id='game.menu.activate',contexts={'game.build','game.status','game.options','game.load'},states={'live-sp','live-mp'},command=true,
     default={scan=28,extended=false,mods=0}}}
+for _,id in ipairs({'primary','secondary','select','order'}) do
+  entries[#entries+1]={id='pointer.'..id,contexts=world,states={'live-sp','live-mp'},
+    command=true,introduced=3,default=(id=='primary' or id=='secondary')
+      and {button=id=='primary' and 'left' or 'right',mods=0} or false}
+end
 for group=0,9 do
   entries[#entries+1]={id='unit.group.assign.'..group,contexts=world,states={'live-sp','live-mp'},
     command=false,default={scan=group==0 and 11 or group+1,extended=false,mods=1}}
   entries[#entries+1]={id='unit.group.recall.'..group,contexts=world,states={'live-sp','live-mp'},
-    command=true,default=false}
+    command=true,default={scan=group==0 and 11 or group+1,extended=false,mods=0}}
   entries[#entries+1]={id='camera.group.'..group,contexts=world,states={'live-sp','live-mp'},
-    command=false,default=false}
+    command=false,default={scan=group==0 and 11 or group+1,extended=false,mods=4}}
+end
+for slot=0,9 do
+  for _,verb in ipairs({'assign','recall'}) do
+    entries[#entries+1]={id='camera.bookmark.'..verb..'.'..slot,contexts=world,
+      states={'live-sp','live-mp'},command=false,introduced=3,
+      default={scan=slot==0 and 11 or slot+1,extended=false,mods=verb=='assign' and 6 or 5}}
+  end
 end
 for _,direction in ipairs({'next','previous'}) do
   entries[#entries+1]={id='unit.group.'..direction,contexts=world,states={'live-sp','live-mp'},
@@ -72,7 +87,7 @@ for _,control in ipairs(require('code/controls')) do
     command=true,default=false}
 end
 for slot=1,12 do
-  entries[#entries+1]={id='grid.slot.'..slot,contexts={'game.build'},states={'live-sp','live-mp'},
+  entries[#entries+1]={id='grid.slot.'..slot,contexts=world,states={'live-sp','live-mp'},
     command=true,default=false,introduced=2}
 end
 return entries

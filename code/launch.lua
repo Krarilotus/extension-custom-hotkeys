@@ -38,6 +38,12 @@ function M.prepare(modulePath)
         if not p then return nil end
         return cffi.tonumber(cffi.cast('unsigned long',p))
       end,
+      modalBounds=function(id)
+        local p=access.manager.lookupModalMenu(id)
+        if not p then return nil end
+        return {x=cffi.tonumber(p.x),y=cffi.tonumber(p.y),
+          width=cffi.tonumber(p.width),height=cffi.tonumber(p.height)}
+      end,
       loadProfiles=function() return store:load() end,
       saveProfiles=function(document) return store:save(document) end,
       loadExchange=function() return exchange:load() end,
@@ -71,7 +77,7 @@ function M.start(prepared)
   assert(type(receipt)=='table' and receipt.installed,'runtime.initialize')
   if recorder.observe then
     prepared.stopObserving=recorder.observe(function()
-      assert(state:executeString('customHotkeys.router:barrier(); return true',
+      assert(state:executeString('customHotkeys.router:barrier(); customHotkeys.worldActions:resetBookmarks(); return true',
         'custom-hotkeys/recorder-transition',true)==true,'hotkeys.recorder-cancellation')
     end)
   end

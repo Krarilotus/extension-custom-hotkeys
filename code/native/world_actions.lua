@@ -8,7 +8,8 @@ local function building(id)
   if id<1 or id>1999 then return nil end
   local offset=id*0x32c
   return {id=id,type=short(A.buildingType+offset),owner=short(A.buildingOwner+offset),
-    x=short(A.buildingX+offset),y=short(A.buildingY+offset)}
+    x=short(A.buildingX+offset),y=short(A.buildingY+offset),
+    state=short(A.buildingType+offset-2),uid=i(A.buildingOwner+offset+2)}
 end
 local viewport=ffi.cast('void *',A.viewport)
 local focus=ffi.cast('void (__thiscall *)(void *,int,int)',A.focusPosition)
@@ -25,16 +26,28 @@ local saveLoadDialog=ffi.cast('void (__thiscall *)(void *,int)',A.openSaveLoad)
 local clearGroup=ffi.cast('void (__thiscall *)(void *,int)',A.clearGroup)
 local assignGroup=ffi.cast('void (__thiscall *)(void *,int,int)',A.assignGroup)
 local tribeUnit=ffi.cast('int (__thiscall *)(void *,int,int)',A.tribeUnit)
+local deselect=ffi.cast('void (__thiscall *)(void *)',A.submitDeselect)
 local function lord(id)
   if id<1 or id>(A.unitCapacity-1) then return nil end
   local offset=id*0x490
   return {id=id,type=short(A.unitType+offset),state=short(A.unitState+offset),
     owner=short(A.unitOwner+offset),tile=i(A.unitTile+offset)}
 end
-function M.new(scene,view)
+function M.new(scene,view,pointer,pointerClick)
   local groups=require('code/native/groups')
   return require('code/world_actions').new({
     resolve=function() return scene:resolve(view) end,
+    pointerAllowed=function(position) return pointer:insideWorld(position) end,
+    pointerClick=pointerClick,
+    deselect=function() deselect(ffi.cast('void *',A.units)) end,
+    -- Local bookmarks end at load entry or leaving the world. Read only while
+    -- bookmarks exist; Recorder's observer additionally covers direct restores.
+    sameWorld=function()
+      local screen=i(A.screen)
+      return i(A.inGame)==1 and (screen==14 or screen==16) and i(A.primaryModal)~=9
+    end,
+    buildingByID=building,
+    clearGroup=function(group) clearGroup(ffi.cast('void *',A.controlGroups),group) end,
     group=groups.inspect,groupMatches=groups.matches,recallGroup=groups.recall,
     toggleInterface=function() toggleInterface(ffi.cast('void *',A.gameCore)) end,
     saveLoadDialog=function(modal) saveLoadDialog(ffi.cast('void *',A.textDialog),modal) end,
@@ -63,6 +76,9 @@ function M.new(scene,view)
       local s=scene:snapshot()
       s.player=i(A.localPlayer);s.selectedCount=i(A.selectedCount);s.tribe=i(A.tribes)
       s.ownedSelection=i(A.ownedSelection)
+      s.building=i(A.selectedBuilding)
+      s.placement=i(A.placement);s.patrol=i(A.patrol)
+      s.unitMode=i(A.unitMode);s.unitModeAux=i(A.unitModeAux)
       s.rightHeld=i(A.mouseRightHeld);s.rotation=i(A.rotation)
       s.pendingRotation=i(A.pendingRotation);s.zoom=i(A.zoom)
       s.synchronyMode=i(A.synchronyMode);s.sessionHost=i(A.sessionHost)

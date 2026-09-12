@@ -233,9 +233,9 @@ end
 function M:bindingName(binding)
   if not binding then return self.labels('unbound') end
   if self.nameLayout~=self.platform.layout then self.nameLayout=self.platform.layout;self.keyNames={} end
-  local key=binding.scan..':'..tostring(binding.extended)..':'..binding.mods
+  local key=require('code/binding').key(binding)
   if self.keyNames[key] then return self.keyNames[key] end
-  local name=self.platform:keyName(binding) or '?'
+  local name=binding.button and self.labels('mouse.'..binding.button) or self.platform:keyName(binding) or '?'
   if binding.mods%2==1 then name='Ctrl+'..name end
   if math.floor(binding.mods/2)%2==1 then name='Shift+'..name end
   if binding.mods>=4 then name='Alt+'..name end

@@ -1,7 +1,7 @@
 local en={title='Custom Hotkeys',profile='Profile',new='New profile',search='Search',
   groups='Group',all='All',capture='Change key',clear='Clear key',reset='Reset action',
   resetProfile='Reset profile',apply='Apply',cancel='Cancel',unbound='Unbound',
-  press='Press a key combination. Escape cancels.',editing='Enter accepts; Escape cancels.',
+  press='Press a key or mouse button. Escape cancels.',editing='Enter accepts; Escape cancels.',
   invalid='This change is not available. Check the binding or profile name.',
   conflict='This key overlaps another action.',text='Text',default='Default',
   ['hotkeys.open']='Open hotkey settings', ['menu.next']='Next control',
@@ -10,7 +10,7 @@ local en={title='Custom Hotkeys',profile='Profile',new='New profile',search='Sea
 local de={title='Eigene Tastenkürzel',profile='Profil',new='Neues Profil',search='Suche',
   groups='Gruppe',all='Alle',capture='Taste ändern',clear='Taste löschen',reset='Aktion zurücksetzen',
   resetProfile='Profil zurücksetzen',apply='Übernehmen',cancel='Abbrechen',unbound='Unbelegt',
-  press='Tastenkombination drücken. Escape bricht ab.',editing='Enter bestätigt; Escape bricht ab.',
+  press='Taste oder Maustaste drücken. Escape bricht ab.',editing='Enter bestätigt; Escape bricht ab.',
   invalid='Änderung nicht möglich. Tastenkürzel oder Profilnamen prüfen.',
   conflict='Dieses Tastenkürzel überschneidet sich mit einer anderen Aktion.',text='Text',
   default='Standard', ['hotkeys.open']='Tastenkürzel öffnen', ['menu.next']='Nächstes Bedienelement',
@@ -41,6 +41,15 @@ de['group.targeting']='Zielen'
 de['nativeKey']='%s (Spiel)'
 de['nativeAgain']='%s erneut (Spiel)'
 local M={}
+en['mouse.left']='Left mouse';de['mouse.left']='Linke Maustaste'
+en['mouse.right']='Right mouse';de['mouse.right']='Rechte Maustaste'
+en['mouse.middle']='Middle mouse';de['mouse.middle']='Mittlere Maustaste'
+en['mouse.x1']='Mouse button 4';de['mouse.x1']='Maustaste 4'
+en['mouse.x2']='Mouse button 5';de['mouse.x2']='Maustaste 5'
+en['pointer.primary']='Classic selection / order';de['pointer.primary']='Klassische Auswahl / Befehl'
+en['pointer.secondary']='Classic cancel / context';de['pointer.secondary']='Klassischer Abbruch / Kontext'
+en['pointer.select']='Select or confirm target';de['pointer.select']='Auswählen oder Ziel bestätigen'
+en['pointer.order']='Contextual order or cancel';de['pointer.order']='Kontextbefehl oder abbrechen'
 en.gridSlot='Panel grid slot ';de.gridSlot='Rasterplatz im Menü '
 en['group.grid']='Grid';de['group.grid']='Raster'
 en['preset.game-default']='Game Default';de['preset.game-default']='Spielstandard'
@@ -49,6 +58,8 @@ en['preset.grid']='Grid';de['preset.grid']='Raster'
 en.assignGroup='Assign selection to group ';de.assignGroup='Auswahl zu Gruppe zuweisen: '
 en.recallGroup='Select group ';de.recallGroup='Gruppe auswählen: '
 en.focusGroup='Focus group ';de.focusGroup='Gruppe zeigen: '
+en.assignBookmark='Assign camera position ';de.assignBookmark='Kameraposition speichern: '
+en.recallBookmark='Go to camera position ';de.recallBookmark='Kameraposition zeigen: '
 en['unit.group.next']='Select next group';de['unit.group.next']='Nächste Gruppe auswählen'
 en['unit.group.previous']='Select previous group';de['unit.group.previous']='Vorherige Gruppe auswählen'
 en.nativeGroup='Native group or building shortcut ';de.nativeGroup='Originales Gruppen-/Gebäudekürzel '
@@ -126,6 +137,8 @@ function M.new(language,nativeText)
     chosen['unit.group.assign.'..group]=(chosen.assignGroup or en.assignGroup)..group
     chosen['unit.group.recall.'..group]=(chosen.recallGroup or en.recallGroup)..group
     chosen['camera.group.'..group]=(chosen.focusGroup or en.focusGroup)..group
+    chosen['camera.bookmark.assign.'..group]=chosen.assignBookmark..group
+    chosen['camera.bookmark.recall.'..group]=chosen.recallBookmark..group
     chosen['unit.group.native.'..group]=(chosen.nativeGroup or en.nativeGroup)..group
   end
   for _,control in ipairs(require('code/controls')) do controls[control.id]=control end

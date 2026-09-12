@@ -1,4 +1,9 @@
 return {
+ ['mouse.left']='Botón izquierdo', ['mouse.right']='Botón derecho', ['mouse.middle']='Botón central',
+ ['mouse.x1']='Botón del ratón 4', ['mouse.x2']='Botón del ratón 5',
+ ['pointer.primary']='Selección / orden clásica', ['pointer.secondary']='Cancelar / contexto clásico',
+ ['pointer.select']='Seleccionar o confirmar objetivo', ['pointer.order']='Orden contextual o cancelar',
+ assignBookmark='Guardar posición de cámara ',recallBookmark='Ir a la posición de cámara ',
  text='Texto',['menu.back']='Atrás',['editor.capture']='Cambiar el atajo seleccionado',
  ['group.navigation']='Menús',
  ['group.saving']='Guardar / cargar',
@@ -34,7 +39,7 @@ return {
  title='Teclas personalizadas',profile='Perfil',new='Nuevo perfil',search='Buscar',
  groups='Grupo',all='Todos',capture='Cambiar tecla',swap='Intercambiar',clear='Borrar',reset='Restablecer',
  resetProfile='Restablecer perfil',apply='Aplicar',cancel='Cancelar',unbound='Sin asignar',
- press='Pulsa una combinación. Esc cancela.',editing='Intro acepta; Esc cancela.',
+ press='Pulsa una tecla o botón del ratón. Esc cancela.',editing='Intro acepta; Esc cancela.',
  invalid='Cambio no disponible. Comprueba la tecla o el nombre del perfil.',
  conflict='Esta tecla ya está asignada:',default='Predeterminado',
  open='Abrir: ',choose='Elegir: ',

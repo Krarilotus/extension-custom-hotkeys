@@ -6,7 +6,7 @@ local M={}
 function M.new(scene,reader)
   return {
     gridControls=function(context)
-      if not context or context.owner~='game.build' then return nil end
+      if not context or (context.owner~='game.build' and context.owner~='game.status') then return nil end
       local s=scene:snapshot()
       if tostring(s.screen)~=context.screen or s.modal~=-1 or not require('code/modal_context').background(s) then return nil end
       return reader:read(remote.interface.menuAddress(s.screen),s,nil,true)

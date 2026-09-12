@@ -55,9 +55,9 @@ function M.install(interface, router, platform, exclusiveInput, mouseInput)
     return 0
   end)
   -- Observe focus cancellation before graphicsApiReplacer (-100000), which
-  -- can consume WM_KILLFOCUS/WM_SETFOCUS/WM_ACTIVATEAPP. Mouse messages pass
-  -- unchanged to its normal coordinate conversion; this adapter never uses
-  -- their coordinates. Forward the actual collision-resolved priority.
+  -- can consume WM_KILLFOCUS/WM_SETFOCUS/WM_ACTIVATEAPP. Remapped mouse buttons
+  -- retain the original coordinates for its normal conversion. Forward the
+  -- actual collision-resolved priority.
   result.priority = tonumber(register(result.callback,-110000))
   assert(result.priority ~= -2147483648, 'chain.registration-failed')
   -- A pathological occupied range must not silently put cancellation after

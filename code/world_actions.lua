@@ -6,13 +6,58 @@ local stances={['unit.stance.stand-ground']=0,['unit.stance.defensive']=1,['unit
 local buildings={}
 for _,b in ipairs(require('code/building_actions')) do buildings[b.name]=b end
 local function integer(n,lo,hi) return type(n)=='number' and n==math.floor(n) and n>=lo and n<=hi end
-function M.new(adapter) return setmetatable({adapter=adapter},M) end
-function M:dispatch(id,context)
+function M.new(adapter) return setmetatable({adapter=adapter,buildingGroups={},cameraBookmarks={}},M) end
+function M:resetBookmarks()
+  self.buildingGroups={};self.cameraBookmarks={};self.hasBookmarks=false
+end
+function M:observeLifetime()
+  if self.hasBookmarks and not self.adapter.sameWorld() then self:resetBookmarks() end
+end
+local function ownedBuilding(b,player)
+  return b and integer(b.id,1,1999) and b.owner==player and b.state==2
+    and integer(b.uid,1,2147483647) and integer(b.x,0,399) and integer(b.y,0,399)
+end
+function M:groupBuilding(group,player)
+  local saved=self.buildingGroups[group]
+  if not saved then return nil end
+  local b=self.adapter.buildingByID(saved.id)
+  if not ownedBuilding(b,player) or b.uid~=saved.uid or b.type~=saved.type
+      or b.x~=saved.x or b.y~=saved.y then self.buildingGroups[group]=nil;return nil end
+  return b
+end
+function M:dispatch(id,context,nativeBinding,event)
   local a=self.adapter
   if not context or (context.state~='live-sp' and context.state~='live-mp') or not context.authority
       or (context.owner~='game.build' and context.owner~='game.status')
       or not Context.same(context,Context.resolve(a.resolve())) then return false end
   local s=a.snapshot()
+  if id:sub(1,8)=='pointer.' then
+    if not a.pointerAllowed(event and event.position) then
+      return event and event.button and 'pointer-native' or false
+    end
+    local button,deselect=require('code/pointer_actions').resolve(id,s)
+    if not button then return false end
+    if deselect then a.deselect() end
+    if event and event.button then
+      if button==event.button then return 'pointer-native' end
+      return button
+    end
+    return a.pointerClick(button,context)
+  end
+  local bookmarkVerb,bookmark=id:match('^camera%.bookmark%.(%a+)%.([0-9])$')
+  if bookmark then
+    bookmark=tonumber(bookmark)
+    if bookmarkVerb=='assign' then
+      local tile=a.viewportTile()
+      if not integer(tile,0,159999) then return false end
+      self.cameraBookmarks[bookmark]=tile;self.hasBookmarks=true;return true
+    elseif bookmarkVerb=='recall' then
+      local tile=self.cameraBookmarks[bookmark]
+      if tile==nil then return false end
+      a.focusTile(tile);return true
+    end
+    return false
+  end
   local recall=id:match('^unit%.group%.recall%.([0-9])$')
   local focus=id:match('^camera%.group%.([0-9])$')
   local cycle=id=='unit.group.next' and 1 or (id=='unit.group.previous' and -1 or nil)
@@ -21,13 +66,23 @@ function M:dispatch(id,context)
     if cycle then
       for step=1,10 do
         group=((self.groupCursor or 0)+cycle*step)%10
-        first=a.group(group,s.player)
+        first=self:groupBuilding(group,s.player) or a.group(group,s.player)
         if first then break end
       end
     else
-      group=tonumber(recall or focus);first=a.group(group,s.player)
+      group=tonumber(recall or focus)
+      first=self:groupBuilding(group,s.player)
+      -- Original number keys also operate recruitment/status panels. Forward
+      -- their unchanged native binding only when no custom building owns it.
+      if not first and recall and nativeBinding then return 'native' end
+      first=first or a.group(group,s.player)
     end
     if not first then return false end
+    if first.uid then
+      if focus or s.building==first.id then a.focus(first.x+2,first.y+2)
+      else a.openBuilding(first.id) end
+      self.groupCursor=group;return true
+    end
     if focus or a.groupMatches(group) then a.focusTile(first.tile)
     else a.recallGroup(group) end
     self.groupCursor=group
@@ -35,10 +90,18 @@ function M:dispatch(id,context)
   end
   local group=id:match('^unit%.group%.assign%.([0-9])$')
   if group then
+    group=tonumber(group)
+    if s.building and s.building>0 and s.selectedCount==0 then
+      local b=a.buildingByID(s.building)
+      if not ownedBuilding(b,s.player) then return false end
+      a.clearGroup(group)
+      self.buildingGroups[group]=b;self.hasBookmarks=true;return true
+    end
     if s.screen~=14 or (s.tab~=61 and s.tab~=62) or s.selectedCount<=0
         or not integer(s.tribe,1,(A.tribeCapacity-1)) or s.tribeOwner~=s.player
         or s.ownedSelection~=1 or not a.validGroupMembers(s.tribe,s.player) then return false end
-    a.assignGroup(tonumber(group),s.tribe)
+    a.assignGroup(group,s.tribe)
+    self.buildingGroups[group]=nil
     return true
   end
   if id=='game.save.open' or id=='game.load.open' then

@@ -74,7 +74,8 @@ def test_group_defaults_do_not_steal_native_building_number_shortcuts(lua):
           local changed=Catalog.defaults(catalog)
           changed['target.center']={scan=scan,extended=false,mods=mods}
           local ok,reason=Catalog.validate(catalog,changed)
-          assert(not ok and reason=='binding.native-conflict')
+            if mods==0 then assert(not ok and reason=='binding.conflict')
+            else assert(ok) end -- plain-number recall is the assigned replacement
         end
         local changed=Catalog.defaults(catalog)
         changed['unit.group.assign.'..group]=false

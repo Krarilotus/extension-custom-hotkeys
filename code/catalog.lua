@@ -43,7 +43,8 @@ function M.new(entries, nativeBindings)
     local binding = assert(Binding.validate(entry.binding))
     assert(entry.retain==nil or type(entry.retain)=='boolean','native.retain')
     originals[#originals+1] = {action=entry.action, definition=action,binding=binding,
-      unavailable=entry.unavailable==true,retain=entry.retain==true or entry.unavailable==true}
+      unavailable=entry.unavailable==true,retain=entry.retain==true or entry.unavailable==true,
+      forward=entry.forward==true}
   end
   return {actions=actions, ordered=ordered, originals=originals}
 end

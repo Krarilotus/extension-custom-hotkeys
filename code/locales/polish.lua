@@ -1,4 +1,9 @@
 return {
+ ['mouse.left']='Lewy przycisk myszy', ['mouse.right']='Prawy przycisk myszy', ['mouse.middle']='Środkowy przycisk myszy',
+ ['mouse.x1']='Przycisk myszy 4', ['mouse.x2']='Przycisk myszy 5',
+ ['pointer.primary']='Klasyczny wybór / rozkaz', ['pointer.secondary']='Klasyczne anulowanie / kontekst',
+ ['pointer.select']='Wybierz lub potwierdź cel', ['pointer.order']='Rozkaz kontekstowy lub anulowanie',
+ assignBookmark='Zapisz pozycję kamery ',recallBookmark='Przejdź do pozycji kamery ',
  text='Tekst',['menu.back']='Wstecz',['editor.capture']='Zmień wybrany skrót',
  ['group.navigation']='Menu',
  ['group.saving']='Zapis / odczyt',
@@ -34,7 +39,7 @@ return {
  title='Własne skróty klawiszowe',profile='Profil',new='Nowy profil',search='Szukaj',
  groups='Grupa',all='Wszystkie',capture='Zmień klawisz',swap='Zamień',clear='Wyczyść',reset='Przywróć',
  resetProfile='Przywróć profil',apply='Zastosuj',cancel='Anuluj',unbound='Nieprzypisany',
- press='Naciśnij kombinację klawiszy. Esc anuluje.',editing='Enter zatwierdza; Esc anuluje.',
+ press='Naciśnij klawisz lub przycisk myszy. Esc anuluje.',editing='Enter zatwierdza; Esc anuluje.',
  invalid='Nie można zmienić. Sprawdź klawisz lub nazwę profilu.',
  conflict='Ten klawisz jest już przypisany:',default='Domyślny',
  open='Otwórz: ',choose='Wybierz: ',

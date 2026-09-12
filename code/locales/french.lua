@@ -1,4 +1,9 @@
 return {
+ ['mouse.left']='Bouton gauche', ['mouse.right']='Bouton droit', ['mouse.middle']='Bouton central',
+ ['mouse.x1']='Bouton de souris 4', ['mouse.x2']='Bouton de souris 5',
+ ['pointer.primary']='Sélection / ordre classique', ['pointer.secondary']='Annuler / contexte classique',
+ ['pointer.select']='Sélectionner ou confirmer la cible', ['pointer.order']='Ordre contextuel ou annuler',
+ assignBookmark='Enregistrer la position caméra ',recallBookmark='Aller à la position caméra ',
  text='Texte',['menu.back']='Retour',['editor.capture']='Modifier le raccourci sélectionné',
  ['group.navigation']='Menus',
  ['group.saving']='Sauver / charger',
@@ -34,7 +39,7 @@ return {
  title='Raccourcis personnalisés',profile='Profil',new='Nouveau profil',search='Rechercher',
  groups='Groupe',all='Tous',capture='Modifier',swap='Échanger',clear='Effacer',reset='Réinitialiser',
  resetProfile='Profil par défaut',apply='Appliquer',cancel='Annuler',unbound='Non attribué',
- press='Appuyez sur une combinaison. Échap annule.',editing='Entrée valide ; Échap annule.',
+ press='Touche ou bouton de souris. Échap annule.',editing='Entrée valide ; Échap annule.',
  invalid='Modification impossible. Vérifiez la touche ou le nom du profil.',
  conflict='Cette touche est déjà utilisée :',default='Par défaut',
  open='Ouvrir : ',choose='Choisir : ',

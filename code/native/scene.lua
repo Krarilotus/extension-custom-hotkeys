@@ -8,7 +8,8 @@ local function read(address) return tonumber(ffi.cast('int32_t *',address)[0]) e
 -- Only proven non-authoring menu parents are enabled at this integration stage.
 -- World, lobby, save/name and other modal owners require their own completed
 -- positive native eligibility records before entering this table.
-local menus={[41]='main',[44]='custom-scenarios',[42]='campaigns',[38]='missions'}
+local menus={}
+for _,screen in ipairs(require('code/menu_screens')) do menus[screen[1]]=screen[2] end
 function M.new(platform,recorderInputGeneration)
   assert(type(recorderInputGeneration)=='function','recorder.input-reader')
   return setmetatable({platform=platform,generation=0,recorderInputGeneration=recorderInputGeneration},M)

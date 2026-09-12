@@ -18,7 +18,7 @@ def presets(lua):
 def test_three_distinct_valid_presets_and_physical_grid(presets):
     presets.execute('''
       local d=profiles.committed
-      assert(d.schema==2 and d.active=='Game Default')
+      assert(d.schema==3 and d.active=='Game Default')
       local count=0;for _ in pairs(d.profiles) do count=count+1 end;assert(count==3)
       local classic=d.profiles['Game Default'].bindings
       local modern=d.profiles['Modern RTS'].bindings
@@ -58,7 +58,7 @@ def test_v1_migration_preserves_old_bindings_names_and_active(presets):
       old['game.quicksave']=false
       local d={schema=1,active='Grid',profiles={Grid={bindings=old}}}
       local migrated=assert(Profiles.validate(catalog,d))
-      assert(migrated.schema==2 and migrated.active=='Grid')
+      assert(migrated.schema==3 and migrated.active=='Grid')
       assert(migrated.profiles.Grid.bindings['game.quicksave']==false)
       assert(migrated.profiles.Grid.bindings['grid.slot.1']==false)
       assert(migrated.profiles['Grid (2)'].preset=='grid')

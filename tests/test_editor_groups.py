@@ -33,6 +33,11 @@ def test_native_number_defaults_are_visible_and_forwarded_once_in_every_preset(l
       local store={load=function() return nil,'store.missing' end,save=function() return true end}
       local p=assert(Profiles.new(c,store,Router.new(c,Catalog.defaults(c),adapter)))
       local e=require('code/editor').new(p,c,router,function(id) return id end,string.lower,16)
+      local nativeRequests=0
+      adapter.dispatch=function(id,_,native)
+        assert(id:match('^unit.group.recall.') and native)
+        nativeRequests=nativeRequests+1;return 'native'
+      end
       for _,preset in ipairs(c.presetOrder) do
         assert(e:selectProfile(preset.name))
         local r=Router.new(c,p.draft.profiles[p.draft.active].bindings,adapter)
@@ -41,15 +46,14 @@ def test_native_number_defaults_are_visible_and_forwarded_once_in_every_preset(l
           local scan=n==0 and 11 or n+1
           e:filter('unit.group.recall.'..n)
           local row=e:view().rows[1]
-          assert(not row.binding and row.nativeFallback.label=='nativeKey')
-          assert(row.nativeFallback.binding.scan==scan and row.nativeFallback.binding.mods==0)
+          assert(row.binding.scan==scan and row.binding.mods==0 and not row.nativeFallback)
           assert(not r:handle(event(scan)) and not r:handle(event(scan,'up')))
           assert(not r:handle(event(scan)) and not r:handle(event(scan,'up')))
           e:filter('camera.group.'..n)
-          assert(e:view().rows[1].nativeFallback.label=='nativeAgain')
+          assert(e:view().rows[1].binding.mods==4)
           assert(e:clear())
-          assert(e:view().rows[1].nativeFallback.label=='nativeAgain')
+          assert(not e:view().rows[1].binding and not e:view().rows[1].nativeFallback)
         end
       end
-      assert(#calls==0) -- no parallel custom dispatch of retained native numbers
+      assert(#calls==0 and nativeRequests==60)
     ''')

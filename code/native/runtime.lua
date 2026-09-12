@@ -24,7 +24,7 @@ function M.start(language)
   local router
   router=Router.new(catalog,Catalog.defaults(catalog),{
     resolve=function() if quickslot and quickslot.active then return nil end;return scene:resolve(view) end,
-    dispatch=function(id,context)
+    dispatch=function(id,context,nativeBinding,event)
       if (id=='game.quicksave' or id=='game.quickload') then router:barrier();return quickslot:start(context,id) end
       if id=='hotkeys.open' then return view:open() end
       if id=='menu.next' then return navigation:move(1,context) end
@@ -39,7 +39,7 @@ function M.start(language)
       if controls[id] then return navigation:activateMatching(controls[id],context) end
       if id:sub(1,5)=='view.' or id:sub(1,11)=='unit.group.' or id:sub(1,13)=='camera.group.'
           or id=='game.save.open' or id=='game.load.open' then cursor:cancel() end
-      return worldActions:dispatch(id,context)
+      return worldActions:dispatch(id,context,nativeBinding,event)
     end,
     canRecover=function(c) return c and (c.owner:sub(1,5)=='menu.' or c.owner=='game.build' or c.owner=='game.status') end,
     recover=function() return view:open() end,
@@ -53,6 +53,7 @@ function M.start(language)
       if quickslot then quickslot:cancel() end
       if cursor then cursor:cancel() end
     end,
+    cancelPointerHold=function() if cursor then cursor.adapter.cancel() end end,
   })
   local store={load=function() return remote.interface.loadProfiles() end,
     save=function(_,document) return remote.interface.saveProfiles(document) end}
@@ -61,7 +62,6 @@ function M.start(language)
   view=View.new(profiles,catalog,router,scene,platform,require('code/locale').new(language,
     require('code/native/text').label))
   camera=require('code/native/camera').new(platform,router)
-  worldActions=require('code/native/world_actions').new(scene,view)
   lowering=require('code/native/lowering').new(scene,view,platform,router)
   local pointer=require('code/native/pointer').new(platform,scene)
   cursor=require('code/cursor').new(require('code/native/mouse').new(scene,
@@ -81,6 +81,9 @@ function M.start(language)
     return x,y,w,h,tostring(ffi.cast('int32_t *',A.cameraX)[0])..':'..
       tostring(ffi.cast('int32_t *',A.cameraY)[0])..':'..x..':'..y..':'..w..':'..h
   end)
+  worldActions=require('code/native/world_actions').new(scene,view,pointer,function(button,context)
+    return targeting:dispatch(button=='left' and 'target.confirm' or 'target.cancel',context)
+  end)
   quickslot=require('code/native/quickslot').new(scene,view,worldActions,cursor,reader)
   local chain=require('code/native/chain').install(remote.interface.chain(),router,platform,
     function(event)
@@ -89,7 +92,7 @@ function M.start(language)
     end,function(message,_,lparam)
       if pointer:observe(message,lparam) then quickslot:cancel();navigation:cancel() end
     end)
-  local inputFrame=require('code/native/input_frame').install(cursor,router,camera,quickslot,lowering,navigation)
+  local inputFrame=require('code/native/input_frame').install(cursor,router,camera,quickslot,lowering,navigation,worldActions)
   local runtime={lock=lock,platform=platform,scene=scene,catalog=catalog,router=router,
     profiles=profiles,view=view,chain=chain,cursor=cursor,navigation=navigation,
     inputFrame=inputFrame,lowering=lowering,quickslot=quickslot,pointer=pointer,targeting=targeting,camera=camera,worldActions=worldActions,pins={}}

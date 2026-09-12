@@ -10,8 +10,7 @@ for group=0,9 do
   -- Plain numbers select/focus groups or operate the active building panel.
   -- Preserve that context-dependent native path until its replacement is ready.
   for _,mods in ipairs({0,2}) do
-    entries[#entries+1]={action='unit.group.native.'..group,unavailable=true,
-      contexts={'game.build','game.status'},states={'live-sp','live-mp'},
+    entries[#entries+1]={action='unit.group.recall.'..group,forward=true,
       binding={scan=scan,extended=false,mods=mods}}
   end
 end

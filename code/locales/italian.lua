@@ -1,4 +1,9 @@
 return {
+ ['mouse.left']='Pulsante sinistro', ['mouse.right']='Pulsante destro', ['mouse.middle']='Pulsante centrale',
+ ['mouse.x1']='Pulsante mouse 4', ['mouse.x2']='Pulsante mouse 5',
+ ['pointer.primary']='Selezione / ordine classico', ['pointer.secondary']='Annulla / contesto classico',
+ ['pointer.select']='Seleziona o conferma bersaglio', ['pointer.order']='Ordine contestuale o annulla',
+ assignBookmark='Memorizza posizione visuale ',recallBookmark='Vai alla posizione visuale ',
  text='Testo',['menu.back']='Indietro',['editor.capture']='Modifica il tasto selezionato',
  ['group.navigation']='Menu',
  ['group.saving']='Salva / carica',
@@ -34,7 +39,7 @@ return {
  title='Tasti personalizzati',profile='Profilo',new='Nuovo profilo',search='Cerca',
  groups='Gruppo',all='Tutti',capture='Cambia tasto',swap='Scambia',clear='Cancella',reset='Ripristina',
  resetProfile='Profilo predefinito',apply='Applica',cancel='Annulla',unbound='Non assegnato',
- press='Premi una combinazione. Esc annulla.',editing='Invio conferma; Esc annulla.',
+ press='Premi un tasto o pulsante del mouse. Esc annulla.',editing='Invio conferma; Esc annulla.',
  invalid='Modifica non disponibile. Controlla il tasto o il nome del profilo.',
  conflict='Questo tasto è già assegnato:',default='Predefinito',
  open='Apri: ',choose='Scegli: ',

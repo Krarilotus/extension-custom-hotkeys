@@ -17,23 +17,13 @@ local function group(id)
   if id:match('^camera%.') or id:match('^view%.') then return 'camera' end
   if id:match('^menu%.build%.') or id:match('^build%.select%.') then return 'construction' end
   if id:match('^unit%.stance%.') then return 'commands' end
+  if id:match('^pointer%.') then return 'commands' end
   if id:match('^unit%.control%.') then return 'siege' end
   if id:match('^grid%.slot%.') then return 'grid' end
   if id:match('^target%.') then return 'targeting' end
   error('editor.group-missing: '..id)
 end
 function M.attach(catalog)
-  -- These original gestures still belong to SHC, including its building-panel
-  -- branches. Show their behavior without registering a second input action.
-  for _,original in ipairs(catalog.originals) do
-    local number=original.action:match('^unit%.group%.native%.(%d)$')
-    if number and original.retain and original.binding.mods==0 then
-      catalog.actions['unit.group.recall.'..number].nativeFallback={
-        binding=original.binding,label='nativeKey'}
-      catalog.actions['camera.group.'..number].nativeFallback={
-        binding=original.binding,label='nativeAgain'}
-    end
-  end
   local buckets={}
   for _,id in ipairs(M.order) do buckets[id]={} end
   for _,action in ipairs(catalog.ordered) do

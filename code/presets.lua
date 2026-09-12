@@ -7,6 +7,9 @@ local function key(scan,mods,extended)
 end
 function M.attach(catalog)
   local modern=Catalog.defaults(catalog)
+  modern['pointer.primary']=false;modern['pointer.secondary']=false
+  modern['pointer.select']={button='left',mods=0}
+  modern['pointer.order']={button='right',mods=0}
   local classic=Catalog.defaults(catalog)
   for direction,scan in pairs({up=72,left=75,down=80,right=77}) do
     classic['camera.pan.'..direction]=key(scan,0,true)
@@ -18,6 +21,15 @@ function M.attach(catalog)
   classic['menu.next']=key(81,1,true)
   classic['menu.previous']=key(73,1,true)
   local grid=Catalog.defaults(catalog)
+  for _,bindings in ipairs({classic,modern,grid}) do
+    for direction,scan in pairs({up=72,left=75,down=80,right=77}) do
+      bindings['target.'..direction]=key(scan)
+      bindings['target.fine.'..direction]=key(scan,2)
+    end
+    bindings['target.center']=key(76)
+    bindings['target.confirm']=key(28,0,true)
+    bindings['target.cancel']=key(83)
+  end
   for direction,scan in pairs({up=72,left=75,down=80,right=77}) do
     grid['camera.pan.'..direction]=key(scan,0,true)
   end
