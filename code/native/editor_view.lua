@@ -259,7 +259,7 @@ function M:layout(slot,text,width,font,edit)
 end
 function M:draw(text,x,y,color,font,width,slot)
   local result=self:layout(slot or 'title',text,width or 608,font)
-  self:drawEncoded(result.text,x,y,color,font)
+  self:drawEncoded(result.text,x,y+2,color,font)
 end
 function M:renderButton(id)
   if not self.opened or not self:visible(id) then return end
@@ -316,7 +316,7 @@ function M:renderButton(id)
       if id>1 then skin.border(s.x,s.y,s.x+s.width,s.y) end
       self:draw(section,s.x+8,s.y+3,color,Geometry.bodyFont,132,'section-'..id)
     end
-    local textY=s.y+(isRow and 3 or 7)
+    local textY=s.y+(isRow and 5 or 7)
     if result.selectionEnd then
       skin.border(s.x+8+result.selectionStart,textY,
         s.x+8+result.selectionEnd,s.y+s.height-3)
@@ -325,7 +325,7 @@ function M:renderButton(id)
       self:drawEncoded(result.text,textX,textY,color,font)
     else skin.caption(result.text,color) end
     if keyLayout then
-      self:drawEncoded(keyLayout.text,s.x+s.width-14-keyLayout.width,s.y+5,color,Geometry.bodyFont)
+      self:drawEncoded(keyLayout.text,s.x+s.width-14-keyLayout.width,s.y+6,color,Geometry.bodyFont)
     end
     if result.caret then self:drawEncoded('|',s.x+8+result.caret,textY,0xFFFFFF,font) end
   end)

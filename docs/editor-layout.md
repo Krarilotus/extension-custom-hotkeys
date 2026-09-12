@@ -6,7 +6,9 @@ siege engines, grid and targeting. Assignment, recall and focus stay together;
 building open/focus/return stay together. The Group filter uses the same metadata.
 Section names occupy a compact column, repeated at the first visible row after
 scrolling. They do not add fake selectable rows or reduce the sixteen-action page.
-Binding text sits two pixels lower inside the native border. Original number
+Binding text sits three pixels lower inside the native border; action labels,
+group labels, table headers and other non-button text sit two pixels lower.
+Button caption placement is unchanged. Original number
 gestures are shown as game defaults, with a localized explanation when selected.
 Capture waits for the main key of a modifier chord and preserves physical scan
 code, E0 and modifiers. No binding schema or existing saved profile is changed.
