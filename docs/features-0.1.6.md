@@ -38,9 +38,9 @@ control-group and deselect submission functions provide the new effects.
 Building serials use owner+2, verified in the original openBuilding code in both
 local SHC and Extreme fixtures. UI 1.0.1 manager.lookupModalMenu supplies the
 Extreme HUD bounds; graphicsApiReplacer 1.3 retains coordinate conversion.
-Grid uses the actual active toolbar item and original callback/parameter,
-including status controls sharing the verified toolbar handler, rather than
-copying recruitment/market command tables. The input hook only refreshes mouse
+Grid uses the actual active panel block and original callback/parameter,
+including recruitment/status controls with their different native handlers,
+rather than copying recruitment/market command tables. The input hook only refreshes mouse
 ownership while translated buttons are held and checks bookmark lifetime while
 bookmarks exist. The existing optional Recorder observer clears local bookmarks.
 
@@ -56,6 +56,39 @@ remain distinct text owners. Native tests also exposed a stale selectedBuilding
 value after closing a status panel: recall now requires screen 16 before treating
 that building as already selected.
 
-Native scenarios still to record for this candidate: assignment/recall and
-identity reuse; Modern selection/drag/orders/cancel and HUD ownership; keyboard
-placement/recruitment/trade; fresh recording/playback and state restore.
+Automarket 1.1.0 (`extension-automarket` source 858890f) uses UI modal 2025 and
+native MenuItems for goods, sliders, Save and Close. Its trigger and all handlers
+were inspected. Dialog navigation reuses UI manager.lookupModalMenu and the
+existing reader/activation path; it does not copy Automarket settings or its
+protocol. The registered pointer must match the actual active composition, with
+no text editor or covering modal. Optional lookup adds no Automarket dependency.
+The original Options context helper became the shared dialog context helper.
+
+## Native checks, 12 September
+
+SHC 1.41, UCP 3.0.7-77c6a, UI 1.0.1, Recorder 0.50.4, Automarket 1.1.0,
+English game with German Windows key labels; Legacy absent.
+
+- PID34564, f4c3535: Enter capture accepted middle mouse; Apply/reopen preserved
+  it. This fixed the earlier editor view-copy error; the failed run is retained.
+- PID34828, f4c3535: Shift+Tab twice, Enter, Shift+Tab twice, Enter, Tab, Enter
+  loaded the prepared skirmish from the main menu without mouse input. Grid H,
+  numpad targeting and Enter placed a mercenary post for 10 wood. Ctrl+N opened
+  its panel. Tab navigation plus Enter recruited one Arabian archer for 75 gold.
+  Ctrl+S saved the dedicated quickslot; the next process loaded that save.
+- PID35324, 955b132: Ctrl+N then Grid A recruited one archer (1925 to 1850 gold).
+  Industry/Grid selected a market; numpad target/confirm placed it (90 to 85
+  wood). Ctrl+M and Grid opened food/raw-material categories and selected bread
+  and wood. Native Buy rejected bread because this fixture had no granary;
+  no successful trade is claimed. Grid also reached the injected Automarket
+  button. The overlay then exposed an input/navigation conflict requiring the
+  shared dialog ownership change above; its native retest is outstanding.
+
+These processes exited normally and desktop reservations were released. Recorder
+started captures for loaded skirmishes, but Alt+F4 did not finalize those captures
+through its mission-exit lifecycle. They are not accepted replays. Earlier native
+checks established building-group recall, camera bookmarks and Modern right-click
+movement/left-click deselection; drag, queued orders, building identity reuse,
+full text/held/focus coverage, Extreme reruns, finalized recording/playback and
+state restore still need acceptance. Two-PC multiplayer is deferred to manual
+testers and does not block implementation or tester access.

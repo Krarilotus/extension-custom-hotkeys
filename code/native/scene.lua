@@ -1,6 +1,6 @@
 local A=require('code/addresses')
 local ffi=require('ffi')
-local Options=require('code/options_context')
+local Dialog=require('code/dialog_context')
 local Load=require('code/load_context')
 local M={}
 M.__index=M
@@ -45,11 +45,11 @@ function M:resolve(editor)
     s.inputGeneration},':')
   if signature~=self.signature then self.signature=signature;self.generation=self.generation+1 end
   self.current=s
-  local options,load=Options.owns(s),Load.owns(s)
+  local options,load=Dialog.owns(s),Load.owns(s)
   if not s.focused or self.platform.composing or s.delay~=-1 or s.newPlayer~=0
       or (s.textModal~=0 and not options and not load) or s.textEditor~=0 or not require('code/modal_context').background(s) then return nil end
   local ownedModal=editor and editor.opened and editor.parentScreen==s.screen and editor.modalID or nil
-  if not ownedModal and options then ownedModal=5 end
+  if not ownedModal and options then ownedModal=s.modal end
   if not ownedModal and load then ownedModal=9 end
   local world=require('code/native/gameplay').resolve(s,ownedModal)
   if not world and not menus[s.screen] then return nil end

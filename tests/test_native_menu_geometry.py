@@ -43,7 +43,7 @@ def test_reader_uses_actual_item_owner_and_rejects_foreign_or_shifted_geometry(l
 
 def test_options_origin_follows_input_composition_not_render_offsets(lua):
     lua.execute('''
-      local options=require('code/options_context')
+      local options=require('code/dialog_context')
       local s={screen=14,modal=5,activeModalID=5,activeModalMenu=0xb971f0,
         textModal=5,textEditor=0,modal2=-1,modal3=-1,
         modalX=388,modalY=116,modalWidth=504,modalHeight=360,modalBorder=0x200,

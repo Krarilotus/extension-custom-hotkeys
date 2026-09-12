@@ -1,6 +1,6 @@
 local A=require('code/addresses')
 local M={}
-local Options=require('code/options_context')
+local Dialog=require('code/dialog_context')
 local Load=require('code/load_context')
 local function integer(value,lo,hi)
   return type(value)=='number' and value==math.floor(value) and value>=lo and value<=hi
@@ -32,9 +32,9 @@ end
 -- Synchrony GameMode: 0 solitary, 1 multiplayer, 99 skirmish single-player.
 -- End-of-game values 2/666 remain ineligible. Recorder owns playback eligibility.
 function M.resolve(s,ownedModal)
-  local options=ownedModal==5 and Options.owns(s)
+  local options=ownedModal~=nil and ownedModal==s.modal and Dialog.owns(s)
   local load=ownedModal==9 and Load.owns(s)
-  if (ownedModal==5 and not options) or (ownedModal==9 and not load)
+  if ((ownedModal==5 or ownedModal==2025) and not options) or (ownedModal==9 and not load)
       or not M.live(s,options or load)
       or (s.modal~=-1 and (ownedModal==nil or s.modal~=ownedModal))
       or not require('code/modal_context').background(s)

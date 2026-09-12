@@ -1,7 +1,7 @@
 -- Reads only the active native menu; Navigation owns deferred activation.
 local ffi=require('ffi')
 local Load=require('code/load_context')
-local Options=require('code/options_context')
+local Dialog=require('code/dialog_context')
 local M={}
 function M.new(scene,reader)
   return {
@@ -22,8 +22,8 @@ function M.new(scene,reader)
         return Load.controls(reader:read(s.activeModalMenu,s,origin),s)
       end
       if context.owner=='game.options' or context.owner=='menu.options' then
-        if tostring(s.screen)~=context.screen or not Options.owns(s) then return nil end
-        local origin=Options.origin(s)
+        if tostring(s.screen)~=context.screen or not Dialog.owns(s) then return nil end
+        local origin=Dialog.origin(s)
         if not origin then return nil end
         return reader:read(s.activeModalMenu,s,origin)
       end
