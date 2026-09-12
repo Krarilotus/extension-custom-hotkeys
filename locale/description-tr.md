@@ -1,6 +1,6 @@
 # Custom Hotkeys
 
-**Özet:** 0.1.6; fare tuşlarını yeniden atama, bina grupları, kayıtlı kamera konumları ve Seçenekler ile Automarket için klavye kontrolü ekler. Modülü etkinleştirip F12’ye basın. Oyun Varsayılanı, Modern RTS ve Grid profilleri dahildir; inşaat kısayolları imleci yerinden oynatmaz.
+**Özet:** 0.1.7; fare tuşlarını yeniden atama, bina grupları, kayıtlı kamera konumları ve Seçenekler ile Automarket için klavye kontrolü ekler. Modülü etkinleştirip F12’ye basın. Oyun Varsayılanı, Modern RTS ve Grid profilleri dahildir; inşaat kısayolları imleci yerinden oynatmaz.
 
 Klavye kısayollarını oyun içinde değiştirin ve kendi profillerinizi kaydedin. Üç klavye düzeni içerir: oyunun varsayılanı, modern RTS ve ızgara.
 

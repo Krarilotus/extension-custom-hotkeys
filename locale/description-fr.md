@@ -1,6 +1,6 @@
 # Custom Hotkeys
 
-**En bref :** La version 0.1.6 ajoute la réaffectation des boutons de souris, les groupes de bâtiments, les positions de caméra et le contrôle au clavier des Options et d’Automarket. Activez le module et appuyez sur F12. Les profils Jeu par défaut, RTS moderne et Grille sont inclus ; les raccourcis de construction préservent la position du curseur.
+**En bref :** La version 0.1.7 ajoute la réaffectation des boutons de souris, les groupes de bâtiments, les positions de caméra et le contrôle au clavier des Options et d’Automarket. Activez le module et appuyez sur F12. Les profils Jeu par défaut, RTS moderne et Grille sont inclus ; les raccourcis de construction préservent la position du curseur.
 
 Modifiez les raccourcis dans le jeu et enregistrez vos profils. Trois préréglages clavier sont proposés : commandes d’origine, RTS moderne et grille.
 

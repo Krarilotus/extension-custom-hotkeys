@@ -1,6 +1,6 @@
 # Custom Hotkeys
 
-**TL;DR:** 0.1.6 adds mouse-button rebinding, building groups, camera bookmarks and keyboard control of Options and Automarket. Activate the module and press F12. Game Default, Modern RTS and Grid profiles are included; building shortcuts keep the cursor in place.
+**TL;DR:** 0.1.7 adds mouse-button rebinding, building groups, camera bookmarks and keyboard control of Options and Automarket. Activate the module and press F12. Game Default, Modern RTS and Grid profiles are included; building shortcuts keep the cursor in place.
 
 Change keyboard shortcuts in the game and save your own profiles. Includes Game Default, Modern RTS and Grid keyboard presets.
 

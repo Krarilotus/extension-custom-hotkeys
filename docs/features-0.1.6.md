@@ -72,8 +72,8 @@ event1 bounds/value query, event7 owner step and a clamped native event2 change.
 It uses the MenuItem slider state, including the value used by native rendering.
 Automarket uses the identical published slider ABI and retains its Save protocol.
 No setting value is written directly and no slider hook/polling is added.
-Gameplay/Sound sliders and keyboard return passed in PID30484 below. Video and
-Yes/No still need dedicated native checks.
+Gameplay/Sound sliders and keyboard return passed in PID30484 below. Extreme's
+Yes/No cancellation passed in PID20684; Video still needs a dedicated native check.
 
 ## Native checks, 12 September
 
@@ -111,6 +111,13 @@ English game with German Windows key labels; Legacy absent.
   subdialogs; Load opened the task quickslot and F12 opened the239-action editor.
   Normal process exit and desktop handoff verified18:09:05. This session was not
   finalized as a Recorder recording and is not additional playback evidence.
+
+- Extreme PID20684, 97cfe4b: startup with Recorder/Automarket, keyboard main
+  Options and the empty Load list, and Yes/No cancellation returned correctly.
+  Options Back and the skirmish opponent picker used mouse fallback. Gameplay
+  was not reached. The process closed normally and the desktop was released at
+  18:35:31; config/profile baselines were restored. Cleanup was delayed by missed
+  desktop handoffs; the next worker's Extreme launch was blocked until close.
 
 These processes exited normally and desktop reservations were released. Earlier
 Alt+F4-only captures were not finalized and remain unaccepted; the later normal

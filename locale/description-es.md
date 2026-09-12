@@ -1,6 +1,6 @@
 # Custom Hotkeys
 
-**Resumen:** 0.1.6 añade reasignación de botones del ratón, grupos de edificios, posiciones de cámara y control con teclado de Opciones y Automarket. Activa el módulo y pulsa F12. Incluye los perfiles Predeterminado del juego, RTS moderno y Cuadrícula; los atajos de construcción mantienen el cursor en su sitio.
+**Resumen:** 0.1.7 añade reasignación de botones del ratón, grupos de edificios, posiciones de cámara y control con teclado de Opciones y Automarket. Activa el módulo y pulsa F12. Incluye los perfiles Predeterminado del juego, RTS moderno y Cuadrícula; los atajos de construcción mantienen el cursor en su sitio.
 
 Cambia los atajos dentro del juego y guarda tus perfiles. Incluye tres ajustes de teclado: controles originales, RTS moderno y cuadrícula.
 

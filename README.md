@@ -4,7 +4,7 @@ Development of one UCP3 extension for in-game rebinding, persistent local profil
 and keyboard access to native menus, building placement and unit targeting.
 
 This is an incomplete test version, not an accepted release.
-The [0.1.6 candidate](docs/features-0.1.6.md) includes keyboard/mouse rebinding,
+The [0.1.7 candidate](docs/features-0.1.6.md) includes keyboard/mouse rebinding,
 building groups, camera bookmarks, keyboard targeting and native panel controls.
 UCP byte-pattern resolution and original button callbacks preserve the construction cursor.
 Crusader and Extreme are open for testing, including multiplayer and Recorder.

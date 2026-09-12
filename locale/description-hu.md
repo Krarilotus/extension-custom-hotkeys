@@ -1,6 +1,6 @@
 # Custom Hotkeys
 
-**Röviden:** A 0.1.6 egérgomb-átállítást, épületcsoportokat, mentett kamerapozíciókat, valamint a beállítások és az Automarket billentyűzetes kezelését adja hozzá. Aktiváld a modult, és nyomd meg az F12-t. Játék alapértelmezése, Modern RTS és Rács profilok; az építési gyorsbillentyűk nem mozdítják el az egérmutatót.
+**Röviden:** A 0.1.7 egérgomb-átállítást, épületcsoportokat, mentett kamerapozíciókat, valamint a beállítások és az Automarket billentyűzetes kezelését adja hozzá. Aktiváld a modult, és nyomd meg az F12-t. Játék alapértelmezése, Modern RTS és Rács profilok; az építési gyorsbillentyűk nem mozdítják el az egérmutatót.
 
 Módosítsd a gyorsbillentyűket a játékban, és ments saját profilokat. Három billentyűzetkiosztást tartalmaz: eredeti játékvezérlés, modern RTS és rács.
 

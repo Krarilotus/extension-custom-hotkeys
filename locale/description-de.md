@@ -1,6 +1,6 @@
 # Custom Hotkeys
 
-**Kurzfassung:** 0.1.6 ergänzt frei belegbare Maustasten, Gebäudegruppen, Kameralesezeichen sowie Tastaturbedienung für Optionen und Automarket. Modul aktivieren und F12 drücken. Die Profile Spielstandard, Modernes RTS und Grid sind enthalten; Baukürzel lassen den Mauszeiger an seiner Position.
+**Kurzfassung:** 0.1.7 ergänzt frei belegbare Maustasten, Gebäudegruppen, Kameralesezeichen sowie Tastaturbedienung für Optionen und Automarket. Modul aktivieren und F12 drücken. Die Profile Spielstandard, Modernes RTS und Grid sind enthalten; Baukürzel lassen den Mauszeiger an seiner Position.
 
 Tastenkürzel direkt im Spiel ändern und eigene Profile speichern. Enthält die Tastaturprofile Spielstandard, Moderne RTS-Steuerung und Raster.
 
