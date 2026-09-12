@@ -10,4 +10,4 @@ UCP2-Legacy n’est **pas nécessaire**. S’il est actif, ses modifications de 
 
 **Version de test :** ces fonctions sont implémentées et disponibles dans SHC 1.41 et Extreme 1.41. Testez le solo, le multijoueur, la lecture Recorder et Automarket ensemble. Multijoueur et Recorder ne sont pas verrouillés. Les règles du jeu et le focus des champs de texte restent applicables. Un enregistrement solo avec construction, commerce et commandes Automarket a été relu avec succès ; la validation complète du multijoueur, de la restauration d’état et de la compatibilité reste à effectuer.
 
-![Menu de sélection des raccourcis dans le jeu](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/4fa5305103d4bdf9467d185da5c382ad7ba24a59/docs/images/hotkeys-016-ingame.png)
+![Menu de sélection des raccourcis dans le jeu](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/02cbe98c941036a117297059df99b22bfbcf0244/docs/images/hotkeys-017-ingame.png)

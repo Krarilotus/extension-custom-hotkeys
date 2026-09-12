@@ -10,4 +10,4 @@ UCP2-Legacy **لازم نیست**. اگر فعال است، تغییرات می�
 
 **نسخهٔ آزمایشی:** این قابلیت‌ها پیاده‌سازی شده‌اند و در SHC 1.41 و Extreme 1.41 قابل آزمایش‌اند. حالت تک‌نفره، چندنفره، بازپخش Recorder و Automarket را با هم امتحان کنید. چندنفره و Recorder قفل نیستند. قوانین بازی و تمرکز کادرهای متن همچنان رعایت می‌شوند. یک ضبط تک‌نفره شامل ساخت‌وساز، تجارت و فرمان‌های Automarket با موفقیت بازپخش شد؛ آزمایش کامل چندنفره، بازیابی وضعیت و سازگاری هنوز باقی است.
 
-![منوی انتخاب میانبرها درون بازی](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/4fa5305103d4bdf9467d185da5c382ad7ba24a59/docs/images/hotkeys-016-ingame.png)
+![منوی انتخاب میانبرها درون بازی](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/02cbe98c941036a117297059df99b22bfbcf0244/docs/images/hotkeys-017-ingame.png)

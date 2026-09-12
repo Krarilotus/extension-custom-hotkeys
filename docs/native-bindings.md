@@ -48,10 +48,13 @@ in both local fixtures. No render hook, copied display registry or polling is
 added. Opening the editor remembers enabled visibility and hides only this
 banner; closing/restoring ownership restores it only on the same screen and
 Recorder input generation. A new world/view retains its own initialized state.
-Native validation of this follow-up is pending.
+Native SHC PID7116 opened the editor with the banner hidden. Held-camera and
+Save-name isolation checks are recorded in [the 0.1.7 evidence](features-0.1.7.md).
+Native visibility restoration and the broader modal/focus matrix remain to be
+verified; component checks cover same-screen restore and changed-world ownership.
 
-The actual UCP AOBExtract utility resolved all 169 bindings against both local
-Crusader 1.41 (`3bb0a8c1…`) and Extreme (`55648e6b…`) images. Each of the 153
+The actual UCP AOBExtract utility resolved all 171 bindings against both local
+Crusader 1.41 (`3bb0a8c1…`) and Extreme (`55648e6b…`) images. Each of the 155
 scanned patterns had exactly one match in each mapped image; all reference
 results equal the previously audited addresses. Three bindings reuse UI exports;
 the remaining fields derive from their structure owners. Group stride, unit
@@ -130,7 +133,7 @@ declares SHC1.41 and SHCE1.41 rather than an exact file identity. The two local
 PEs above are the tested matrix. Other language/distribution variants still need
 fixtures and native acceptance; AOB matches alone do not prove compatibility.
 
-All 153 patterns were unique in both fixtures. Missing matches propagate UCP's
+All 155 patterns were unique in both fixtures. Missing matches propagate UCP's
 initialization error before hooks. UCP3.0.7 returns the first match and exposes
 no uniqueness assertion; runtime ambiguity diagnostics remain a framework API
 gap, not a claimed protection in this preview. Occupied input sites are rejected

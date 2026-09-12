@@ -10,4 +10,4 @@
 
 **测试版本：**这些功能已实现，可在 SHC 1.41 和 Extreme 1.41 中测试。请结合测试单人、多人、Recorder 回放和 Automarket。多人游戏和 Recorder 均未锁定。游戏本身的规则和文本输入框焦点仍然适用。包含建筑、交易和 Automarket 指令的单人录像已成功回放；完整的多人、状态恢复和兼容性验证仍待完成。
 
-![游戏内快捷键选择菜单](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/4fa5305103d4bdf9467d185da5c382ad7ba24a59/docs/images/hotkeys-016-ingame.png)
+![游戏内快捷键选择菜单](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/02cbe98c941036a117297059df99b22bfbcf0244/docs/images/hotkeys-017-ingame.png)

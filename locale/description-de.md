@@ -10,4 +10,4 @@ UCP2-Legacy wird **nicht benötigt**. Wenn es aktiv ist, müssen seine Hotkey-Ä
 
 **Testversion:** Diese Funktionen sind implementiert und in SHC 1.41 und Extreme 1.41 zum Testen verfügbar. Einzelspieler, Multiplayer, Recorder-Wiedergabe und Automarket auch gemeinsam testen. Multiplayer und Recorder sind nicht gesperrt. Die Spielregeln und der Fokus von Textfeldern gelten weiterhin. Eine Einzelspieler-Aufzeichnung mit Bau-, Handels- und Automarket-Befehlen wurde erfolgreich wiedergegeben; vollständige Multiplayer-, Zustandswiederherstellungs- und Kompatibilitätstests stehen noch aus.
 
-![Tastenkürzel-Auswahlmenü im Spiel](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/4fa5305103d4bdf9467d185da5c382ad7ba24a59/docs/images/hotkeys-016-ingame.png)
+![Tastenkürzel-Auswahlmenü im Spiel](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/02cbe98c941036a117297059df99b22bfbcf0244/docs/images/hotkeys-017-ingame.png)
