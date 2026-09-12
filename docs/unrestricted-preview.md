@@ -1,5 +1,8 @@
 # Integration tester build 0.1.4
 
+Historical evidence for 0.1.4. The current [0.1.5 binding refactor](native-bindings.md)
+retains this tester-mode policy and replaces the fixed native bindings.
+
 At the user's explicit request, Hotkeys no longer treats missing Recorder
 integration acceptance as a reason to block startup or input. Multiplayer is
 enabled, Recorder's version/API is no longer an activation requirement, and

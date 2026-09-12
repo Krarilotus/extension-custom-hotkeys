@@ -54,6 +54,61 @@ First Extreme run PID27628: module initialization and F12 editor passed. F12
 did not interrupt the native initial title field. Construction exposed a context
 bug: modal130 is Extreme's nonblocking tactical-powers bar, not a modal dialog.
 The shared background-layer predicate now recognizes that HUD only on world
-screens; text fields and actual dialogs still retain input ownership. Retest
-of this correction is pending. Neither run establishes full multiplayer,
-command-count, replay or high-speed simulation acceptance.
+screens; text fields and actual dialogs still retain input ownership.
+
+Extreme retest PID33956, source `f4f56ec`: F12 opened the editor in gameplay.
+With the tactical-powers HUD active, W changed category10 to20 and S selected
+woodcutter placement51. Cursor(929,540), camera(224,2024) and all sampled mouse
+button flags stayed unchanged. A normal click placed the woodcutter, reducing
+wood100 to97. An earlier W during the AI message overlay (secondary modal19)
+was rejected. The error log contained only its header. Both Recorder0.50.4 and
+Automarket1.1.0 were loaded. Normal exit/PID absence verified; desktop released
+15:10:11 CEST and configuration/profile baselines restored byte-for-byte.
+
+The initial Crusader check used `0970e02`; the Extreme correction additionally
+extracts layout sizes instead of assuming Crusader's smaller arrays. The exact
+Extreme-tested ZIP is 94,158 bytes, SHA256
+`5fabd7777d246aaf61ee99bc92a9b949e992a87723073fa23c6cef972258fe40`.
+The corrected component suite passed 515 tests on Lua5.4/LuaJIT.
+These checks do not establish full multiplayer, command-count, replay,
+high-speed simulation or complete keyboard-only acceptance.
+
+![Extreme gameplay editor](images/hotkeys-015-extreme-ingame.png)
+
+## Reuse and remaining ownership boundaries
+
+Inspected framework `02a7a6b`, UI1.0.1 `d3a807c` and winProcHandler1.0.0
+`5f85672`. The tested installation uses UCP3.0.7-77c6a; its actual utilities
+were used by offline verification. Separately owned branches were not edited.
+
+| Capability | Existing implementation used / demonstrated boundary |
+|---|---|
+| Discovery/patches | Framework core.AOBScan/insertCode and utils.AOBExtract; data/cache.lua owns caching. No extension scanner or fixed-RVA fallback. |
+| Windows input | winProcHandler RegisterProc/CallNextProc via core.openLibraryHandle; framework proxy limitation tracked in UCP3#147. |
+| UI | ui/menu.lua, ui/modalmenu.lua, ui/game.lua, manager.lookupMenu; Automarket ui/automarket.lua demonstrates the same rendering and hit-test exports. |
+| Button activation | UI MenuItem callback union/parameter; current enabled row invokes the original native handler. UI has no higher-level keyboard activation API. |
+| Input frame/mouse | UI mouseState/isMouseInsideBox reused. UI1.0.1 has no before-input subscription or mouse-update/reset API. The single existing Hotkeys insertion uses UCP insertCode and preserves displaced instructions. A shared callback API remains an owner integration point. |
+| Skin/text | Existing UI button/text/border exports. Table-cell rendering and text measurement are not exported; named native bindings supply those primitives. |
+| Gameplay | UI has no save/load/camera/selection service; native handlers retain these responsibilities. No copied command executor. |
+| Profiles | Framework normal-file io.open; two-slot recovery because it exposes no atomic replace. Separate userdata proposal: UCP3#142/#131. |
+| Language | Framework data.version.getGameLanguage after native game initialization. |
+| Replay | Optional Recorder observer/read contract in its separate owner PR; no copied loader, tick or restore implementation. Tester-mode input stays unrestricted. |
+
+Final-diff review removed obsolete executable/identity adapters and production
+reference-address literals. Simple building/category/Grid actions no longer use
+positional click transport. Sliders, traversal focus and explicit world targeting
+still require the native cursor adapter. Bindings resolve once before enable-time
+patches and copy once into LuaJIT, with no input-frame scans or remote lookups.
+
+## Compatibility limits
+
+Framework data/version.lua detects native version and Extreme markers; the module
+declares SHC1.41 and SHCE1.41 rather than an exact file identity. The two local
+PEs above are the tested matrix. Other language/distribution variants still need
+fixtures and native acceptance; AOB matches alone do not prove compatibility.
+
+All 153 patterns were unique in both fixtures. Missing matches propagate UCP's
+initialization error before hooks. UCP3.0.7 returns the first match and exposes
+no uniqueness assertion; runtime ambiguity diagnostics remain a framework API
+gap, not a claimed protection in this preview. Occupied input sites are rejected
+by the displaced-byte check. No executable-hash or Recorder lock was restored.
