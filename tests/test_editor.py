@@ -10,6 +10,41 @@ def setup(lua):
     ''')
 
 
+def test_change_key_records_physical_chord_and_drains_trigger_and_capture_messages(lua):
+    setup(lua)
+    lua.execute('''
+      local Messages=require('code/messages');local native,exclusive={},{}
+      local mods=0
+      local handle=Messages.new(router,function(_,_,msg) native[#native+1]=msg;return 91 end,
+        function() return {mods=mods,win=false,altgr=false,composing=false} end,
+        function() return true end,function(e) exclusive[#exclusive+1]=e;return true end)
+      local function send(scan,extended,kind,repeated)
+        return handle(0,1,kind,0,scan*65536+(extended and 16777216 or 0)
+          +(repeated and 1073741824 or 0)+(kind==257 and 2147483648 or 0))
+      end
+      current.owner='hotkeys.editor'
+      send(28,false,256,false) -- Return on Change key belongs to the editor
+      current.owner='hotkeys.capture';assert(editor:capture())
+      send(28,false,257,true);send(28,false,258,false)
+      assert(editor.capturing and editor.error==nil)
+      for _,chord in ipairs({{21,false,1,29},{44,false,2,42},{72,true,1,29},{72,false,2,54}}) do
+        if not editor.capturing then assert(editor:capture()) end
+        mods=chord[3]
+        send(chord[4],false,256,false)
+        assert(editor.capturing and editor.error==nil)
+        send(chord[1],chord[2],256,false)
+        assert(not editor.capturing and not editor.error)
+        local binding=profiles.draft.profiles.Default.bindings['camera.left']
+        assert(binding.scan==chord[1] and binding.extended==chord[2] and binding.mods==mods)
+        send(chord[1],chord[2],256,true);send(chord[1],chord[2],257,true)
+        send(chord[1],chord[2],258,false);send(chord[4],false,257,true)
+      end
+      assert(#calls==0 and #native==0)
+      assert(profiles.committed.profiles.Default.bindings['camera.left'].scan==30)
+      editor:cancel()
+    ''')
+
+
 def test_search_group_and_keyboard_scroll_keep_focus_visible(lua):
     setup(lua)
     lua.execute('''

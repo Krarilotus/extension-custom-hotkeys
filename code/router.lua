@@ -169,6 +169,9 @@ function M:handle(event)
   end
   if self.capture then
     if context.owner ~= 'hotkeys.capture' then self:cancelCapture(); return false end
+    -- A modifier starts a chord; wait for its main key without flashing an
+    -- invalid-binding error or allowing the modifier to activate a native menu.
+    if Binding.modifier(event.scan) then held.consumed=true;return true end
     local binding, err = Binding.validate({scan=event.scan, extended=event.extended, mods=event.mods})
     held.consumed = true
     local callback = self.capture

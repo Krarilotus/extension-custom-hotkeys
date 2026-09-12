@@ -21,6 +21,13 @@ def test_actual_framework_languages_cover_actions_controls_and_native_font_bytes
         label = labels(key)
         assert label != key, (language, key)
         label.encode(encoding)
+    for group in lua.eval("require('code/editor_groups').order").values():
+        key = 'group.' + group
+        assert labels(key) != key
+        labels(key).encode(encoding)
+    for key in ['nativeKey', 'nativeAgain', 'nativeGroupHint']:
+        assert labels(key) != key
+        labels(key).encode(encoding)
 
 
 def test_profile_import_rejects_malformed_utf8_names(lua):

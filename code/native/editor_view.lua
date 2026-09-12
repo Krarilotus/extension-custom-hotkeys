@@ -142,9 +142,8 @@ function M:activate(id)
     self.router:barrier();self.text={kind=id==104 and 'profile' or 'search',
       edit=Text.new(id==105 and e.query or '')};self.text.edit:selectAll()
   elseif id==106 then
-    local groups,seen={false},{}
-    for _,a in ipairs(self.catalog.ordered) do local g=a.id:match('^([^.]+)')
-      if not seen[g] then seen[g]=true;groups[#groups+1]=g end end
+    local groups={false}
+    for _,group in ipairs(e.groups) do groups[#groups+1]=group end
     local current=1;for i,g in ipairs(groups) do if g==e.group then current=i end end
     e:filter(e.query,groups[current%#groups+1] or nil)
   elseif id==107 then e:capture()
@@ -265,9 +264,16 @@ end
 function M:renderButton(id)
   if not self.opened or not self:visible(id) then return end
   local e=self.controller;local v=e:view();local label,selected,binding='',false,nil
+  local section
   if id<=rows then
     local row=v.rows[id]
-    if row then label=row.label;binding=self:bindingName(row.binding);selected=row.selected end
+    if row then
+      label=row.label;selected=row.selected
+      if not row.binding and row.nativeFallback then
+        binding=string.format(self.labels(row.nativeFallback.label),self:bindingName(row.nativeFallback.binding))
+      else binding=self:bindingName(row.binding) end
+      if row.sectionStart then section=self.labels('group.'..row.group) end
+    end
   else
     for i,c in ipairs(self.controls) do if c.id==id then
       label=(c.label=='<' or c.label=='>') and c.label or self.labels(c.label)
@@ -301,20 +307,25 @@ function M:renderButton(id)
     local keyLayout
     if binding then
       keyLayout=self:layout('key-'..id,binding,174,Geometry.bodyFont)
-      labelWidth=s.width-206
+      labelWidth=s.width-350
       skin.border(s.x+s.width-190,s.y+2,s.x+s.width-6,s.y+s.height-2)
     end
     local result=self:layout(id,label,labelWidth,font,editing)
+    local textX=s.x+(isRow and 152 or 8)
+    if isRow and section then
+      if id>1 then skin.border(s.x,s.y,s.x+s.width,s.y) end
+      self:draw(section,s.x+8,s.y+3,color,Geometry.bodyFont,132,'section-'..id)
+    end
     local textY=s.y+(isRow and 3 or 7)
     if result.selectionEnd then
       skin.border(s.x+8+result.selectionStart,textY,
         s.x+8+result.selectionEnd,s.y+s.height-3)
     end
     if isRow or editing or id==105 then
-      self:drawEncoded(result.text,s.x+8,textY,color,font)
+      self:drawEncoded(result.text,textX,textY,color,font)
     else skin.caption(result.text,color) end
     if keyLayout then
-      self:drawEncoded(keyLayout.text,s.x+s.width-14-keyLayout.width,s.y+3,color,Geometry.bodyFont)
+      self:drawEncoded(keyLayout.text,s.x+s.width-14-keyLayout.width,s.y+5,color,Geometry.bodyFont)
     end
     if result.caret then self:drawEncoded('|',s.x+8+result.caret,textY,0xFFFFFF,font) end
   end)
@@ -329,7 +340,8 @@ function M:render(x,y,width,height)
   local e=self.controller
   if self.page=='bindings' then
     require('code/native/editor_skin').border(x+18,y+92,x+width-18,y+436)
-    self:draw(self.labels('action'),x+28,y+96,0xCCFAFF,Geometry.bodyFont,460,'column-action')
+    self:draw(self.labels('groups'),x+28,y+96,0xCCFAFF,Geometry.bodyFont,132,'column-group')
+    self:draw(self.labels('action'),x+172,y+96,0xCCFAFF,Geometry.bodyFont,330,'column-action')
     self:draw(self.labels('binding'),x+530,y+96,0xCCFAFF,Geometry.bodyFont,170,'column-binding')
     self:draw(tostring(e.selected)..' / '..tostring(#e.rows),x+20,y+510,nil,Geometry.bodyFont,110,'count')
     self:draw(self.labels('listHint'),x+132,y+510,nil,Geometry.bodyFont,300,'hint')
@@ -338,6 +350,9 @@ function M:render(x,y,width,height)
   end
   local message=self.text and self.labels(self.text.kind=='import' and 'importName' or 'editing')
     or (e.capturing and self.labels('press')) or (self.notice and self.labels(self.notice))
+  local selected=e.rows[e.selected]
+  if not message and self.page=='bindings' and selected
+      and self.catalog.actions[selected.id].nativeFallback then message=self.labels('nativeGroupHint') end
   local err=self.error or e.error
   if err then
     message=self.labels(err:find('conflict',1,true) and 'conflict'

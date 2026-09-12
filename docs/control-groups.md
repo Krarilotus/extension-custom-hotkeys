@@ -32,8 +32,13 @@ panel: group selection/focus or building controls. Configurable actions are:
   empty/ineligible groups. The cursor is only a local group number; no world
   positions or delayed commands are cached.
 
-These additional actions start unbound, so choosing their keys does not silently
-replace the context-dependent original number shortcuts.
+All three presets retain the original numbers: a number selects its group;
+pressing it again when that group is selected focuses it. This is a selection
+comparison, not a timed double-tap gesture (`0x4B4620..0x4B4701`). The editor shows
+`1 (game)` and `1 again (game)` for these native defaults, rather than claiming
+the group is unbound. Optional custom recall/focus bindings add alternatives;
+clearing them leaves the original numbers active. Number keys also retain the
+game's context-dependent building-panel shortcuts. No second handler is added.
 
 Recall validates every one of the2500 native group records before calling native
 selection (including entries after holes), bounds IDs before dereferencing, rejects

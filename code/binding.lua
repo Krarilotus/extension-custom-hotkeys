@@ -3,6 +3,9 @@
 ---@field extended boolean E0 prefix
 ---@field mods integer Ctrl=1, Shift=2, Alt=4
 local M = {}
+function M.modifier(scan)
+  return scan==29 or scan==56 or scan==42 or scan==54 or scan==91 or scan==92
+end
 local function integer(n, lo, hi)
   return type(n) == 'number' and n == math.floor(n) and n >= lo and n <= hi
 end
@@ -32,8 +35,7 @@ function M.validate(value)
   if not integer(value.scan, 1, 127) or type(value.extended) ~= 'boolean'
       or not integer(value.mods, 0, 7) then return nil, 'binding.invalid' end
   local s, e, m = value.scan, value.extended, value.mods
-  if s == 29 or s == 56 or s == 42 or s == 54 or s == 91 or s == 92
-      or s == 93 or s == 69 or s == 70 or s == 84 then
+  if M.modifier(s) or s == 93 or s == 69 or s == 70 or s == 84 then
     return nil, 'binding.unsupported'
   end
   if M.system(value) or M.recovery(value) then

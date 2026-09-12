@@ -1,5 +1,16 @@
 # Binding overview
 
+Version0.1.1 groups the list by player task, in a fixed localized order: menus,
+save/load, camera, control groups, building panels, construction, unit orders,
+siege engines, grid and targeting. Assignment, recall and focus stay together;
+building open/focus/return stay together. The Group filter uses the same metadata.
+Section names occupy a compact column, repeated at the first visible row after
+scrolling. They do not add fake selectable rows or reduce the sixteen-action page.
+Binding text sits two pixels lower inside the native border. Original number
+gestures are shown as game defaults, with a localized explanation when selected.
+Capture waits for the main key of a modifier chord and preserves physical scan
+code, E0 and modifiers. No binding schema or existing saved profile is changed.
+
 The 760×552 native dialog shows 16 rows instead of six. Native font19 provides
 16-pixel line spacing in 20-pixel rows; font17 gives a smaller title. Action and
 Key are separate columns. The original Save/Load table renderer4692E0 supplies

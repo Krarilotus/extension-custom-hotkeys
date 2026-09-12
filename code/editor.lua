@@ -11,6 +11,11 @@ function M.new(profiles, catalog, router, labels, fold, pageSize)
   local self=setmetatable({profiles=profiles,catalog=catalog,router=router,
     labels=labels,fold=fold,pageSize=pageSize,query='',group=nil,
     selected=1,first=1,closed=false,capturing=false},M)
+  self.groups={};local seen={}
+  for _,action in ipairs(catalog.editorOrdered or catalog.ordered) do
+    local group=action.group or action.id:match('^([^.]+)')
+    if not seen[group] then seen[group]=true;self.groups[#self.groups+1]=group end
+  end
   self:filter('',nil)
   return self
 end
@@ -21,8 +26,8 @@ function M:filter(query, group)
   self.reassignment=nil
   local needle=self.fold(query)
   self.rows={}
-  for _,action in ipairs(self.catalog.ordered) do
-    local actionGroup=action.id:match('^([^.]+)')
+  for _,action in ipairs(self.catalog.editorOrdered or self.catalog.ordered) do
+    local actionGroup=action.group or action.id:match('^([^.]+)')
     local label=self.labels(action.label)
     if (not group or group==actionGroup) and self.fold(label):find(needle,1,true) then
       self.rows[#self.rows+1]={id=action.id,label=label,group=actionGroup}
@@ -158,6 +163,8 @@ function M:view()
     local row=self.rows[i]
     local b=profile.bindings[row.id]
     rows[#rows+1]={index=i,id=row.id,label=row.label,group=row.group,
+      nativeFallback=self.catalog.actions[row.id].nativeFallback,
+      sectionStart=i==self.first or self.rows[i-1].group~=row.group,
       selected=i==self.selected,binding=b and {scan=b.scan,extended=b.extended,mods=b.mods} or false}
   end
   local preset=profile.preset and self.catalog.presets and self.catalog.presets[profile.preset]

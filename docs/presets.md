@@ -14,6 +14,7 @@ of game language; built-in names and grid action labels are localized.
 | Show/hide interface | Tab | Ctrl+Tab | Ctrl+Tab |
 | Next / previous menu control | Ctrl+PageDown / Ctrl+PageUp | Tab / Shift+Tab | Tab / Shift+Tab |
 | Quicksave / quickload | Ctrl+S / Ctrl+L | Ctrl+S / Ctrl+L | Ctrl+S / Ctrl+L |
+| Assign / select / focus group | Ctrl+number / number / number again | Same | Same |
 | Build categories | Individually assignable | Individually assignable | Q W E R T Y physical positions |
 | Active panel command slots | Individually assignable | Individually assignable | A S D F G H, Z X C V B N physical positions |
 

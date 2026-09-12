@@ -101,6 +101,7 @@ end
 function M.production()
   local catalog=M.new(require('code/entries'),require('code/originals'))
   require('code/presets').attach(catalog)
+  require('code/editor_groups').attach(catalog)
   return catalog
 end
 

@@ -7,7 +7,7 @@ The native acceptance ledger remains authoritative.
 
 Commit the intended source, then run `python tools/build.py`. The builder reads
 that exact Git commit, excludes working changes and creates
-`dist/custom-hotkeys-0.1.0.zip` plus its SHA-256/file manifest. It does not bundle
+`dist/custom-hotkeys-0.1.1.zip` plus its SHA-256/file manifest. It does not bundle
 licensed game files, dependency binaries, task diagnostics or saved profiles.
 The ZIP has the standard UCP module root (`definition.yml`, `config.yml`,
 `init.lua`, `code/`). The same `files.xml` controls both the local builder and
