@@ -10,4 +10,4 @@ UCP2-Legacy n’est **pas nécessaire**. S’il est actif, ses modifications de 
 
 **Version de test :** réaffectation de la souris, groupes de bâtiments, positions de caméra et parcours entièrement au clavier restent en développement. Le multijoueur et l’intégration avec Recorder actif sont bloqués en attendant leur validation. SHC 1.41 uniquement ; Extreme n’est pas pris en charge.
 
-![Menu de sélection des raccourcis dans le jeu](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/d4875e557b746918ef4501055172736b5f66cfeb/docs/images/hotkeys-ingame.jpg)
+![Menu de sélection des raccourcis dans le jeu](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/f67fc6d9779f8ffe12b6ebd72462f317a565a160/docs/images/hotkeys-ingame.jpg)

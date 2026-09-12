@@ -10,4 +10,4 @@ UCP2-Legacy **gerekli değildir**. Etkinse kısayol değişiklikleri (`o_keys.en
 
 **Test sürümü:** fare tuşu atamaları, bina grupları, kayıtlı kamera konumları ve tam klavye kontrolü geliştirilmektedir. Çok oyunculu mod ve etkin Recorder ile kullanım, kabul testleri tamamlanana kadar engellenir. Yalnızca SHC 1.41; Extreme desteklenmez.
 
-![Oyun içi kısayol seçim menüsü](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/d4875e557b746918ef4501055172736b5f66cfeb/docs/images/hotkeys-ingame.jpg)
+![Oyun içi kısayol seçim menüsü](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/f67fc6d9779f8ffe12b6ebd72462f317a565a160/docs/images/hotkeys-ingame.jpg)

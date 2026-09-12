@@ -10,4 +10,4 @@ Az UCP2-Legacy **nem szükséges**. Ha aktív, a gyorsbillentyű-módosításait
 
 **Tesztverzió:** az egérgombok átállítása, az épületcsoportok, a mentett kamerapozíciók és a teljes billentyűzetes kezelés még fejlesztés alatt áll. A többjátékos mód és az aktív Recorder használata az elfogadási tesztekig blokkolva marad. Csak SHC 1.41; az Extreme nem támogatott.
 
-![Gyorsbillentyűk kiválasztása a játékban](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/d4875e557b746918ef4501055172736b5f66cfeb/docs/images/hotkeys-ingame.jpg)
+![Gyorsbillentyűk kiválasztása a játékban](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/f67fc6d9779f8ffe12b6ebd72462f317a565a160/docs/images/hotkeys-ingame.jpg)

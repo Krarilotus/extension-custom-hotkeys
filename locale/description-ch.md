@@ -10,4 +10,4 @@
 
 **测试版本：**鼠标按键重绑定、建筑编组、相机位置书签和完整键盘操作流程仍在开发中。多人游戏以及与已启用的 Recorder 配合使用，须通过验收后才会开放。仅支持 SHC 1.41；本测试版本不支持 Extreme。
 
-![游戏内快捷键选择菜单](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/d4875e557b746918ef4501055172736b5f66cfeb/docs/images/hotkeys-ingame.jpg)
+![游戏内快捷键选择菜单](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/f67fc6d9779f8ffe12b6ebd72462f317a565a160/docs/images/hotkeys-ingame.jpg)

@@ -10,4 +10,4 @@ UCP2-Legacy **не требуется**. Если он активен, его и
 
 **Тестовая версия:** переназначение кнопок мыши, группы зданий, сохранённые позиции камеры и полное управление с клавиатуры ещё разрабатываются. Сетевая игра и совместная работа с активным Recorder заблокированы до прохождения приёмочных тестов. Только SHC 1.41; Extreme не поддерживается.
 
-![Меню выбора горячих клавиш в игре](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/d4875e557b746918ef4501055172736b5f66cfeb/docs/images/hotkeys-ingame.jpg)
+![Меню выбора горячих клавиш в игре](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/f67fc6d9779f8ffe12b6ebd72462f317a565a160/docs/images/hotkeys-ingame.jpg)

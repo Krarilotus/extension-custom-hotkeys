@@ -10,4 +10,4 @@ UCP2-Legacy **لازم نیست**. اگر فعال است، تغییرات می�
 
 **نسخهٔ آزمایشی:** تغییر عملکرد دکمه‌های ماوس، گروه‌های ساختمان، موقعیت‌های ذخیره‌شدهٔ دوربین و کنترل کامل با صفحه‌کلید هنوز در حال توسعه‌اند. بازی چندنفره و استفاده همراه با Recorder فعال تا پایان آزمون‌های پذیرش مسدود هستند. فقط SHC 1.41؛ این نسخه از Extreme پشتیبانی نمی‌کند.
 
-![منوی انتخاب میانبرها درون بازی](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/d4875e557b746918ef4501055172736b5f66cfeb/docs/images/hotkeys-ingame.jpg)
+![منوی انتخاب میانبرها درون بازی](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/f67fc6d9779f8ffe12b6ebd72462f317a565a160/docs/images/hotkeys-ingame.jpg)

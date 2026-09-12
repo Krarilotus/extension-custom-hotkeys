@@ -10,4 +10,4 @@ UCP2-Legacy wird **nicht benötigt**. Wenn es aktiv ist, müssen seine Hotkey-Ä
 
 **Testversion:** Mausbelegung, Gebäudegruppen, Kameralesezeichen und vollständige Tastaturabläufe sind noch in Entwicklung. Multiplayer und die Kombination mit aktivem Recorder bleiben bis zur Abnahme gesperrt. Nur SHC 1.41; diese Testversion unterstützt Extreme nicht.
 
-![Tastenkürzel-Auswahlmenü im Spiel](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/d4875e557b746918ef4501055172736b5f66cfeb/docs/images/hotkeys-ingame.jpg)
+![Tastenkürzel-Auswahlmenü im Spiel](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/f67fc6d9779f8ffe12b6ebd72462f317a565a160/docs/images/hotkeys-ingame.jpg)
