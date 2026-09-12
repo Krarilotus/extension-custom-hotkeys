@@ -1,4 +1,5 @@
 return {
+ ['menu.decrease']='Zmniejsz wartość suwaka', ['menu.increase']='Zwiększ wartość suwaka',
  ['mouse.left']='Lewy przycisk myszy', ['mouse.right']='Prawy przycisk myszy', ['mouse.middle']='Środkowy przycisk myszy',
  ['mouse.x1']='Przycisk myszy 4', ['mouse.x2']='Przycisk myszy 5',
  ['pointer.primary']='Klasyczny wybór / rozkaz', ['pointer.secondary']='Klasyczne anulowanie / kontekst',

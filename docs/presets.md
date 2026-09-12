@@ -15,6 +15,10 @@ of game language; built-in names and grid action labels are localized.
 | Next / previous menu control | Ctrl+PageDown / Ctrl+PageUp | Tab / Shift+Tab | Tab / Shift+Tab |
 | Quicksave / quickload | Ctrl+S / Ctrl+L | Ctrl+S / Ctrl+L | Ctrl+S / Ctrl+L |
 | Assign / select / focus group | Ctrl+number / number / number again | Same | Same |
+| Assign / recall camera position | Shift+Alt+number / Ctrl+Alt+number | Same | Same |
+| Pointer selection / orders | Native left/right | Left selects; right orders | Native left/right |
+| Move / center / confirm / cancel target | Numpad 8/4/2/6 / 5 / Enter / Decimal | Same | Same |
+| Focused dialog slider | Left / Right | Same | Same |
 | Build categories | Individually assignable | Individually assignable | Q W E R T Y physical positions |
 | Active panel command slots | Individually assignable | Individually assignable | A S D F G H, Z X C V B N physical positions |
 
@@ -24,9 +28,10 @@ command buttons in visual row order. Vertically overlapping icon rectangles form
 one band, read left to right, so shorter buildings do not jump ahead of taller
 neighbors. Disabled controls retain their slot and
 reject activation. Hidden/inactive controls are absent. The existing 107 audited
-selectors include construction and engineer siege menus; the normal cursor,
-native hit testing and input-frame validation still own activation. There is no
-raw callback invocation, extra hook or idle grid polling. Slots are configurable
+selectors include construction and engineer siege menus. Recruitment/economy
+controls use active native panel membership and their actual handlers. Original
+callbacks run once after input-frame revalidation, without moving the construction
+cursor. There is no extra hook or idle grid polling. Slots are configurable
 actions, alongside the individual building actions.
 
 Grid displaces several original shortcuts. Their replacements use Alt plus the
@@ -45,8 +50,8 @@ displayed key name. The geometry principle is informed by the official
 [Age of Empires II grid/control-group guide](https://www.ageofempires.com/learn-to-play/match-goals-aoe2/).
 This six-column adaptation uses SHC's own toolbar and command panels.
 
-Profile document schema2 adds the preset identity and allows64 named profiles.
-Schema1 imports/load preserve all existing bindings, profile names and active
+Profile document schema3 supports keyboard and mouse bindings and64 named profiles.
+Schema1/2 imports/load preserve existing bindings, profile names and active
 selection. Only explicitly versioned new actions may be absent; they become
 unbound in old profiles. Missing old actions, unknown fields/actions and conflicts
 still fail validation. The three preset copies are added under unique names,
@@ -54,21 +59,26 @@ without replacing a same-named user profile. Migration is saved only through the
 normal Apply operation and alternating verified store. The storage envelope
 schema remains1. Older extension builds do not understand the new payload.
 
-## Required work before these presets are complete
+## Pointer and bookmark behavior
 
-Modern RTS currently supplies its **keyboard** baseline. Configurable left/right
-mouse selection/orders are not implemented yet; mouse behavior remains native
-classic behavior. The official
+Modern RTS uses left-click to select and right-click for contextual orders.
+Shift+left adds to selection; Shift+right queues through native order handling.
+Placement keeps left-confirm/right-cancel. Mouse buttons1-5 and modifiers are
+assignable. The official
 [Crusader DE manual](https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3024040/manuals/2483eddbccb05eec2676d6c8e80b7f7c5b0bb3e1/Stronghold_Crusader_Definitive_Edition_Manual_-_English_v1.01.pdf?t=1758638709)
-is the reference for the requested modern pointer behavior, not evidence that
-this extension already implements it.
+is the reference for the requested modern pointer behavior.
 
-Building control-group assignment/recall (including mercenary posts), arbitrary
-camera bookmark assignment/recall, complete recruitment/economy grid coverage and
-usable preset defaults for the full keyboard targeting route remain required.
-Native grid/layout, profile upgrade/restart and negative state/held-key checks
-remain acceptance gates. Component tests do not establish native behavior.
-No complete preset, multiplayer/replay acceptance or release is claimed here.
+Ctrl+number assigns the selected owned building, including mercenary posts, or
+the native unit group. Recalls validate building identity and ownership. Groups
+and camera bookmarks clear on leaving/loading the world and available Recorder
+restore notifications; they are local input state, not saved simulation data.
+Numpad target movement is24 pixels, or one pixel with Shift.
+
+[0.1.6 evidence](features-0.1.6.md) records native mouse capture, Modern selection,
+building/camera recall, keyboard placement/recruitment/trading and a completed
+Recorder/Automarket playback. Drag/queued orders, the full text/held matrix,
+state restore and other documented checks remain outstanding. Two-PC testing is
+manual and does not restrict tester access.
 
 ## Native development evidence, 12 September
 

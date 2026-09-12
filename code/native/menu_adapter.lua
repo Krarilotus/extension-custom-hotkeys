@@ -4,6 +4,7 @@ local Load=require('code/load_context')
 local Dialog=require('code/dialog_context')
 local M={}
 function M.new(scene,reader)
+  local minimum,maximum,value=ffi.new('int[1]'),ffi.new('int[1]'),ffi.new('int[1]')
   return {
     gridControls=function(context)
       if not context or (context.owner~='game.build' and context.owner~='game.status') then return nil end
@@ -37,6 +38,18 @@ function M.new(scene,reader)
       -- cdecl callback for kinds2/3/4. Keep native eligibility/submission code;
       -- selecting a building never writes its placement ID or moves the cursor.
       ffi.cast('MenuItem *',row.address)[0].menuItemActionHandler.simple(row.parameter)
+    end,
+    adjust=function(row,delta)
+      -- Same slider ABI as MenuItem input: event1 reads bounds/current value;
+      -- event2 submits a bounded step through the native control's own handler.
+      local item=ffi.cast('MenuItem *',row.address)[0]
+      minimum[0]=0;maximum[0]=0;value[0]=0
+      item.menuItemActionHandler.slider(row.parameter,1,minimum,maximum,value)
+      local lo,hi,current=tonumber(minimum[0]),tonumber(maximum[0]),tonumber(value[0])
+      if lo>hi or current<lo or current>hi then return end
+      local step=math.max(1,tonumber(item.firstItemTypeData.itemsToSkip))
+      value[0]=math.max(lo,math.min(hi,current+delta*step))
+      if value[0]~=current then item.menuItemActionHandler.slider(row.parameter,2,minimum,maximum,value) end
     end,
   }
 end

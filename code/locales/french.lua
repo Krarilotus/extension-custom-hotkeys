@@ -1,4 +1,5 @@
 return {
+ ['menu.decrease']='Réduire le curseur', ['menu.increase']='Augmenter le curseur',
  ['mouse.left']='Bouton gauche', ['mouse.right']='Bouton droit', ['mouse.middle']='Bouton central',
  ['mouse.x1']='Bouton de souris 4', ['mouse.x2']='Bouton de souris 5',
  ['pointer.primary']='Sélection / ordre classique', ['pointer.secondary']='Annuler / contexte classique',

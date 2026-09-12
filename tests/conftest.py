@@ -20,6 +20,9 @@ def lua(request):
       Context = require('code/context')
       Router = require('code/router')
       Profiles = require('code/profiles')
+      require('code/dialog_context').bind(function(id)
+        return id==5 and reference_addresses.optionsMenu or nil
+      end)
       function key(scan, mods, extended)
         return {scan=scan, mods=mods or 0, extended=extended or false}
       end

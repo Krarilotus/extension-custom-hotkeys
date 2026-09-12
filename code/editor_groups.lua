@@ -5,6 +5,7 @@ local M={order={'navigation','saving','camera','selection','buildings',
 local exact={
   ['hotkeys.open']='navigation',['menu.next']='navigation',
   ['menu.previous']='navigation',['menu.activate']='navigation',
+  ['menu.decrease']='navigation',['menu.increase']='navigation',
   ['game.menu.activate']='navigation',['view.toggle-interface']='navigation',
   ['unit.control.patrol']='commands',
 }

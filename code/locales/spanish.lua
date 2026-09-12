@@ -1,4 +1,5 @@
 return {
+ ['menu.decrease']='Reducir deslizador', ['menu.increase']='Aumentar deslizador',
  ['mouse.left']='Botón izquierdo', ['mouse.right']='Botón derecho', ['mouse.middle']='Botón central',
  ['mouse.x1']='Botón del ratón 4', ['mouse.x2']='Botón del ratón 5',
  ['pointer.primary']='Selección / orden clásica', ['pointer.secondary']='Cancelar / contexto clásico',

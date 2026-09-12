@@ -1,4 +1,5 @@
 return {
+ ['menu.decrease']='Riduci valore cursore', ['menu.increase']='Aumenta valore cursore',
  ['mouse.left']='Pulsante sinistro', ['mouse.right']='Pulsante destro', ['mouse.middle']='Pulsante centrale',
  ['mouse.x1']='Pulsante mouse 4', ['mouse.x2']='Pulsante mouse 5',
  ['pointer.primary']='Selezione / ordine classico', ['pointer.secondary']='Annulla / contesto classico',

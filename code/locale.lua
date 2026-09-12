@@ -6,7 +6,8 @@ local en={title='Custom Hotkeys',profile='Profile',new='New profile',search='Sea
   conflict='This key overlaps another action.',text='Text',default='Default',
   ['hotkeys.open']='Open hotkey settings', ['menu.next']='Next control',
   ['menu.previous']='Previous control', ['menu.activate']='Activate control',
-  ['menu.back']='Back', ['editor.capture']='Change selected binding'}
+  ['menu.back']='Back', ['editor.capture']='Change selected binding',
+  ['menu.decrease']='Decrease slider', ['menu.increase']='Increase slider'}
 local de={title='Eigene Tastenkürzel',profile='Profil',new='Neues Profil',search='Suche',
   groups='Gruppe',all='Alle',capture='Taste ändern',clear='Taste löschen',reset='Aktion zurücksetzen',
   resetProfile='Profil zurücksetzen',apply='Übernehmen',cancel='Abbrechen',unbound='Unbelegt',
@@ -17,6 +18,7 @@ local de={title='Eigene Tastenkürzel',profile='Profil',new='Neues Profil',searc
   ['menu.previous']='Vorheriges Bedienelement', ['menu.activate']='Bedienelement aktivieren',
   ['menu.back']='Zurück', ['editor.capture']='Gewähltes Tastenkürzel ändern'}
 en.profiles='Profiles';de.profiles='Profile'
+de['menu.decrease']='Regler verringern';de['menu.increase']='Regler erhöhen'
 en.bindings='Hotkeys';de.bindings='Tastenkürzel'
 en.action='Action';de.action='Aktion'
 en.binding='Key';de.binding='Taste'

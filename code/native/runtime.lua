@@ -13,8 +13,7 @@ local Scene=require('code/native/scene')
 local View=require('code/native/editor_view')
 local M={}
 function M.start(language)
-  A.mainOptionsMenu=assert(remote.interface.modalMenuAddress(44),'ui.main-options-unavailable')
-  A.automarketMenu=remote.interface.modalMenuAddress(2025)
+  require('code/dialog_context').bind(remote.interface.modalMenuAddress)
   local lock=assert(require('code/native/profile_lock').acquire())
   local platform=Platform.new(tonumber(ffi.cast('int32_t *',A.gameWindow)[0]))
   local scene=Scene.new(platform,function() return remote.interface.recorderInputGeneration() end)
@@ -31,6 +30,8 @@ function M.start(language)
       if id=='hotkeys.open' then return view:open() end
       if id=='menu.next' then return navigation:move(1,context) end
       if id=='menu.previous' then return navigation:move(-1,context) end
+      if id=='menu.decrease' then return navigation:adjust(-1,context) end
+      if id=='menu.increase' then return navigation:adjust(1,context) end
       if id=='menu.activate' or id=='game.menu.activate' then return navigation:activate(context) end
       if id:sub(1,10)=='grid.slot.' then
         return navigation:activateGrid(tonumber(id:sub(11)),selectors,context)

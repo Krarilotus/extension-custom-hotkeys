@@ -64,6 +64,15 @@ protocol. The registered pointer must match the actual active composition, with
 no text editor or covering modal. Optional lookup adds no Automarket dependency.
 The original Options context helper became the shared dialog context helper.
 
+The same registry now supplies native Options, Video, Sound, Gameplay and Yes/No
+dialogs (5/6/7/11/12/13/44). This removes the redundant Options-menu AOB scan.
+Original Menu constructor arrays, UI1.0.1's MenuItem ABI and native speed/volume
+slider handlers were inspected. Left/Right on a focused dialog slider calls its
+event1 bounds/value query followed by a clamped native step through event2.
+Automarket uses the identical published slider ABI and retains its Save protocol.
+No setting value is written directly and no slider hook/polling is added.
+These latest dialog/slider extensions still need their own native retest.
+
 ## Native checks, 12 September
 
 SHC 1.41, UCP 3.0.7-77c6a, UI 1.0.1, Recorder 0.50.4, Automarket 1.1.0,
@@ -82,13 +91,23 @@ English game with German Windows key labels; Legacy absent.
   and wood. Native Buy rejected bread because this fixture had no granary;
   no successful trade is claimed. Grid also reached the injected Automarket
   button. The overlay then exposed an input/navigation conflict requiring the
-  shared dialog ownership change above; its native retest is outstanding.
+  shared dialog ownership change above.
+- PID25340, 46556be: the keyboard route loaded the quickslot, placed one market,
+  opened Automarket with Grid A, and traversed its controls with Tab/Shift+Tab.
+  Enter on Close dismissed it without changing the background status panel.
+  Native market Buy bought5 wood for20 gold (85->90,1925->1905). Automarket's On
+  and Save/Close callbacks worked from keyboard navigation. Mission exit finalized
+  recording20260912-151956-0001 with4 commands: native menu escape, one building,
+  one Buy and one Automarket protocol submission. Its playback finished at20732
+  (10619 elapsed ticks), consuming all4 commands with matching resource, RNG and
+  full RNG checkpoints. F12/Cancel worked during playback. Error log was header-only;
+  normal close/PID absence verified, desktop released17:31:32, baselines restored.
 
-These processes exited normally and desktop reservations were released. Recorder
-started captures for loaded skirmishes, but Alt+F4 did not finalize those captures
-through its mission-exit lifecycle. They are not accepted replays. Earlier native
+These processes exited normally and desktop reservations were released. Earlier
+Alt+F4-only captures were not finalized and remain unaccepted; the later normal
+mission-exit capture above is the completed playback evidence. Earlier native
 checks established building-group recall, camera bookmarks and Modern right-click
 movement/left-click deselection; drag, queued orders, building identity reuse,
-full text/held/focus coverage, Extreme reruns, finalized recording/playback and
+full text/held/focus coverage, Extreme reruns, alternate-profile playback and
 state restore still need acceptance. Two-PC multiplayer is deferred to manual
 testers and does not block implementation or tester access.

@@ -27,6 +27,11 @@ local entries={{id='view.lower-buildings',contexts=world,states={'live-sp','live
     default={scan=28,extended=false,mods=0}},
   {id='game.menu.activate',contexts={'game.build','game.status','game.options','game.load'},states={'live-sp','live-mp'},command=true,
     default={scan=28,extended=false,mods=0}}}
+for _,adjust in ipairs({{'decrease',75},{'increase',77}}) do
+  entries[#entries+1]={id='menu.'..adjust[1],contexts={'menu.options','game.options'},
+    states={'menu','live-sp','live-mp'},command=false,introduced=3,
+    default={scan=adjust[2],extended=true,mods=0}}
+end
 for _,id in ipairs({'primary','secondary','select','order','select-add','order-queued'}) do
   entries[#entries+1]={id='pointer.'..id,contexts=world,states={'live-sp','live-mp'},
     command=true,introduced=3,default=(id=='primary' or id=='secondary')

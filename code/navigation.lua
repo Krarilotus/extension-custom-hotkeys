@@ -55,6 +55,18 @@ function M:activate(context)
     return false
   end,function() return not self.adapter.hit or self.adapter.hit(address)==true end)
 end
+function M:adjust(delta,context)
+  if (delta~=1 and delta~=-1) or self.pending or self.cursor.pending or not self.adapter.adjust then return false end
+  for _,row in ipairs(self:current(context) or {}) do
+    if row.address==self.address and row.kind==5 then
+      if not self.cursor:valid(context) or self.cursor.adapter.busy() then return false end
+      self.pending={context=context,address=row.address,kind=row.kind,parameter=row.parameter,
+        action=row.action,help=row.help,delta=delta}
+      return true
+    end
+  end
+  return false
+end
 function M:beforeFrame()
   local pending=self.pending
   -- Retire before calling game code: callbacks can re-enter the input chain.
@@ -63,7 +75,7 @@ function M:beforeFrame()
   for _,row in ipairs(self.adapter.controls(pending.context) or {}) do
     if row.address==pending.address and row.kind==pending.kind and row.action==pending.action
         and row.parameter==pending.parameter and row.help==pending.help then
-      self.adapter.invoke(row)
+      if pending.delta then self.adapter.adjust(row,pending.delta) else self.adapter.invoke(row) end
       return
     end
   end

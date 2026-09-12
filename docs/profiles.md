@@ -4,8 +4,9 @@ Open Custom Hotkeys from the main menu, F12, or the reserved Ctrl+Shift+F12
 recovery chord while an eligible menu/game screen is active. Recovery does not
 override native text fields, another modal or an unsupported session.
 
-Choose New profile, type its name and press Enter. Select an action and Change
-key to capture its new binding. Clear key unbinds it. A conflict preserves both
+Choose New profile, type its name and press Enter. Select an action and press
+Enter (or double-click its row) to capture a key or mouse button. Delete unbinds it.
+A conflict preserves both
 bindings and offers Swap keys; the swap is atomic and still rejects collisions
 with a third action or a native action left without a required replacement.
 Reset action and Reset profile affect only the draft. Apply saves and activates
@@ -33,8 +34,10 @@ required to save/activate it. Cancel discards the imported draft. Imported data
 is size-limited, checksummed, parsed as JSON and validated against the action
 catalog. It is never executed. Export does not implicitly Apply the draft.
 
-The schema/action catalog is still developmental; transfer currently requires
-matching catalog revisions. A mismatched/corrupt or unreadable pair is rejected
+Schema3 accepts older schema1/2 profiles. Existing custom assignments survive;
+formerly implicit native group numbers become explicit bindings. New optional
+actions start unbound in migrated profiles. Reset a preset to receive its new
+defaults, or assign those actions individually. A mismatched/corrupt or unreadable pair is rejected
 without replacing the active profile. Human-readable diagnostics and native
 import/export acceptance remain under development. File round-trip and failure
 recovery component tests do not establish the native acceptance gate.
