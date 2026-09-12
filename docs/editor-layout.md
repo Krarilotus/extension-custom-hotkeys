@@ -5,15 +5,17 @@ save/load, camera, control groups, building panels, construction, unit orders,
 siege engines, grid and targeting. Assignment, recall and focus stay together;
 building open/focus/return stay together. The Group filter uses the same metadata.
 Section names occupy a compact column, repeated at the first visible row after
-scrolling. They do not add fake selectable rows or reduce the sixteen-action page.
+scrolling. They do not add fake selectable rows or reduce the eighteen-action page.
 Binding text sits three pixels lower inside the native border; action labels,
 group labels, table headers and other non-button text sit two pixels lower.
-Button caption placement is unchanged. Original number
-gestures are shown as game defaults, with a localized explanation when selected.
+Button caption placement is unchanged. Original number gestures are shown as game
+defaults. Repeated footer/selection explanations and the Change/Clear buttons are
+removed. Reset, Apply, Cancel and the counter share one footer row. Profile and
+Group buttons have matching widths and alignment.
 Capture waits for the main key of a modifier chord and preserves physical scan
 code, E0 and modifiers. No binding schema or existing saved profile is changed.
 
-The 760×552 native dialog shows 16 rows instead of six. Native font19 provides
+The 760×552 native dialog shows 18 rows instead of six. Native font19 provides
 16-pixel line spacing in 20-pixel rows; font17 gives a smaller title. Action and
 Key are separate columns. The original Save/Load table renderer4692E0 supplies
 striped red rows and selection. The UI owner's renderButtonBackground/463A90
@@ -25,6 +27,14 @@ Click a binding row or press Enter on the selected row to capture a key. Delete
 clears a focused list row. Arrow keys, Page Up/Down and Home/End navigate; Tab
 traverses visible controls. The Swap button appears only after a conflict.
 Starting a new capture clears the previous conflict message.
+
+Search is a recessed field with a separate label, using the original general
+text-input renderer's background convention:47CCA0 clears ButtonState.interacting
+and calls463A90(-1,-1). The extension reuses that primitive, without activating
+or modifying the native global UserTextHandler. Search uses the existing UTF-8
+draft text controller and filters on text edits only. Enter accepts and focuses
+the first row, Tab accepts and moves focus, Escape restores the prior query.
+The shared exclusive text ownership continues to block game shortcuts.
 
 Profile selection, creation, import/export and profile reset live on a separate
 page reached through the Profile button. Switching pages preserves the draft

@@ -25,7 +25,7 @@ def test_actual_framework_languages_cover_actions_controls_and_native_font_bytes
         key = 'group.' + group
         assert labels(key) != key
         labels(key).encode(encoding)
-    for key in ['nativeKey', 'nativeAgain', 'nativeGroupHint']:
+    for key in ['nativeKey', 'nativeAgain']:
         assert labels(key) != key
         labels(key).encode(encoding)
 

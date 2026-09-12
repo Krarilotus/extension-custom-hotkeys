@@ -128,7 +128,7 @@ function M:activate(id)
     if id==114 then self.controller:cancelCapture() end
     return true
   end
-  if self.text then self:finishText(false) end
+  if self.text then self:finishText(self.text.kind=='search') end
   for i,c in ipairs(self.controls) do if c.id==id then self.focus=i;break end end
   self.error,self.notice=nil,nil
   local e=self.controller
@@ -140,13 +140,12 @@ function M:activate(id)
     e:selectProfile(v.profiles[(current+(id==102 and -2 or 0))%#v.profiles+1])
   elseif id==104 or id==105 then
     self.router:barrier();self.text={kind=id==104 and 'profile' or 'search',
-      edit=Text.new(id==105 and e.query or '')};self.text.edit:selectAll()
+      previous=e.query,edit=Text.new(id==105 and e.query or '')};self.text.edit:selectAll()
   elseif id==106 then
     local groups={false}
     for _,group in ipairs(e.groups) do groups[#groups+1]=group end
     local current=1;for i,g in ipairs(groups) do if g==e.group then current=i end end
     e:filter(e.query,groups[current%#groups+1] or nil)
-  elseif id==107 then e:capture()
   elseif id==115 then e:reassign()
   elseif id==116 then
     local document,err=remote.interface.loadExchange()
@@ -159,7 +158,6 @@ function M:activate(id)
   elseif id==117 then
     local ok,err=remote.interface.saveExchange(e:exportProfile())
     if ok then self.notice='exported' else self.error=err end
-  elseif id==108 then e:clear()
   elseif id==109 then e:resetAction()
   elseif id==110 then e:resetProfile()
   elseif id==113 then self:close(true)
@@ -173,7 +171,14 @@ function M:finishText(accept)
   if accept then
     if text.kind=='profile' then self.controller:createProfile(text.edit:value())
     elseif text.kind=='import' then self.controller:importProfile(text.edit:value(),text.document)
-    else self.controller:filter(text.edit:value(),self.controller.group) end
+    else self.controller:filter(text.edit:value(),self.controller.group);self.focus=4 end
+  elseif text.kind=='search' then self.controller:filter(text.previous,self.controller.group)
+  end
+end
+function M:filterSearch()
+  if self.text and self.text.kind=='search' then
+    local query=self.text.edit:value()
+    if query~=self.controller.query then self.controller:filter(query,self.controller.group) end
   end
 end
 function M:input(event)
@@ -185,7 +190,8 @@ function M:input(event)
       or (event.mods and event.mods>=4 and not event.altgr) then return false end
   if event.kind=='char' then
     if self.text then local char=Encoding.character(event.value)
-      if char then local ok,err=self.text.edit:insert(char);if not ok then self.error=err end end end
+      if char then local ok,err=self.text.edit:insert(char);if not ok then self.error=err end
+        self:filterSearch() end end
     return true
   end
   if event.kind~='down' then return true end
@@ -193,7 +199,9 @@ function M:input(event)
   if self.text then
     local edit=self.text.edit
     local shift=event.mods and math.floor(event.mods/2)%2==1
-    if event.value==13 then self:finishText(true)
+    if event.value==9 and self.text.kind=='search' then
+      self:finishText(true);self.focus=shift and 1 or 3
+    elseif event.value==13 then self:finishText(true)
     elseif event.value==27 then self:finishText(false)
     elseif event.value==8 then edit:delete(true)
     elseif event.value==46 then edit:delete(false)
@@ -202,6 +210,7 @@ function M:input(event)
     elseif event.value==36 then edit:move(0,shift)
     elseif event.value==35 then edit:move(#edit.chars,shift)
     elseif event.value==65 and event.mods==1 then edit:selectAll() end
+    self:filterSearch()
     return true
   end
   if event.repeated or event.altgr then return true end
@@ -279,7 +288,7 @@ function M:renderButton(id)
       label=(c.label=='<' or c.label=='>') and c.label or self.labels(c.label)
       selected=i==self.focus;break end end
     if id==101 or (id==118 and self.page=='bindings') then label=self.labels('profile')..': '..v.activeLabel end
-    if id==105 then label=self.labels('search')..': '..e.query end
+    if id==105 then label=e.query end
     if id==106 then label=self.labels('groups')..': '..(e.group and self.labels('group.'..e.group) or self.labels('all')) end
     if self.text and ((id==104 and self.text.kind=='profile') or (id==105 and self.text.kind=='search')
         or (id==116 and self.text.kind=='import')) then
@@ -288,7 +297,7 @@ function M:renderButton(id)
   end
   local editing=self.text and ((id==104 and self.text.kind=='profile')
     or (id==105 and self.text.kind=='search') or (id==116 and self.text.kind=='import')) and self.text.edit or nil
-  if label=='' and not editing then return end
+  if label=='' and not editing and id~=105 then return end
   local s=game.Rendering.ButtonState
   -- Inherit the native menu renderer's surface. Forcing texture surface0 hides
   -- table/button graphics during gameplay, whose menu renderer owns surface1.
@@ -299,10 +308,12 @@ function M:renderButton(id)
     local color=selected and skin.selectedText or skin.text
     if isRow then
       skin.row(e.first+id-2,selected)
+    elseif id==105 then
+      skin.field()
     else
       skin.button(selected)
     end
-    local font=isRow and Geometry.bodyFont or Geometry.buttonFont
+    local font=(isRow or id==105) and Geometry.bodyFont or Geometry.buttonFont
     local labelWidth=s.width-16
     local keyLayout
     if binding then
@@ -339,20 +350,14 @@ function M:render(x,y,width,height)
   self:draw(self.labels(self.page=='profiles' and 'profiles' or 'title'),x+20,y+18,0xCCFAFF,Geometry.titleFont,450,'title')
   local e=self.controller
   if self.page=='bindings' then
-    require('code/native/editor_skin').border(x+18,y+92,x+width-18,y+436)
-    self:draw(self.labels('groups'),x+28,y+96,0xCCFAFF,Geometry.bodyFont,132,'column-group')
-    self:draw(self.labels('action'),x+172,y+96,0xCCFAFF,Geometry.bodyFont,330,'column-action')
-    self:draw(self.labels('binding'),x+530,y+96,0xCCFAFF,Geometry.bodyFont,170,'column-binding')
-    self:draw(tostring(e.selected)..' / '..tostring(#e.rows),x+20,y+510,nil,Geometry.bodyFont,110,'count')
-    self:draw(self.labels('listHint'),x+132,y+510,nil,Geometry.bodyFont,300,'hint')
-  else
-    self:draw(self.labels('profilesHint'),x+28,y+64,nil,Geometry.bodyFont,width-56,'profiles-hint')
+    require('code/native/editor_skin').border(x+18,y+84,x+width-18,y+Geometry.listY+rows*Geometry.rowHeight+2)
+    self:draw(self.labels('search')..':',x+20,y+54,nil,Geometry.bodyFont,76,'search-label')
+    self:draw(self.labels('groups'),x+28,y+88,0xCCFAFF,Geometry.bodyFont,132,'column-group')
+    self:draw(self.labels('action'),x+172,y+88,0xCCFAFF,Geometry.bodyFont,330,'column-action')
+    self:draw(self.labels('binding'),x+530,y+88,0xCCFAFF,Geometry.bodyFont,170,'column-binding')
+    self:draw(tostring(#e.rows>0 and e.selected or 0)..' / '..tostring(#e.rows),x+20,y+511,nil,Geometry.bodyFont,100,'count')
   end
-  local message=self.text and self.labels(self.text.kind=='import' and 'importName' or 'editing')
-    or (e.capturing and self.labels('press')) or (self.notice and self.labels(self.notice))
-  local selected=e.rows[e.selected]
-  if not message and self.page=='bindings' and selected
-      and self.catalog.actions[selected.id].nativeFallback then message=self.labels('nativeGroupHint') end
+  local message=(e.capturing and self.labels('press')) or (self.notice and self.labels(self.notice))
   local err=self.error or e.error
   if err then
     message=self.labels(err:find('conflict',1,true) and 'conflict'

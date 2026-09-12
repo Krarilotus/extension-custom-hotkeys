@@ -8,14 +8,20 @@ local M={text=0xC2F0EB,selectedText=0xCCFAFF}
 function M.row(index,selected)
   tableCell(game.Rendering.pencilRenderCore,selected and 1 or 0,index,0)
 end
-function M.button(selected)
+local function background(style,selected)
   local r=game.Rendering;local state=r.ButtonState
   local interacting=state.interacting
-  if selected then state.interacting=1 end
+  state.interacting=style==-1 and 0 or (selected and 1 or interacting)
   -- Native -1 chooses the current menu/game surface and restores it afterward.
-  local ok,err=pcall(r.renderButtonBackground,r.alphaAndButtonSurface,0,-1)
+  local ok,err=pcall(r.renderButtonBackground,r.alphaAndButtonSurface,style,-1)
   state.interacting=interacting
   if not ok then error(err) end
+end
+function M.button(selected) background(0,selected) end
+function M.field()
+  -- Original text-input renderer47CCA0 uses basic-button style-1, target-1,
+  -- with hover disabled. Keep its recessed field without owning native text state.
+  background(-1,false)
 end
 function M.caption(encoded,color)
   -- Original Save/Load button492B46: font18, center alignment1, x+width/2,

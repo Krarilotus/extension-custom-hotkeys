@@ -48,7 +48,7 @@ See [component contracts](https://github.com/Krarilotus/extension-custom-hotkeys
 [pending manual two-PC route](https://github.com/Krarilotus/extension-custom-hotkeys/blob/feat/binding-core/docs/manual-multiplayer.md).
 The [three development presets](https://github.com/Krarilotus/extension-custom-hotkeys/blob/feat/binding-core/docs/presets.md) share the binding catalog and
 include a native-panel grid. Mouse rebinding and building/camera bookmarks remain
-required work. The [compact editor](https://github.com/Krarilotus/extension-custom-hotkeys/blob/feat/binding-core/docs/editor-layout.md) shows16 rows and reuses
+required work. The [compact editor](https://github.com/Krarilotus/extension-custom-hotkeys/blob/feat/binding-core/docs/editor-layout.md) shows18 rows and reuses
 the game's native scrollbar.
 Native development evidence covers [profile editing](https://github.com/Krarilotus/extension-custom-hotkeys/blob/feat/binding-core/docs/native-editor-evidence.md)
 and [menu navigation](https://github.com/Krarilotus/extension-custom-hotkeys/blob/feat/binding-core/docs/native-navigation-evidence.md); neither is a complete

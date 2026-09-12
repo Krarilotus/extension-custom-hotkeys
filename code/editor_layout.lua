@@ -1,5 +1,5 @@
 -- One geometry source for native hit boxes, painting and keyboard focus.
-local M={width=760,height=552,rows=16,rowHeight=20,listY=114,listWidth=692,
+local M={width=760,height=552,rows=18,rowHeight=20,listY=106,listWidth=692,
   bodyFont=19,buttonFont=18,titleFont=17}
 function M.controls(page)
   local result={}
@@ -12,11 +12,10 @@ function M.controls(page)
     add(104,28,158,340,'new');add(116,28,204,340,'import')
     add(117,388,204,344,'export');add(110,28,264,340,'resetProfile')
   else
-    add(118,494,18,246,'profile')
-    add(105,20,60,470,'search');add(106,502,60,238,'groups')
+    add(118,494,16,246,'profile')
+    add(105,104,50,382,'search',26);add(106,494,48,246,'groups')
     for row=1,M.rows do add(row,20,M.listY+(row-1)*M.rowHeight,M.listWidth,'',M.rowHeight) end
-    add(107,20,448,150,'capture');add(108,180,448,116,'clear')
-    add(109,306,448,154,'reset');add(115,470,448,150,'swap')
+    add(115,126,506,156,'swap');add(109,294,506,150,'reset')
   end
   add(113,454,506,138,'apply');add(114,604,506,136,'cancel')
   return result

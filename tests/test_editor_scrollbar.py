@@ -95,3 +95,36 @@ def test_page_switch_uses_menu_value_and_preserves_modal_position(lua):
       assert(v.page=='profiles' and v.controls[1].id==118 and v.focus==1)
       assert(v.menu.menuItems==v.tables.profiles)
     ''')
+
+
+def test_search_field_filters_live_and_preserves_keyboard_focus_and_cancel(lua):
+    setup(lua)
+    lua.execute('''
+      package.loaded.ffi={}
+      package.loaded['code/native/text']={}
+      package.loaded['code/native/encoding']={character=string.char}
+      local View=require('code/native/editor_view')
+      local v=setmetatable({controller=editor,page='bindings',focus=4,router=router,
+        controls=require('code/editor_layout').controls('bindings'),
+        owns=function() return true end},View)
+      assert(not v:visible(107) and not v:visible(108))
+      assert(v:activate(105));assert(v.text.kind=='search' and v.focus==2)
+      for c in ('unit'):gmatch('.') do assert(v:input({kind='char',value=c:byte()})) end
+      assert(editor.query=='unit' and #editor.rows==1 and v.focus==2)
+      assert(v:input({kind='down',value=9,mods=0}))
+      assert(not v.text and v.focus==3 and editor.query=='unit')
+      assert(v:activate(105))
+      assert(v:input({kind='char',value=120})) -- replaces the selected query
+      assert(editor.query=='x' and #editor.rows==0)
+      assert(v:input({kind='down',value=27,mods=0}))
+      assert(not v.text and editor.query=='unit' and #editor.rows==1)
+      assert(v:activate(105))
+      assert(v:input({kind='down',value=46,mods=0}))
+      assert(editor.query=='' and #editor.rows==4)
+      assert(v:input({kind='down',value=13,mods=0}))
+      assert(not v.text and v.focus==4 and not editor.capturing)
+      assert(v:input({kind='down',value=46,mods=0}))
+      assert(editor:view().rows[1].binding==false)
+      assert(v:activate(109));assert(editor:view().rows[1].binding.scan==30)
+      assert(#calls==0)
+    ''')
