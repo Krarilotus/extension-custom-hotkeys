@@ -1,6 +1,6 @@
 # Custom Hotkeys
 
-**简要说明：** 0.1.5 使用 UCP 字节模式检测，不再按 EXE 哈希限制启动。建筑和网格快捷键不会移动鼠标指针。启用模块后按 F12；多人游戏、Recorder 和 Automarket 仍开放测试。
+**简要说明：** 0.1.6 新增鼠标按键重绑定、建筑编组、相机位置书签，以及选项菜单和 Automarket 的键盘操作。启用模块后按 F12。包含游戏默认、现代 RTS 和网格三种配置；建筑快捷键保持鼠标指针位置不变。
 
 在游戏中修改快捷键并保存个人配置。提供三种键盘预设：游戏默认、现代 RTS 和网格。
 
@@ -8,6 +8,6 @@
 
 **不需要**安装 UCP2-Legacy。如果已启用它，则必须**关闭**其快捷键修改选项（`o_keys.enabled`）。本模块会强制要求该值，并在激活前检查。请解决冲突后重新启动游戏。
 
-**测试版本：**鼠标按键重绑定、建筑编组、相机位置书签和完整键盘操作流程仍在开发中。请测试单人、多人、Recorder 回放及 Automarket 组合。此版本不按 Recorder 版本或回放状态锁定操作。游戏控件本身的可用性和输入框焦点规则仍然适用。 SHC 1.41 和 Extreme 1.41 均开放测试；完整兼容性验证尚未完成。
+**测试版本：**这些功能已实现，可在 SHC 1.41 和 Extreme 1.41 中测试。请结合测试单人、多人、Recorder 回放和 Automarket。多人游戏和 Recorder 均未锁定。游戏本身的规则和文本输入框焦点仍然适用。包含建筑、交易和 Automarket 指令的单人录像已成功回放；完整的多人、状态恢复和兼容性验证仍待完成。
 
-![游戏内快捷键选择菜单](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/4f5932ec3be14c1b3d6d9daf0ace7e5cf5c2e549/docs/images/hotkeys-015-extreme-ingame.png)
+![游戏内快捷键选择菜单](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/4fa5305103d4bdf9467d185da5c382ad7ba24a59/docs/images/hotkeys-016-ingame.png)

@@ -1,6 +1,6 @@
 # Custom Hotkeys
 
-**Kurzfassung:** 0.1.5 nutzt die Byte-Muster-Erkennung von UCP statt einer EXE-Hash-Sperre. Bau- und Grid-Tastenkürzel lassen den Mauszeiger an seiner Position. Modul aktivieren und F12 drücken; Multiplayer, Recorder und Automarket bleiben zum Testen freigegeben.
+**Kurzfassung:** 0.1.6 ergänzt frei belegbare Maustasten, Gebäudegruppen, Kameralesezeichen sowie Tastaturbedienung für Optionen und Automarket. Modul aktivieren und F12 drücken. Die Profile Spielstandard, Modernes RTS und Grid sind enthalten; Baukürzel lassen den Mauszeiger an seiner Position.
 
 Tastenkürzel direkt im Spiel ändern und eigene Profile speichern. Enthält die Tastaturprofile Spielstandard, Moderne RTS-Steuerung und Raster.
 
@@ -8,6 +8,6 @@ Das Modul in UCP aktivieren und das Spiel starten: Es ist sofort aktiv, ohne zus
 
 UCP2-Legacy wird **nicht benötigt**. Wenn es aktiv ist, müssen seine Hotkey-Änderungen (`o_keys.enabled`) **ausgeschaltet** sein. Custom Hotkeys schreibt diesen Wert vor und prüft ihn vor der Aktivierung. Konflikte beheben und das Spiel neu starten.
 
-**Testversion:** Mausbelegung, Gebäudegruppen, Kameralesezeichen und vollständige Tastaturabläufe sind noch in Entwicklung. Einzelspieler, Multiplayer, Recorder-Wiedergabe und Automarket-Kombinationen testen. Dieser Build enthält keine Recorder-Versions- oder Wiedergabesperre. Die Verfügbarkeit der Spielaktionen und die Zuständigkeit der Eingabefelder gelten weiterhin. SHC 1.41 und Extreme 1.41 sind zum Testen freigegeben; die vollständige Kompatibilitätsprüfung steht noch aus.
+**Testversion:** Diese Funktionen sind implementiert und in SHC 1.41 und Extreme 1.41 zum Testen verfügbar. Einzelspieler, Multiplayer, Recorder-Wiedergabe und Automarket auch gemeinsam testen. Multiplayer und Recorder sind nicht gesperrt. Die Spielregeln und der Fokus von Textfeldern gelten weiterhin. Eine Einzelspieler-Aufzeichnung mit Bau-, Handels- und Automarket-Befehlen wurde erfolgreich wiedergegeben; vollständige Multiplayer-, Zustandswiederherstellungs- und Kompatibilitätstests stehen noch aus.
 
-![Tastenkürzel-Auswahlmenü im Spiel](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/4f5932ec3be14c1b3d6d9daf0ace7e5cf5c2e549/docs/images/hotkeys-015-extreme-ingame.png)
+![Tastenkürzel-Auswahlmenü im Spiel](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/4fa5305103d4bdf9467d185da5c382ad7ba24a59/docs/images/hotkeys-016-ingame.png)

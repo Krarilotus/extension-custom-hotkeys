@@ -1,6 +1,6 @@
 # Custom Hotkeys
 
-**En bref :** La version 0.1.5 utilise la détection de motifs binaires d’UCP au lieu de vérifier le hash de l’exécutable. Les raccourcis de construction et de grille ne déplacent plus le curseur. Activez le module et appuyez sur F12 ; multijoueur, Recorder et Automarket restent ouverts aux tests.
+**En bref :** La version 0.1.6 ajoute la réaffectation des boutons de souris, les groupes de bâtiments, les positions de caméra et le contrôle au clavier des Options et d’Automarket. Activez le module et appuyez sur F12. Les profils Jeu par défaut, RTS moderne et Grille sont inclus ; les raccourcis de construction préservent la position du curseur.
 
 Modifiez les raccourcis dans le jeu et enregistrez vos profils. Trois préréglages clavier sont proposés : commandes d’origine, RTS moderne et grille.
 
@@ -8,6 +8,6 @@ Activez le module dans UCP puis lancez le jeu : il fonctionne immédiatement, sa
 
 UCP2-Legacy n’est **pas nécessaire**. S’il est actif, ses modifications de raccourcis (`o_keys.enabled`) doivent être **désactivées**. Cette valeur est imposée et vérifiée avant l’activation. Résolvez les conflits puis redémarrez le jeu.
 
-**Version de test :** réaffectation de la souris, groupes de bâtiments, positions de caméra et parcours entièrement au clavier restent en développement. Testez le solo, le multijoueur, la lecture Recorder et les combinaisons avec Automarket. Cette version ne verrouille pas les actions selon la version de Recorder ou la lecture. La disponibilité des commandes du jeu et le contrôle des champs de saisie restent applicables. SHC 1.41 et Extreme 1.41 sont ouverts aux tests ; la validation complète de compatibilité reste à effectuer.
+**Version de test :** ces fonctions sont implémentées et disponibles dans SHC 1.41 et Extreme 1.41. Testez le solo, le multijoueur, la lecture Recorder et Automarket ensemble. Multijoueur et Recorder ne sont pas verrouillés. Les règles du jeu et le focus des champs de texte restent applicables. Un enregistrement solo avec construction, commerce et commandes Automarket a été relu avec succès ; la validation complète du multijoueur, de la restauration d’état et de la compatibilité reste à effectuer.
 
-![Menu de sélection des raccourcis dans le jeu](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/4f5932ec3be14c1b3d6d9daf0ace7e5cf5c2e549/docs/images/hotkeys-015-extreme-ingame.png)
+![Menu de sélection des raccourcis dans le jeu](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/4fa5305103d4bdf9467d185da5c382ad7ba24a59/docs/images/hotkeys-016-ingame.png)

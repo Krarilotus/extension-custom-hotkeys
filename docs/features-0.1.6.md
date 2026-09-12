@@ -68,10 +68,12 @@ The same registry now supplies native Options, Video, Sound, Gameplay and Yes/No
 dialogs (5/6/7/11/12/13/44). This removes the redundant Options-menu AOB scan.
 Original Menu constructor arrays, UI1.0.1's MenuItem ABI and native speed/volume
 slider handlers were inspected. Left/Right on a focused dialog slider calls its
-event1 bounds/value query followed by a clamped native step through event2.
+event1 bounds/value query, event7 owner step and a clamped native event2 change.
+It uses the MenuItem slider state, including the value used by native rendering.
 Automarket uses the identical published slider ABI and retains its Save protocol.
 No setting value is written directly and no slider hook/polling is added.
-These latest dialog/slider extensions still need their own native retest.
+Gameplay/Sound sliders and keyboard return passed in PID30484 below. Video and
+Yes/No still need dedicated native checks.
 
 ## Native checks, 12 September
 

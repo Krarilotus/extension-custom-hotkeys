@@ -1,6 +1,6 @@
 # Custom Hotkeys
 
-**TL;DR:** 0.1.5 uses UCP byte-pattern detection instead of an executable hash lock. Building and Grid shortcuts keep the cursor in place. Activate the module and press F12; multiplayer, Recorder and Automarket remain open for testing.
+**TL;DR:** 0.1.6 adds mouse-button rebinding, building groups, camera bookmarks and keyboard control of Options and Automarket. Activate the module and press F12. Game Default, Modern RTS and Grid profiles are included; building shortcuts keep the cursor in place.
 
 Change keyboard shortcuts in the game and save your own profiles. Includes Game Default, Modern RTS and Grid keyboard presets.
 
@@ -8,6 +8,6 @@ Activate the module in UCP and start the game: it is active immediately, with no
 
 UCP2-Legacy is **not required**. If it is active, its hotkey modifications (`o_keys.enabled`) must be **off**; Custom Hotkeys requires that value and checks it before activation. Resolve conflicts and restart the game.
 
-**Test version:** mouse rebinding, building groups, camera bookmarks and complete keyboard workflows are still being developed. Test single-player, multiplayer, Recorder playback and Automarket combinations. No Recorder-version or playback activation lock is imposed by this build. Existing game control availability and input ownership still apply. SHC 1.41 and Extreme 1.41 are open for testing; full compatibility acceptance is pending.
+**Test version:** these features are implemented and available for testing in SHC 1.41 and Extreme 1.41. Try single-player, multiplayer, Recorder playback and Automarket together. Multiplayer and Recorder are not locked. Native game rules and text-field focus still apply. Single-player recording/playback has passed a construction, trade and Automarket command check; full multiplayer, state-restore and compatibility acceptance remains outstanding.
 
-![In-game hotkey selection menu](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/4f5932ec3be14c1b3d6d9daf0ace7e5cf5c2e549/docs/images/hotkeys-015-extreme-ingame.png)
+![In-game hotkey selection menu](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/4fa5305103d4bdf9467d185da5c382ad7ba24a59/docs/images/hotkeys-016-ingame.png)

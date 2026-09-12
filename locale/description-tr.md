@@ -1,6 +1,6 @@
 # Custom Hotkeys
 
-**Özet:** 0.1.5, EXE dosyasının hash değerine göre engellemek yerine UCP bayt deseni algılamasını kullanır. İnşaat ve Grid kısayolları imleci yerinden oynatmaz. Modülü etkinleştirip F12’ye basın; çok oyunculu, Recorder ve Automarket testleri açıktır.
+**Özet:** 0.1.6; fare tuşlarını yeniden atama, bina grupları, kayıtlı kamera konumları ve Seçenekler ile Automarket için klavye kontrolü ekler. Modülü etkinleştirip F12’ye basın. Oyun Varsayılanı, Modern RTS ve Grid profilleri dahildir; inşaat kısayolları imleci yerinden oynatmaz.
 
 Klavye kısayollarını oyun içinde değiştirin ve kendi profillerinizi kaydedin. Üç klavye düzeni içerir: oyunun varsayılanı, modern RTS ve ızgara.
 
@@ -8,6 +8,6 @@ Modülü UCP’de etkinleştirip oyunu başlatın: başlatıcıda başka bir ana
 
 UCP2-Legacy **gerekli değildir**. Etkinse kısayol değişiklikleri (`o_keys.enabled`) **kapalı olmalıdır**. Modül bu değeri zorunlu kılar ve etkinleşmeden önce denetler. Çakışmaları giderip oyunu yeniden başlatın.
 
-**Test sürümü:** fare tuşu atamaları, bina grupları, kayıtlı kamera konumları ve tam klavye kontrolü geliştirilmektedir. Tek oyunculu, çok oyunculu, Recorder tekrarları ve Automarket birleşimlerini test edin. Bu sürüm Recorder sürümü veya tekrar oynatım kilidi uygulamaz. Oyun kontrollerinin kullanılabilirliği ve giriş alanlarının odağı geçerliliğini korur. SHC 1.41 ve Extreme 1.41 teste açıktır; tam uyumluluk doğrulaması henüz tamamlanmadı.
+**Test sürümü:** bu özellikler uygulanmıştır ve SHC 1.41 ile Extreme 1.41’de test edilebilir. Tek oyunculu, çok oyunculu, Recorder tekrarları ve Automarket’i birlikte deneyin. Çok oyunculu ve Recorder kilitli değildir. Oyunun kuralları ve metin alanlarının odağı geçerliliğini korur. İnşaat, ticaret ve Automarket komutları içeren tek oyunculu kayıt başarıyla oynatıldı; kapsamlı çok oyunculu, durum geri yükleme ve uyumluluk testleri henüz tamamlanmadı.
 
-![Oyun içi kısayol seçim menüsü](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/4f5932ec3be14c1b3d6d9daf0ace7e5cf5c2e549/docs/images/hotkeys-015-extreme-ingame.png)
+![Oyun içi kısayol seçim menüsü](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/4fa5305103d4bdf9467d185da5c382ad7ba24a59/docs/images/hotkeys-016-ingame.png)
