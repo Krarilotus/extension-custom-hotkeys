@@ -174,3 +174,5 @@ branch, distinguishing the intended lord field from the following reset block,
 with relocatable operands still wildcarded. The read-only verifier now includes
 overlapping matches. Historical 0.1.7 uniqueness claims are superseded by this
 finding; previously recorded native gameplay observations remain separate.
+
+[0.1.8 validation and native startup evidence](features-0.1.8.md).
