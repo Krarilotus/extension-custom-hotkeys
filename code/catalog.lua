@@ -29,7 +29,8 @@ function M.new(entries, nativeBindings)
     local default
     if entry.default then default = assert(Binding.validate(entry.default)) end
     local a = {id=entry.id, contexts=contexts, states=states,
-      command=entry.command, behavior=behavior, default=default, label=entry.label or entry.id}
+      command=entry.command, behavior=behavior, default=default, label=entry.label or entry.id,
+      introduced=entry.introduced or 1}
     actions[a.id], ordered[#ordered+1] = a, a
   end
   local originals = {}

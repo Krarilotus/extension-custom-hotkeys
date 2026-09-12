@@ -1,4 +1,6 @@
 return {
+ gridSlot='Case de grille ',['group.grid']='Grille',
+ ['preset.game-default']='Commandes classiques',['preset.modern-rts']='STR moderne',['preset.grid']='Grille',
  profiles='Profils',
  bindings='Raccourcis',
  action='Action',

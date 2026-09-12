@@ -1,4 +1,6 @@
 return {
+ gridSlot='Casella della griglia ',['group.grid']='Griglia',
+ ['preset.game-default']='Comandi originali',['preset.modern-rts']='RTS moderno',['preset.grid']='Griglia',
  profiles='Profili',
  bindings='Scorciatoie',
  action='Azione',

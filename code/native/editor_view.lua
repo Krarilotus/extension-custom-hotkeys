@@ -272,7 +272,7 @@ function M:renderButton(id)
     for i,c in ipairs(self.controls) do if c.id==id then
       label=(c.label=='<' or c.label=='>') and c.label or self.labels(c.label)
       selected=i==self.focus;break end end
-    if id==101 or (id==118 and self.page=='bindings') then label=self.labels('profile')..': '..v.active end
+    if id==101 or (id==118 and self.page=='bindings') then label=self.labels('profile')..': '..v.activeLabel end
     if id==105 then label=self.labels('search')..': '..e.query end
     if id==106 then label=self.labels('groups')..': '..(e.group and self.labels('group.'..e.group) or self.labels('all')) end
     if self.text and ((id==104 and self.text.kind=='profile') or (id==105 and self.text.kind=='search')

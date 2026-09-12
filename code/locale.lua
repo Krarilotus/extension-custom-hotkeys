@@ -23,6 +23,11 @@ en.binding='Key';de.binding='Taste'
 en.listHint='Enter: change key / Delete: clear';de.listHint='Enter: ändern / Entf: löschen'
 en.profilesHint='Changes are saved with Apply.';de.profilesHint='Änderungen werden mit Übernehmen gespeichert.'
 local M={}
+en.gridSlot='Panel grid slot ';de.gridSlot='Rasterplatz im Menü '
+en['group.grid']='Grid';de['group.grid']='Raster'
+en['preset.game-default']='Game Default';de['preset.game-default']='Spielstandard'
+en['preset.modern-rts']='Modern RTS';de['preset.modern-rts']='Moderne RTS-Steuerung'
+en['preset.grid']='Grid';de['preset.grid']='Raster'
 en.assignGroup='Assign selection to group ';de.assignGroup='Auswahl zu Gruppe zuweisen: '
 en.recallGroup='Select group ';de.recallGroup='Gruppe auswählen: '
 en.focusGroup='Focus group ';de.focusGroup='Gruppe zeigen: '
@@ -98,6 +103,7 @@ function M.new(language,nativeText)
     end
   end
   local controls,buildings,cache={},{},{}
+  for slot=1,12 do chosen['grid.slot.'..slot]=(chosen.gridSlot or en.gridSlot)..slot end
   for group=0,9 do
     chosen['unit.group.assign.'..group]=(chosen.assignGroup or en.assignGroup)..group
     chosen['unit.group.recall.'..group]=(chosen.recallGroup or en.recallGroup)..group

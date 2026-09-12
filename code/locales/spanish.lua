@@ -1,4 +1,6 @@
 return {
+ gridSlot='Casilla de cuadrícula ',['group.grid']='Cuadrícula',
+ ['preset.game-default']='Controles originales',['preset.modern-rts']='RTS moderno',['preset.grid']='Cuadrícula',
  profiles='Perfiles',
  bindings='Atajos',
  action='Acción',

@@ -65,7 +65,7 @@ def test_unbind_reset_and_portable_import(profiles):
 
 
 @pytest.mark.parametrize('mutation', [
-    "d.schema=2", "d.profiles.Default.bindings['unknown']=false",
+    "d.schema=3", "d.profiles.Default.bindings['unknown']=false",
     "d.profiles.Default.bindings['unit.move']=nil", "d.active='missing'",
     "d.profiles['']=d.profiles.Default", "d.command='execute me'",
     "d.profiles.Default.bindings['unit.move']={scan=30,mods=0,extended=false,script='x'}",

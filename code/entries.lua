@@ -71,4 +71,8 @@ for _,control in ipairs(require('code/controls')) do
   entries[#entries+1]={id=control.id,contexts={'game.build'},states={'live-sp'},
     command=true,default=false}
 end
+for slot=1,12 do
+  entries[#entries+1]={id='grid.slot.'..slot,contexts={'game.build'},states={'live-sp'},
+    command=true,default=false,introduced=2}
+end
 return entries

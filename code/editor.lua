@@ -160,7 +160,9 @@ function M:view()
     rows[#rows+1]={index=i,id=row.id,label=row.label,group=row.group,
       selected=i==self.selected,binding=b and {scan=b.scan,extended=b.extended,mods=b.mods} or false}
   end
-  self.cachedView={rows=rows,profiles=names,active=document.active,first=self.first,
+  local preset=profile.preset and self.catalog.presets and self.catalog.presets[profile.preset]
+  local activeLabel=preset and document.active==preset.name and self.labels('preset.'..preset.id) or document.active
+  self.cachedView={rows=rows,profiles=names,active=document.active,activeLabel=activeLabel,first=self.first,
     total=#self.rows,capturing=self.capturing,error=self.error,detail=self.detail,
     closed=self.closed}
   return self.cachedView

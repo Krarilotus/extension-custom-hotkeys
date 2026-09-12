@@ -1,4 +1,6 @@
 return {
+ gridSlot='Pole siatki ',['group.grid']='Siatka',
+ ['preset.game-default']='Sterowanie klasyczne',['preset.modern-rts']='Nowoczesny RTS',['preset.grid']='Siatka',
  profiles='Profile',
  bindings='Skróty',
  action='Akcja',

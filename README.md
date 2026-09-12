@@ -36,6 +36,10 @@ they do not establish native ABI, keyboard-only or multiplayer compatibility.
 
 See [component contracts](docs/components.md) and the
 [pending manual two-PC route](docs/manual-multiplayer.md).
+The [three development presets](docs/presets.md) share the binding catalog and
+include a native-panel grid. Mouse rebinding and building/camera bookmarks remain
+required work. The [compact editor](docs/editor-layout.md) shows16 rows and reuses
+the game's native scrollbar.
 Native development evidence covers [profile editing](docs/native-editor-evidence.md)
 and [menu navigation](docs/native-navigation-evidence.md); neither is a complete
 keyboard-only acceptance pass.

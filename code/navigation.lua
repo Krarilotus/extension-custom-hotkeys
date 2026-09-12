@@ -66,5 +66,15 @@ function M:activateMatching(selector,context)
   self.address=found
   return self:activate(context)
 end
+function M:activateGrid(slot,selectors,context)
+  if self.cursor.pending or not self.adapter.gridControls then return false end
+  local rows=self.adapter.gridControls(context)
+  local address=require('code/grid').select(rows,selectors,slot)
+  if not address then return false end
+  self.context=context;self.address=address
+  -- Normal activation re-reads enabled controls, then checks identity and hit
+  -- testing again at the native input frame before submitting the click.
+  return self:activate(context)
+end
 function M:cancel() self.address=nil;self.context=nil;self.cursor:cancel() end
 return M

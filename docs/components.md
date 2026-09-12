@@ -56,9 +56,10 @@ Game-language labels and Windows key names are cached. Source language coverage
 and component encoding checks do not imply native/font/translation acceptance.
 
 Tests run production components in Lua5.4 and LuaJIT, including real temporary
-files and injected failures. Native task-only F-key diagnostics bypass physical
-lookup because the current automation backend reports scan=0; they are never
-keyboard-only acceptance and are excluded from product code. See the native
+files and injected failures. Older native task-only F-key diagnostics bypassed
+physical lookup and are excluded from product code. The user-requested separate
+SendInput scan-code test harness now exercises the actual production binding
+path; it does not establish physical-hardware acceptance. See the native
 evidence documents for observed outcomes, mouse preparation and failed checks.
 
 Remaining delivery gates include the full catalog/default/layout audit,

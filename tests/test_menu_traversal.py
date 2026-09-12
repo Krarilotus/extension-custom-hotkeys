@@ -55,3 +55,21 @@ def test_corrupt_group_skip_fails_without_reading_past_array(lua):
       local result=T.active(read,2,{tab=0,subtab=0,modal=-1,sliding=0})
       assert(result==nil)
     ''')
+
+
+def test_grid_inventory_includes_disabled_but_never_hidden_controls(lua):
+    lua.execute('''
+      local T=require('code/menu_traversal')
+      local rows={{type=0x64,parameter=1,skip=1},{type=3},
+        {type=0x64,parameter=2,skip=3},{type=3,disabled=1},
+        {type=3,inactive=1},{type=3},{type=0x66}}
+      local function read(i)
+        local r=rows[i];r.parameter=r.parameter or 0;r.skip=r.skip or 0
+        r.condition=0;r.disabled=r.disabled or 0;r.inactive=r.inactive or 0;return r
+      end
+      local state={tab=2,subtab=0,modal=-1,sliding=0}
+      local active=assert(T.active(read,#rows,state))
+      assert(#active==1 and active[1]==6)
+      local grid=assert(T.active(read,#rows,state,true))
+      assert(#grid==2 and grid[1]==4 and grid[2]==6)
+    ''')

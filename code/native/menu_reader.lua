@@ -6,7 +6,7 @@ local function n(value) return tonumber(value) end
 function M.new(manager)
   return setmetatable({manager=manager},M)
 end
-function M:read(menuAddress, state, origin)
+function M:read(menuAddress, state, origin,includeDisabled)
   if not menuAddress or menuAddress==0 then return nil,'menu.missing' end
   local menu=ffi.cast('Menu *',menuAddress)
   local array=menu[0].menuItemArray
@@ -19,7 +19,7 @@ function M:read(menuAddress, state, origin)
     return {type=n(ffi.cast('uint32_t',r.menuItemType)),parameter=n(r.callbackParameter.parameter),
       skip=n(r.firstItemTypeData.itemsToSkip),condition=n(r.field9_0x28),
       disabled=n(r.iconDeactivated_0x36),inactive=n(r.field15_0x38)}
-  end,count,state)
+  end,count,state,includeDisabled)
   if not active then return nil,err end
   local rows={}
   for _,index in ipairs(active) do
@@ -48,7 +48,8 @@ function M:read(menuAddress, state, origin)
         x=x,y=y,width=width,height=height,parameter=n(r.callbackParameter.parameter),
         action=action,
         help=n(ffi.cast('uint32_t *',ffi.cast('uint8_t *',array+index-1)+0x2c)[0]),
-        control=n(r.ucId_0x30),kind=n(r.menuItemType)%0x800000}
+        control=n(r.ucId_0x30),kind=n(r.menuItemType)%0x800000,
+        disabled=n(r.iconDeactivated_0x36)~=0}
     end
   end
   return rows

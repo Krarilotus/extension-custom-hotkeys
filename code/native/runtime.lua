@@ -16,6 +16,7 @@ function M.start(entries,language)
   local platform=Platform.new(tonumber(ffi.cast('int32_t *',0xf983e4)[0]))
   local scene=Scene.new(platform)
   local catalog=Catalog.new(entries,require('code/originals'))
+  require('code/presets').attach(catalog)
   local controls={}
   for _,control in ipairs(require('code/controls')) do controls[control.id]=control end
   local view,cursor,navigation,targeting,camera,worldActions,quickslot,lowering
@@ -28,6 +29,9 @@ function M.start(entries,language)
       if id=='menu.next' then return navigation:move(1,context) end
       if id=='menu.previous' then return navigation:move(-1,context) end
       if id=='menu.activate' or id=='game.menu.activate' then return navigation:activate(context) end
+      if id:sub(1,10)=='grid.slot.' then
+        return navigation:activateGrid(tonumber(id:sub(11)),require('code/controls'),context)
+      end
       if id:sub(1,7)=='target.' then return targeting:dispatch(id,context) end
       if id=='view.lower-buildings' then cursor:cancel();return lowering:start(context) end
       if id:sub(1,11)=='camera.pan.' then cursor:cancel();return camera:start(id,context) end
@@ -65,6 +69,12 @@ function M.start(entries,language)
     end,pointer))
   local reader=require('code/native/menu_reader').new()
   navigation=require('code/navigation').new({
+    gridControls=function(context)
+      if not context or context.owner~='game.build' then return nil end
+      local s=scene:snapshot()
+      if tostring(s.screen)~=context.screen or s.modal~=-1 or s.modal2~=-1 or s.modal3~=-1 then return nil end
+      return reader:read(remote.interface.menuAddress(s.screen),s,nil,true)
+    end,
     controls=function(context)
       if not context or (context.owner:sub(1,5)~='menu.' and context.owner~='game.build'
           and context.owner~='game.status' and context.owner~='game.options' and context.owner~='game.load') then return nil end

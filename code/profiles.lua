@@ -23,25 +23,53 @@ end
 
 function M.validate(catalog, document)
   if not fields(document, {schema=true, active=true, profiles=true})
-      or document.schema ~= 1 or not name(document.active)
+      or (document.schema ~= 1 and document.schema ~= 2) or not name(document.active)
       or type(document.profiles) ~= 'table' then return nil, 'profiles.format' end
-  local result, count = {schema=1, active=document.active, profiles={}}, 0
+  local result, count = {schema=2, active=document.active, profiles={}}, 0
   for key, profile in pairs(document.profiles) do
     count = count + 1
-    if count > 32 or not name(key) or not fields(profile, {bindings=true}) then
+    if count > (document.schema==1 and 32 or 64) or not name(key)
+        or not fields(profile, {bindings=true,preset=document.schema==2}) then
       return nil, 'profiles.name'
     end
-    local bindings, err, detail = Catalog.validate(catalog, profile.bindings)
+    if profile.preset~=nil and (type(profile.preset)~='string' or not catalog.presets
+        or not catalog.presets[profile.preset]) then return nil,'profiles.preset' end
+    local candidate=copy(profile.bindings)
+    if document.schema==1 and type(candidate)=='table' then
+      for _,action in ipairs(catalog.ordered) do
+        -- Only known additions may be absent from an older schema. They start
+        -- unbound so an upgrade cannot activate an unexpected command.
+        if action.introduced>1 and candidate[action.id]==nil then candidate[action.id]=false end
+      end
+    end
+    local bindings, err, detail = Catalog.validate(catalog, candidate)
     if not bindings then return nil, err, detail end
-    result.profiles[key] = {bindings=bindings}
+    result.profiles[key] = {bindings=bindings,preset=profile.preset}
   end
   if not result.profiles[result.active] then return nil, 'profiles.active' end
+  if document.schema==1 and catalog.presetOrder then
+    for _,preset in ipairs(catalog.presetOrder) do
+      local title,suffix=preset.name,1
+      while result.profiles[title] do
+        suffix=suffix+1;title=preset.name..' ('..suffix..')'
+      end
+      result.profiles[title]={preset=preset.id,bindings=copy(preset.bindings)}
+    end
+  end
   return result
 end
 
 function M.initial(catalog, launcherBindings)
   local bindings = assert(Catalog.validate(catalog, launcherBindings or Catalog.defaults(catalog)))
-  return {schema=1, active='Default', profiles={Default={bindings=bindings}}}
+  if not catalog.presetOrder then
+    return {schema=2, active='Default', profiles={Default={bindings=bindings}}}
+  end
+  local d={schema=2,active='Game Default',profiles={}}
+  for _,preset in ipairs(catalog.presetOrder) do
+    d.profiles[preset.name]={preset=preset.id,bindings=copy(preset.bindings)}
+  end
+  if launcherBindings then d.active='Launcher';d.profiles.Launcher={bindings=bindings} end
+  return d
 end
 
 function M.new(catalog, store, router, launcherBindings)
@@ -54,7 +82,8 @@ function M.new(catalog, store, router, launcherBindings)
   local valid, problem = M.validate(catalog, document)
   if not valid then return nil, problem end
   self.committed = valid
-  assert(router:apply(valid.profiles[valid.active].bindings))
+  local active=valid.profiles[valid.active]
+  assert(router:apply(active.bindings,{nativeAliases=active.preset=='game-default'}))
   return self
 end
 
@@ -117,12 +146,14 @@ function M:reassign(action, binding, displaced, replacement)
 end
 
 function M:reset(action)
-  if action then
-    if not self.catalog.actions[action] then return nil, 'profile.unknown-action' end
-    return self:bind(action, self.catalog.actions[action].default or false)
-  end
   return self:edit(function(d)
-    d.profiles[d.active].bindings = Catalog.defaults(self.catalog)
+    local profile=d.profiles[d.active]
+    local defaults=profile.preset and self.catalog.presets[profile.preset].bindings
+      or Catalog.defaults(self.catalog)
+    if action then
+      if not self.catalog.actions[action] then return nil,'profile.unknown-action' end
+      profile.bindings[action]=copy(defaults[action])
+    else profile.bindings=copy(defaults) end
     return true
   end)
 end
@@ -140,7 +171,7 @@ end
 
 function M:export()
   local document = self.draft or self.committed
-  return {schema=1, active=document.active,
+  return {schema=2, active=document.active,
     profiles={[document.active]=copy(document.profiles[document.active])}}
 end
 
@@ -151,7 +182,8 @@ function M:apply()
   self.router:barrier()
   local ok, problem = self.store:save(valid)
   if not ok then return nil, problem end
-  assert(self.router:apply(valid.profiles[valid.active].bindings))
+  local active=valid.profiles[valid.active]
+  assert(self.router:apply(active.bindings,{nativeAliases=active.preset=='game-default'}))
   self.committed = valid
   self.draft = nil
   return true

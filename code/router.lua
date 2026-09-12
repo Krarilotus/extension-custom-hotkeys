@@ -51,16 +51,32 @@ function M:cancelHold(held)
   if not ok then self.blocked = true end
 end
 
-function M:apply(bindings)
+function M:apply(bindings,options)
   local normalized, err, detail = Catalog.validate(self.catalog, bindings)
   if not normalized then return nil, err, detail end
   self:barrier()
-  self.bindings, self.index = normalized, {}
+  self.bindings, self.index, self.nativeMasks = normalized, {}, {}
   for id, binding in pairs(normalized) do
     if binding then
       local key = Binding.key(binding)
       self.index[key] = self.index[key] or {}
       table.insert(self.index[key], self.catalog.actions[id])
+    end
+  end
+  local nativeAssignments={}
+  if options and options.nativeAliases==true then
+    for _,original in ipairs(self.catalog.originals) do
+      if Binding.same(normalized[original.action] or nil,original.binding) then
+        nativeAssignments[original.action]=true
+      end
+    end
+  end
+  for _,original in ipairs(self.catalog.originals) do
+    if not original.retain and not nativeAssignments[original.action]
+        and not Binding.same(normalized[original.action] or nil,original.binding) then
+      local key=Binding.key(original.binding)
+      self.nativeMasks[key]=self.nativeMasks[key] or {}
+      table.insert(self.nativeMasks[key],self.catalog.actions[original.action])
     end
   end
   return true
@@ -176,10 +192,8 @@ function M:handle(event)
     end
   end
   if not chosen then
-    for _, original in ipairs(self.catalog.originals) do
-      if not original.retain and Binding.key(original.binding) == physical + 256 * event.mods
-          and Context.allows(self.catalog.actions[original.action], context)
-          and not Binding.same(self.bindings[original.action] or nil, original.binding) then
+    for _, action in ipairs(self.nativeMasks[physical + 256 * event.mods] or {}) do
+      if Context.allows(action, context) then
         if not Context.same(context, self:readContext()) then self:barrier(); return false end
         held.consumed = true
         return true
