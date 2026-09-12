@@ -7,7 +7,7 @@ The native acceptance ledger remains authoritative.
 
 Commit the intended source, then run `python tools/build.py`. The builder reads
 that exact Git commit, excludes working changes and creates
-`dist/custom-hotkeys-0.1.1.zip` plus its SHA-256/file manifest. It does not bundle
+`dist/custom-hotkeys-0.1.2.zip` plus its SHA-256/file manifest. It does not bundle
 licensed game files, dependency binaries, task diagnostics or saved profiles.
 The ZIP has the standard UCP module root (`definition.yml`, `config.yml`,
 `init.lua`, `code/`). The same `files.xml` controls both the local builder and
@@ -20,11 +20,15 @@ This version requires UCP3.0.7 or later, UI1.0.1, LuaJIT1.0.0, cffi1.0.0,
 winProcHandler1.0.0 and graphicsApiReplacer1.3.0. The exact reference SHC1.41
 image hash is checked at runtime; Extreme and other images are rejected.
 
-Before launching, disable UCP2-Legacy's hotkey option `o_keys.enabled`. Other
-Legacy settings are not rewritten. An active or unverifiable Legacy hotkey
-configuration fails at module load, before extension enable callbacks. The
-current Recorder combination is also rejected until its lifecycle API is
-available and integrated. Correct the configuration and start a new process;
+The module's required configuration sets UCP2-Legacy's hotkey option
+`o_keys.enabled=false` when Legacy is present. Other Legacy settings are not
+rewritten. An active or unverifiable Legacy hotkey configuration fails at module
+load, before extension enable callbacks. Recorder is optional; when present it
+must expose input-state API version1 and finish initialization successfully.
+The prerequisite Recorder 0.50.4 implementation and bounded single-player checks
+are described in [Recorder integration](recorder-integration.md). Recorder 0.50.3
+and the published Hotkeys 0.1.1 ZIP do not support this combination.
+Correct an incompatible configuration and start a new process;
 neither implementation can safely be removed from a running game's input chain.
 
 The in-game entry is on the main menu, with F12 as the development binding.

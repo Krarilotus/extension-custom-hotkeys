@@ -5,8 +5,8 @@ desktop ownership is assumed. Obtain that PC's actual testing owner and queue
 before testing. One person should own input on each PC for the entire short run.
 
 Do not start this checklist until the extension has an installable, identified
-artifact and the single-PC keyboard route has passed. The current component
-code is not such an artifact. Record failures without changing acceptance to pass.
+artifact and the single-PC keyboard route has passed. The current preview still
+rejects live multiplayer dispatch. Record failures without changing acceptance to pass.
 
 ## Freeze the test environment
 
@@ -41,6 +41,7 @@ the intended unit selection before comparing mouse and hotkey submissions.
 | MP-08 | Cover gameplay with each available modal, change selection/targeting context, lose/regain focus with keys held | Only the current screen/control owner receives input. A new press is required after transition. No duplicate or delayed batch. |
 | MP-09 | Invoke configured quicksave/quickload from MP, then test the game's supported host save/load continuation with both peers | Unsupported SP quick paths reject. Supported continuation uses the existing session owner, with peer agreement and no stray held-input commands across load. |
 | MP-10 | End normally; restart with the same installation and resume a second short run | Both local profiles persist independently; no stuck keys or changed simulation configuration. |
+| MP-11 | Enable Automarket 1.1.0 with protocol/map-extensions 1.0.0 on both peers; commit one policy per player, let a weekly trade occur, then restore/replay | Each 272-byte commit is attributed to its owning player and captured once. Both peers reproduce the same policy, fee and resource changes. Weekly trades are simulation work and are not injected a second time. |
 
 For an action that natively submits one command per selected unit, compare the
 **whole native batch once**. A blanket assertion of one packet per key would
@@ -67,8 +68,10 @@ running. Older stage-one documentation does not establish current playback suppo
 
 ## Replay and restore
 
-The recorder must expose a supported read-only playback/lifecycle contract first.
-Coordination: https://github.com/Corax34/ucp_recorder/pull/46#issuecomment-5633066233.
+The recorder must expose input-state API version1. The prerequisite implementation
+is [Recorder fork PR2](https://github.com/Krarilotus/ucp_recorder/pull/2), stacked
+on upstream PR46. See [bounded SP evidence](recorder-integration.md); it is not
+a two-peer or complete Hotkeys acceptance pass.
 Do not add a competing recorder load/tick/seek hook to run these tests.
 
 Record representative hotkey workflows. Play with a different profile, including
