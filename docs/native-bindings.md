@@ -38,6 +38,18 @@ and the shared winProcHandler chain remain in use. Legacy source is unchanged.
 
 ## Verification
 
+The 0.1.7 editor follow-up uses the native display-element getter/setter for
+world-hover element21. UI1.0.1's actual `ui/game.lua`, header and manager, and
+Automarket's callers expose no display-element visibility API. The native
+getter/setter bodies and Build-menu preparation calls were inspected: element21
+uses enable values0/1, is local rendering state, and submits no game command.
+UCP discovers both functions once; their full semantic patterns match uniquely
+in both local fixtures. No render hook, copied display registry or polling is
+added. Opening the editor remembers enabled visibility and hides only this
+banner; closing/restoring ownership restores it only on the same screen and
+Recorder input generation. A new world/view retains its own initialized state.
+Native validation of this follow-up is pending.
+
 The actual UCP AOBExtract utility resolved all 169 bindings against both local
 Crusader 1.41 (`3bb0a8c1…`) and Extreme (`55648e6b…`) images. Each of the 153
 scanned patterns had exactly one match in each mapped image; all reference

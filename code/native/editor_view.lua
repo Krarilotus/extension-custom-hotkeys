@@ -20,6 +20,8 @@ function M.new(profiles,catalog,router,scene,platform,labels)
   self.modalID=manager.getAvailableModalMenuID(2041)
   local function pin(value) self.pins[#self.pins+1]=value;return value end
   self.resetMouse=ffi.cast('void (__thiscall *)(void *)',A.resetMouse)
+  self.displayVisible=ffi.cast('int (__cdecl *)(int)',A.displayElementVisible)
+  self.setDisplay=ffi.cast('void (__cdecl *)(int,int)',A.setDisplayElement)
   self.controls={}
   local action=pin(ffi.cast('void (__cdecl *)(int)',function(id)
     local ok,err=pcall(self.activate,self,id)
@@ -92,6 +94,13 @@ function M:open()
   self.focus,self.text,self.error,self.opened=4,nil,nil,true
   self.parentScreen=self.scene.current.screen
   game.UI.activateModalMenu(game.UI.MenuModalComposition1,self.modalID,false)
+  -- Native display21 is the world hover banner. Preserve its native enable
+  -- state while this editor covers the world, rather than painting over it.
+  if (self.parentScreen==14 or self.parentScreen==16) and self.displayVisible(21)~=0 then
+    self.hoverGeneration=self.scene.current.inputGeneration
+    self.restoreHoverDisplay=true
+    self.setDisplay(21,0)
+  end
   self.resetMouse(game.Input.mouseState)
   return true
 end
@@ -100,10 +109,21 @@ function M:close(apply)
   if self.controller.capturing then self.controller:cancelCapture() end
   if apply and not self.controller:apply() then return false end
   if not apply then self.controller:cancel() end
+  self:restoreHover(self.scene:snapshot())
   self.router:barrier();self.opened=false;self.text=nil
   game.UI.activateModalMenu(game.UI.MenuModalComposition1,-1,false)
   self.resetMouse(game.Input.mouseState)
   return true
+end
+function M:restoreHover(snapshot)
+  local restore=self.restoreHoverDisplay
+  self.restoreHoverDisplay=false
+  -- A replacement world/view initializes its own displays. Do not overwrite
+  -- that state with visibility remembered before a load or Recorder restore.
+  if restore and snapshot.screen==self.parentScreen
+      and snapshot.inputGeneration==self.hoverGeneration and self.displayVisible(21)==0 then
+    self.setDisplay(21,1)
+  end
 end
 function M:setPage(page)
   assert(self.tables[page],'editor.page')

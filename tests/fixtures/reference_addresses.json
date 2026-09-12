@@ -168,5 +168,7 @@
   "tribeStride": 820,
   "tribeCapacity": 1250,
   "selectionBytes": 400,
-  "clearLocalSelection": 5460304
+  "clearLocalSelection": 5460304,
+  "displayElementVisible": 4912864,
+  "setDisplayElement": 4912720
 }

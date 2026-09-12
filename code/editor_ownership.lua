@@ -4,6 +4,7 @@ local M={}
 function M.reconcile(view,snapshot)
   if not view.opened then return false end
   if snapshot.screen==view.parentScreen and snapshot.modal==view.modalID then return true end
+  if view.restoreHover then view:restoreHover(snapshot) end
   view.opened=false
   view.text=nil
   view.router:barrier()
