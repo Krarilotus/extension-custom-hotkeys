@@ -7,8 +7,9 @@ end
 -- Shared session/world validation. This does not authorize an input owner;
 -- callers must separately prove the actual modal/text/control ownership.
 function M.live(s,allowPaused)
-  if (s.screen~=14 and s.screen~=16) or s.mode==1
-      or not integer(s.mode,0,6) or (s.synchronyMode~=0 and s.synchronyMode~=99)
+  if (s.screen~=14 and s.screen~=16)
+      or not integer(s.mode,0,6)
+      or (s.synchronyMode~=0 and s.synchronyMode~=1 and s.synchronyMode~=99)
       or s.inGame~=1 or s.syncStatus~=0 or s.saveRelated~=0
       or (s.paused~=0 and not (allowPaused and s.paused==1))
       or s.halted~=0 or s.sliding~=0
@@ -27,7 +28,8 @@ function M.live(s,allowPaused)
       or not integer(s.unitModeAux,-2147483648,2147483647) then return false end
   return true
 end
--- Positive live-SP gate; native mode alone does not prove replay/MP eligibility.
+-- Synchrony GameMode: 0 solitary, 1 multiplayer, 99 skirmish single-player.
+-- End-of-game values 2/666 remain ineligible. Recorder owns playback eligibility.
 function M.resolve(s,ownedModal)
   local options=ownedModal==5 and Options.owns(s)
   local load=ownedModal==9 and Load.owns(s)
@@ -37,7 +39,8 @@ function M.resolve(s,ownedModal)
       or s.modal2~=-1 or s.modal3~=-1
       or (s.textModal~=0 and not options and not load) or s.textEditor~=0 then return nil end
 
-  return {owner=options and 'game.options' or load and 'game.load' or (s.screen==14 and 'game.build' or 'game.status'),state='live-sp',authority=true,
+  return {owner=options and 'game.options' or load and 'game.load' or (s.screen==14 and 'game.build' or 'game.status'),
+    state=s.synchronyMode==1 and 'live-mp' or 'live-sp',authority=true,
     selection=load and Load.identity(s) or table.concat({s.player,s.building,s.unit,s.tribe,s.selectedCount,s.selectedLast},':')..':'..s.selectionBits,
     -- Camera position changes during a local pan hold. Queued world clicks
     -- carry their own projection guard; a pan must not cancel itself.

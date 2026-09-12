@@ -40,3 +40,24 @@ def test_profile_import_rejects_malformed_utf8_names(lua):
         assert(not Profiles.validate(catalog,document))
       end
     ''')
+
+
+def test_every_game_catalog_defines_all_keys_without_english_fallback(lua):
+    lua.execute('''
+      local locale=require('code/locale')
+      local function chosen(fn)
+        for i=1,20 do
+          local name,value=debug.getupvalue(fn,i)
+          if name=='chosen' then return value end
+        end
+        error('locale catalog missing')
+      end
+      local english=chosen(locale.new('english'))
+      for _,language in ipairs({'american','german','french','italian','spanish','polish'}) do
+        local catalog=chosen(locale.new(language))
+        for key in pairs(english) do
+          assert(type(catalog[key])=='string' and #catalog[key]>0,language..':'..key)
+        end
+        assert(catalog.nativeKey:match('%%s') and catalog.nativeAgain:match('%%s'))
+      end
+    ''')

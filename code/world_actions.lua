@@ -8,7 +8,7 @@ local function integer(n,lo,hi) return type(n)=='number' and n==math.floor(n) an
 function M.new(adapter) return setmetatable({adapter=adapter},M) end
 function M:dispatch(id,context)
   local a=self.adapter
-  if not context or context.state~='live-sp' or not context.authority
+  if not context or (context.state~='live-sp' and context.state~='live-mp') or not context.authority
       or (context.owner~='game.build' and context.owner~='game.status')
       or not Context.same(context,Context.resolve(a.resolve())) then return false end
   local s=a.snapshot()

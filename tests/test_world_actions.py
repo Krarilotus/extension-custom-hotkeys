@@ -18,6 +18,21 @@ def setup(lua):
     ''')
 
 
+def test_multiplayer_stance_uses_same_native_dispatch_once_and_rechecks_authority(lua):
+    setup(lua)
+    lua.execute('''
+      raw.state='live-mp';c=Context.resolve(raw)
+      assert(world:dispatch('unit.stance.defensive',c))
+      assert(#calls==1 and calls[1][1]=='stance' and calls[1][3]==1)
+      raw.authority=false;c=Context.resolve(raw)
+      assert(not world:dispatch('unit.stance.defensive',c));assert(#calls==1)
+      raw.authority=true;raw.state='replay';c=Context.resolve(raw)
+      assert(not world:dispatch('unit.stance.defensive',c));assert(#calls==1)
+      raw.state='live-mp';c=Context.resolve(raw);s.tribeOwner=2
+      assert(not world:dispatch('unit.stance.defensive',c));assert(#calls==1)
+    ''')
+
+
 def test_group_assignment_rechecks_selection_and_calls_native_owner_once(lua):
     setup(lua)
     lua.execute('''

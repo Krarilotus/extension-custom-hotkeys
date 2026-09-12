@@ -4,9 +4,10 @@ Status: **not run; deferred to the user**. No second computer or `replay-peer`
 desktop ownership is assumed. Obtain that PC's actual testing owner and queue
 before testing. One person should own input on each PC for the entire short run.
 
-Do not start this checklist until the extension has an installable, identified
-artifact and the single-PC keyboard route has passed. The current preview still
-rejects live multiplayer dispatch. Record failures without changing acceptance to pass.
+Version 0.1.3 enables live multiplayer testing at the user's request. Use the
+identified preview ZIP and record failures without changing acceptance to pass.
+Single-PC keyboard and two-peer acceptance remain incomplete. Replay input, text
+focus and native session save/load restrictions remain enforced.
 
 ## Freeze the test environment
 

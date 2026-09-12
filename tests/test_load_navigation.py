@@ -30,7 +30,7 @@ def test_load_owner_has_only_navigation_and_rejects_text_and_session_changes(lua
       end
       for field,value in pairs({modal=10,activeModalID=10,activeModalMenu=0xb96290,
           loadArray=0x6022f8,textModal=10,textIndex=2,textState=3,textEditor=1,
-          modal2=11,modal3=27,synchronyMode=1,focused=false,composing=true,
+          modal2=11,modal3=27,synchronyMode=2,focused=false,composing=true,
           loadCount=501,loadRows=17,loadOffset=2,loadSelected=2,loadIdentity='',
           delay=0,newPlayer=1,screen=17,saveRelated=1,halted=1}) do
         local old=s[field];s[field]=value

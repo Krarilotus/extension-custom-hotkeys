@@ -11,7 +11,7 @@ def setup(lua):
     ''')
 
 
-def test_gameplay_requires_all_native_facts_and_rejects_unintegrated_sessions(lua):
+def test_gameplay_requires_all_native_facts_and_rejects_finished_sessions(lua):
     setup(lua)
     lua.execute('''
       local original=assert(Gameplay.resolve(s))
@@ -19,11 +19,11 @@ def test_gameplay_requires_all_native_facts_and_rejects_unintegrated_sessions(lu
       for key,value in pairs(s) do
         s[key]=nil;assert(not Gameplay.resolve(s),key);s[key]=value
       end
-      for _,mode in ipairs({1,2,666,999}) do
+      for _,mode in ipairs({2,666,999}) do
         s.synchronyMode=mode;assert(not Gameplay.resolve(s))
       end
       s.synchronyMode=99;assert(Gameplay.resolve(s))
-      s.mode=1;assert(not Gameplay.resolve(s))
+      s.synchronyMode=1;s.mode=1;assert(Gameplay.resolve(s).state=='live-mp')
     ''')
 
 
@@ -46,6 +46,33 @@ def test_gameplay_text_pause_authority_and_transition_gates(lua):
     ''')
 
 
+def test_multiplayer_catalog_and_text_ownership_keep_native_save_load_restrictions(lua):
+    setup(lua)
+    lua.execute('''
+      s.synchronyMode=1;s.mode=1
+      local resolved=assert(Gameplay.resolve(s))
+      local context=Context.resolve(facts(resolved.owner,resolved.state))
+      local catalog=Catalog.production()
+      local singlePlayer={['game.quicksave']=true,['game.quickload']=true,
+        ['game.save.open']=true,['game.load.open']=true}
+      for id,action in pairs(catalog.actions) do
+        if action.states['live-sp'] then
+          assert((action.states['live-mp']==true)==not singlePlayer[id],id)
+        end
+      end
+      for _,id in ipairs({'hotkeys.open','camera.pan.up','target.confirm',
+          'unit.stance.defensive','menu.build.industry'}) do
+        assert(Context.allows(catalog.actions[id],context),id)
+      end
+      for _,field in ipairs({'textModal','textEditor','paused','halted','syncStatus',
+          'playerDead','playerDisabled','newPlayer'}) do
+        s[field]=1;assert(not Gameplay.resolve(s),field);s[field]=0
+      end
+      s.focused=false;assert(not Gameplay.resolve(s));s.focused=true
+      s.modal=2041;assert(not Gameplay.resolve(s))
+    ''')
+
+
 def test_options_owns_only_its_verified_active_modal_and_has_no_world_actions(lua):
     setup(lua)
     lua.execute('''
@@ -63,7 +90,7 @@ def test_options_owns_only_its_verified_active_modal_and_has_no_world_actions(lu
         assert(not Context.allows(c.actions[id],context),id)
       end
       for field,value in pairs({activeModalID=10,activeModalMenu=0,textModal=10,
-          textEditor=1,modal2=11,modal3=27,synchronyMode=1,focused=false,
+          textEditor=1,modal2=11,modal3=27,synchronyMode=2,focused=false,
           composing=true,delay=0,newPlayer=1,screen=17}) do
         local old=s[field];s[field]=value
         assert(not Gameplay.resolve(s,5),field);s[field]=old

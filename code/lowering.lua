@@ -3,7 +3,7 @@ local M={}
 M.__index=M
 function M.new(adapter) return setmetatable({adapter=adapter,active=false},M) end
 function M:start(context)
-  if self.active or not context or context.state~='live-sp'
+  if self.active or not context or (context.state~='live-sp' and context.state~='live-mp')
       or (context.owner~='game.build' and context.owner~='game.status')
       or not Context.same(context,Context.resolve(self.adapter.resolve()))
       or not self.adapter.available() then return false end

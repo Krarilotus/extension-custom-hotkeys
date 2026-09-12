@@ -1,4 +1,5 @@
 return {
+ text='Tekst',['menu.back']='Wstecz',['editor.capture']='Zmień wybrany skrót',
  ['group.navigation']='Menu',
  ['group.saving']='Zapis / odczyt',
  ['group.selection']='Grupy',

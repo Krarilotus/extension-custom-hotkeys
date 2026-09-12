@@ -1,4 +1,5 @@
 return {
+ text='Texto',['menu.back']='Atrás',['editor.capture']='Cambiar el atajo seleccionado',
  ['group.navigation']='Menús',
  ['group.saving']='Guardar / cargar',
  ['group.selection']='Grupos',

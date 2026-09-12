@@ -28,7 +28,7 @@ those additions remains pending.
 
 Activate the module in UCP and start the game: no additional launcher switch or
 customization options are needed. Open **Custom Hotkeys** from the main menu or
-press **F12** in a supported menu/live single-player game. **Ctrl+Shift+F12** is
+press **F12** in a supported menu/live single-player or multiplayer game. **Ctrl+Shift+F12** is
 the recovery shortcut if F12 was reassigned. Change bindings and select **Apply**
 to save them. The editor uses the **game language**, read through UCP after game
 initialization. Store descriptions use the launcher's language.

@@ -40,7 +40,9 @@ def test_lowering_cancels_for_text_modal_focus_and_generation_changes(lua):
       for _,owner in ipairs({'game.load','game.options','hotkeys.editor','menu.main'}) do
         raw=facts(owner);assert(not start())
       end
-      raw=facts('game.build','live-mp');assert(not start())
+      raw=facts('game.build','live-mp');assert(start())
+      raw.state='replay';lowering:beforeFrame(Context.resolve(raw))
+      assert(not lowering.active and not flag and modes[#modes]==4)
     """)
 
 

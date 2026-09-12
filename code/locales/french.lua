@@ -1,4 +1,5 @@
 return {
+ text='Texte',['menu.back']='Retour',['editor.capture']='Modifier le raccourci sélectionné',
  ['group.navigation']='Menus',
  ['group.saving']='Sauver / charger',
  ['group.selection']='Groupes',

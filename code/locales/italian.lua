@@ -1,4 +1,5 @@
 return {
+ text='Testo',['menu.back']='Indietro',['editor.capture']='Modifica il tasto selezionato',
  ['group.navigation']='Menu',
  ['group.saving']='Salva / carica',
  ['group.selection']='Gruppi',
