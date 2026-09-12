@@ -1,6 +1,6 @@
 # Custom Hotkeys
 
-**Kurzfassung:** 0.1.3 gibt Multiplayer zum Testen frei und funktioniert mit der beigelegten Recorder-Vorschau 0.50.4. Aktivieren, F12 drücken, ändern und übernehmen. Die Multiplayer-Abnahme steht noch aus.
+**Kurzfassung:** 0.1.4 gibt Multiplayer und Recorder-Kombinationen zum Testen frei. Hotkeys verlangt keine bestimmte Recorder-API mehr und sperrt seine Aktionen nicht wegen einer laufenden Wiedergabe. Modul aktivieren, F12 drücken, ändern und übernehmen.
 
 Tastenkürzel direkt im Spiel ändern und eigene Profile speichern. Enthält die Tastaturprofile Spielstandard, Moderne RTS-Steuerung und Raster.
 
@@ -8,6 +8,6 @@ Das Modul in UCP aktivieren und das Spiel starten: Es ist sofort aktiv, ohne zus
 
 UCP2-Legacy wird **nicht benötigt**. Wenn es aktiv ist, müssen seine Hotkey-Änderungen (`o_keys.enabled`) **ausgeschaltet** sein. Custom Hotkeys schreibt diesen Wert vor und prüft ihn vor der Aktivierung. Konflikte beheben und das Spiel neu starten.
 
-**Testversion:** Mausbelegung, Gebäudegruppen, Kameralesezeichen und vollständige Tastaturabläufe sind noch in Entwicklung. Multiplayer ist zum Testen freigegeben. Für Recorder die beigelegte Vorschau 0.50.4 installieren. Live-Aktionen während der Wiedergabe und nicht unterstützte Multiplayer-Speicher-/Ladekürzel bleiben gesperrt. Nur SHC 1.41; diese Testversion unterstützt Extreme nicht.
+**Testversion:** Mausbelegung, Gebäudegruppen, Kameralesezeichen und vollständige Tastaturabläufe sind noch in Entwicklung. Einzelspieler, Multiplayer, Recorder-Wiedergabe und Automarket-Kombinationen testen. Dieser Build enthält keine Recorder-Versions- oder Wiedergabesperre. Die Verfügbarkeit der Spielaktionen und die Zuständigkeit der Eingabefelder gelten weiterhin. Nur SHC 1.41; diese Testversion unterstützt Extreme nicht.
 
 ![Tastenkürzel-Auswahlmenü im Spiel](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/f67fc6d9779f8ffe12b6ebd72462f317a565a160/docs/images/hotkeys-ingame.jpg)

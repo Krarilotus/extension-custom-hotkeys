@@ -21,7 +21,7 @@ function M.new(scene,view,world,cursor,reader)
   local ownReturn=false
   local function snapshot(token)
     local s=NativeGameplay.snapshot(scene:snapshot())
-    if not s or s.inputBlocked or s.inputGeneration~=token.inputGeneration
+    if not s or s.inputGeneration~=token.inputGeneration
         or not Gameplay.live(s,true) or s.screen~=token.screen or s.mode~=token.mode
         or s.player~=token.player or s.synchronyMode~=token.synchronyMode
         or s.platformGeneration~=token.platformGeneration or s.width~=token.width or s.height~=token.height

@@ -74,7 +74,7 @@ def test_bootstrap_uses_ucp_game_language_only_after_init(lua):
 ])
 def test_activation_resolution_instructions_are_localized(lua, language, encoding):
     labels = lua.eval("require('code/activation_text').new")(language)
-    for key in ['activation.legacy-hotkeys', 'activation.recorder-api',
+    for key in ['activation.legacy-hotkeys',
                 'activation.config-unavailable', 'restart']:
         text = labels(key)
         assert text != key

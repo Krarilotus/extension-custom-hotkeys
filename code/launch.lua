@@ -28,7 +28,7 @@ function M.prepare(modulePath)
       local text=f:read('*all');f:close();return text
     end,
     interface={env=_ENV,extra={manager=access.manager,chain=function() return chain end,
-      recorderInputState=function() return recorder and recorder.read() end,
+      recorderInputGeneration=function() return recorder and recorder.read() or 0 end,
       installInputFrame=function(callback) return require('code/input_patch').install(core,callback) end,
       menuAddress=function(id)
         local p=access.manager.lookupMenu(id)
@@ -60,11 +60,7 @@ function M.prepare(modulePath)
 end
 
 function M.start(prepared)
-  local compatible,recorder=pcall(require('code/recorder').connect,modules,allActiveExtensions)
-  if not compatible then
-    error(require('code/activation_text').new(data.version.getGameLanguage())('activation.recorder-api')
-      ..' ['..tostring(recorder)..']')
-  end
+  local recorder=require('code/recorder').connect(modules,allActiveExtensions)
   prepared.connectRecorder(recorder)
   local state=prepared.state
   local receipt=state:executeString([[

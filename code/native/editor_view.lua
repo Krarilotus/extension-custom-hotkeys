@@ -79,7 +79,7 @@ end
 function M:owns()
   local s=self.scene:snapshot()
   require('code/editor_ownership').reconcile(self,s)
-  return not s.inputBlocked and self.opened and self.platform:focused() and s.modal==self.modalID
+  return self.opened and self.platform:focused() and s.modal==self.modalID
     and s.modal2==-1 and s.modal3==-1 and s.textModal==0 and s.textEditor==0
     and s.delay==-1 and s.newPlayer==0 and s.screen==self.parentScreen
 end

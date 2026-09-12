@@ -1,5 +1,9 @@
 # Recorder integration in development
 
+Historical 0.1.2/0.1.3 contract below. The user-requested
+[0.1.4 tester build](unrestricted-preview.md) makes the API optional and removes
+Hotkeys' playback input lock; those earlier protection claims do not apply to it.
+
 Custom Hotkeys now uses Recorder's input lifecycle API version1 rather than
 rejecting Recorder by name. Recorder remains optional. When enabled, it must
 expose the verified API and finish startup before Hotkeys installs its hooks.

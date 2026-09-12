@@ -5,15 +5,15 @@ downloadable test ZIP are being prepared; public Store publication remains held.
 Do not advertise keyboard-only, multiplayer, replay or Extreme compatibility.
 The native acceptance ledger remains authoritative.
 
-Version 0.1.3 enables multiplayer preview testing without a separate option.
-Recorder remains optional; when enabled, use the paired Recorder 0.50.4 preview
-with the input lifecycle API. Older Recorder versions cannot safely establish
-playback input ownership. Replay protection, text/modal/focus validation and
-native single-player save/load restrictions remain in force.
+Version 0.1.4 is the unrestricted integration tester build: no Recorder API
+version requirement and no Hotkeys playback-status lock. Optional Recorder
+lifecycle notifications still cancel old gestures across world replacement.
+Native screen/control eligibility, text focus and existing game save/load
+availability remain the behavior of the implemented actions.
 
 Commit the intended source, then run `python tools/build.py`. The builder reads
 that exact Git commit, excludes working changes and creates
-`dist/custom-hotkeys-0.1.3.zip` plus its SHA-256/file manifest. It does not bundle
+`dist/custom-hotkeys-0.1.4.zip` plus its SHA-256/file manifest. It does not bundle
 licensed game files, dependency binaries, task diagnostics or saved profiles.
 The ZIP has the standard UCP module root (`definition.yml`, `config.yml`,
 `init.lua`, `code/`). The same `files.xml` controls both the local builder and

@@ -1,6 +1,6 @@
 # Custom Hotkeys
 
-**Röviden:** A 0.1.3 lehetővé teszi a többjátékos tesztelést, és működik a mellékelt Recorder 0.50.4 tesztverzióval. Aktiváld, nyisd meg F12-vel, módosíts és alkalmazd. A többjátékos ellenőrzés még hátravan.
+**Röviden:** A 0.1.4 megnyitja a többjátékos és Recorder-kombinációk tesztelését. A Hotkeys már nem követel meg adott Recorder API-t, és visszajátszás miatt sem tiltja a műveleteit. Aktiváld, nyisd meg F12-vel, módosíts és alkalmazd.
 
 Módosítsd a gyorsbillentyűket a játékban, és ments saját profilokat. Három billentyűzetkiosztást tartalmaz: eredeti játékvezérlés, modern RTS és rács.
 
@@ -8,6 +8,6 @@ Aktiváld a modult az UCP-ben, majd indítsd el a játékot: azonnal működik, 
 
 Az UCP2-Legacy **nem szükséges**. Ha aktív, a gyorsbillentyű-módosításait (`o_keys.enabled`) **ki kell kapcsolni**. A modul ezt az értéket megköveteli és aktiválás előtt ellenőrzi. Oldd fel az ütközéseket, majd indítsd újra a játékot.
 
-**Tesztverzió:** az egérgombok átállítása, az épületcsoportok, a mentett kamerapozíciók és a teljes billentyűzetes kezelés még fejlesztés alatt áll. A többjátékos tesztelés engedélyezett. Recorder használatához telepítsd a mellékelt 0.50.4 tesztverziót. Visszajátszás közben az élő játékműveletek és a nem támogatott többjátékos mentési/betöltési gyorsbillentyűk tiltva maradnak. Csak SHC 1.41; az Extreme nem támogatott.
+**Tesztverzió:** az egérgombok átállítása, az épületcsoportok, a mentett kamerapozíciók és a teljes billentyűzetes kezelés még fejlesztés alatt áll. Teszteld az egyjátékos és többjátékos módot, a Recorder-visszajátszást és az Automarket-kombinációkat. Ez a verzió nem tilt Recorder-verzió vagy visszajátszás alapján. A játék vezérlőinek elérhetősége és a szövegmezők beviteli fókusza továbbra is érvényes. Csak SHC 1.41; az Extreme nem támogatott.
 
 ![Gyorsbillentyűk kiválasztása a játékban](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/f67fc6d9779f8ffe12b6ebd72462f317a565a160/docs/images/hotkeys-ingame.jpg)

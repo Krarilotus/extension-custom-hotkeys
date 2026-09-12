@@ -14,7 +14,7 @@ local M={}
 function M.start(language)
   local lock=assert(require('code/native/profile_lock').acquire())
   local platform=Platform.new(tonumber(ffi.cast('int32_t *',0xf983e4)[0]))
-  local scene=Scene.new(platform,function() return remote.interface.recorderInputState() end)
+  local scene=Scene.new(platform,function() return remote.interface.recorderInputGeneration() end)
   local catalog=Catalog.production()
   local selectors=require('code/controls')
   local controls={}

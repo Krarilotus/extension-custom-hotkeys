@@ -4,6 +4,8 @@ Development of one UCP3 extension for in-game rebinding, persistent local profil
 and keyboard access to native menus, building placement and unit targeting.
 
 This is an incomplete test version, not an accepted release.
+The [0.1.4 integration tester build](docs/unrestricted-preview.md) enables
+multiplayer and removes Hotkeys' Recorder API/version and playback input locks.
 Native actions must retain the game's validation, authority and synchronized
 command path. Legacy hotkey modifications must be disabled before activation.
 
