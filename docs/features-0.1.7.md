@@ -16,17 +16,42 @@ See [the binding and reuse review](native-bindings.md).
 
 ## Exact tested package
 
-- Runtime: `83990c3fc2ea0210a6dd0eb1af1170e4bef56565`.
-- ZIP: **101,614 bytes**, SHA256
-  `d2ae2fecb9a838fcd498db2eff122943d0903c7ace9a353945f613975624878d`.
-- **581 component tests passed** on Lua 5.4 and LuaJIT 2.1. Exact-runtime CI passed.
+- Runtime: `2ed6d48274261923081b7e9e9e0138b651977c4f`.
+- ZIP: **112,151 bytes**, SHA256
+  `0c1d2ff48f45be2a1152363a2983303bd724f39dcccb30c7f15f863585285d98`.
+- **605 component tests passed** on Lua 5.4 and LuaJIT 2.1. Exact-runtime CI passed.
 - Actual UCP AOBExtract resolved **171 named bindings / 155 unique patterns**
   on each available Crusader and Extreme 1.41 fixture. These are binding results,
   not complete native acceptance of every executable variant.
 
-## Native SHC checks, 12 September 2026
+## Loaded game language, exact packaged runtime
 
-PID7116 used Crusader 1.41, UCP 3.0.7-77c6a, UI 1.0.1, Recorder 0.50.4 and
+PID5648 used an English SHC 1.41 executable with the German `CR.TEX` fixture
+(SHA256 `6716ffe38391012f04ce32017eb65e52eeddbeb4acc76268d726786c8bfb9dc3`).
+Recorder 0.50.4 and Automarket 1.1.0 were loaded. The main entry, F12 editor and
+239-action gameplay editor rendered German labels, including accented letters.
+Keyboard search for `kamera` returned 24 actions; F12 did not interrupt text
+entry. Keyboard Cancel, main Options and Load reached the task quickslot.
+No profile changes were applied. Existing profiles preserve their old bindings;
+new optional actions remain unbound until reset or individually assigned.
+
+The game closed normally, PID absence was verified, and the desktop was released
+at 19:23:29 CEST. Game text, configuration and profile files were restored
+byte-for-byte. The error log contained only its header. This was not a finalized
+Recorder session or native non-Western font/IME test.
+
+The language correction reads the existing UI TextManager marker and codepage,
+removes the two-codepage startup restriction, adds five missing catalogs, and
+uses the existing UTF-8 edit model for clipping/caret boundaries. Windows API
+conversion checks cover eight codepages. See [localization and reuse](localization.md).
+
+![Actual German 0.1.7 gameplay editor](images/hotkeys-017-german-ingame.png)
+
+## Earlier native SHC checks, 12 September 2026
+
+The earlier hover-only runtime `83990c3` (101,614 bytes; SHA256
+`d2ae2fecb9a838fcd498db2eff122943d0903c7ace9a353945f613975624878d`)
+was tested separately. PID7116 used Crusader 1.41, UCP 3.0.7-77c6a, UI 1.0.1, Recorder 0.50.4 and
 Automarket 1.1.0, with Grid selected and Legacy absent. The route from the main
 menu through Options and Load to the task quickslot used keyboard input only.
 
@@ -59,6 +84,6 @@ features. Full keyboard-only acceptance, map-description/map-name/chat text,
 the full held/focus/mouse matrix, alternate-profile replay and state restoration,
 native high-speed simulation, expanded Extreme gameplay and additional
 executable/language fixtures remain outstanding. All nine Store descriptions
-and six game-language catalogs are present; fluent/native foreign-font review
-is not established. The PR stays a development preview pending the applicable
+and eleven game-language catalogs are present; fluent review and native font coverage beyond the observed English/German
+menus are not established. The PR stays a development preview pending the applicable
 acceptance and normal review; no verified merge or overall completion is claimed.

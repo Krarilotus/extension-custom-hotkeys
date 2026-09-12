@@ -10,4 +10,4 @@ UCP2-Legacy **gerekli değildir**. Etkinse kısayol değişiklikleri (`o_keys.en
 
 **Test sürümü:** bu özellikler uygulanmıştır ve SHC 1.41 ile Extreme 1.41’de test edilebilir. Tek oyunculu, çok oyunculu, Recorder tekrarları ve Automarket’i birlikte deneyin. Çok oyunculu ve Recorder kilitli değildir. Oyunun kuralları ve metin alanlarının odağı geçerliliğini korur. İnşaat, ticaret ve Automarket komutları içeren tek oyunculu kayıt başarıyla oynatıldı; kapsamlı çok oyunculu, durum geri yükleme ve uyumluluk testleri henüz tamamlanmadı.
 
-![Oyun içi kısayol seçim menüsü](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/02cbe98c941036a117297059df99b22bfbcf0244/docs/images/hotkeys-017-ingame.png)
+![Oyun içi kısayol seçim menüsü](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/90f0436c862394b5ae6a9b07945a49261363efe4/docs/images/hotkeys-017-german-ingame.png)

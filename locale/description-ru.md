@@ -10,4 +10,4 @@ UCP2-Legacy **не требуется**. Если он активен, его и
 
 **Тестовая версия:** эти функции реализованы и доступны в SHC 1.41 и Extreme 1.41. Проверяйте одиночную и сетевую игру, повторы Recorder и Automarket вместе. Сетевая игра и Recorder не заблокированы. Правила игры и фокус текстовых полей по-прежнему учитываются. Запись одиночной игры со строительством, торговлей и командами Automarket успешно воспроизведена; полная проверка сетевой игры, восстановления состояния и совместимости ещё предстоит.
 
-![Меню выбора горячих клавиш в игре](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/02cbe98c941036a117297059df99b22bfbcf0244/docs/images/hotkeys-017-ingame.png)
+![Меню выбора горячих клавиш в игре](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/90f0436c862394b5ae6a9b07945a49261363efe4/docs/images/hotkeys-017-german-ingame.png)

@@ -10,4 +10,4 @@ UCP2-Legacy **no es necesario**. Si está activo, sus modificaciones de atajos (
 
 **Versión de prueba:** estas funciones están implementadas y disponibles en SHC 1.41 y Extreme 1.41. Prueba partidas individuales, multijugador, reproducciones de Recorder y Automarket juntos. Multijugador y Recorder no están bloqueados. Se siguen aplicando las reglas del juego y el foco de los campos de texto. Una grabación individual con construcción, comercio y órdenes de Automarket se reprodujo correctamente; siguen pendientes las pruebas completas de multijugador, restauración de estado y compatibilidad.
 
-![Menú de atajos dentro del juego](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/02cbe98c941036a117297059df99b22bfbcf0244/docs/images/hotkeys-017-ingame.png)
+![Menú de atajos dentro del juego](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/90f0436c862394b5ae6a9b07945a49261363efe4/docs/images/hotkeys-017-german-ingame.png)

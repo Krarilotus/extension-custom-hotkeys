@@ -10,4 +10,4 @@ Az UCP2-Legacy **nem szükséges**. Ha aktív, a gyorsbillentyű-módosításait
 
 **Tesztverzió:** ezek a funkciók megvalósultak, és SHC 1.41-ben és Extreme 1.41-ben tesztelhetők. Próbáld ki együtt az egyjátékos és többjátékos módot, a Recorder-visszajátszást és az Automarketet. A többjátékos mód és a Recorder nincs lezárva. A játék szabályai és a szövegmezők fókusza továbbra is érvényes. Egy építési, kereskedelmi és Automarket-parancsokat tartalmazó egyjátékos felvétel visszajátszása sikeres volt; a teljes többjátékos, állapot-visszaállítási és kompatibilitási ellenőrzés még hátravan.
 
-![Gyorsbillentyűk kiválasztása a játékban](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/02cbe98c941036a117297059df99b22bfbcf0244/docs/images/hotkeys-017-ingame.png)
+![Gyorsbillentyűk kiválasztása a játékban](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/90f0436c862394b5ae6a9b07945a49261363efe4/docs/images/hotkeys-017-german-ingame.png)
