@@ -278,9 +278,7 @@ function M:renderButton(id)
     local row=v.rows[id]
     if row then
       label=row.label;selected=row.selected
-      if not row.binding and row.nativeFallback then
-        binding=string.format(self.labels(row.nativeFallback.label),self:bindingName(row.nativeFallback.binding))
-      else binding=self:bindingName(row.binding) end
+      binding=self:bindingName(row.binding)
       if row.sectionStart then section=self.labels('group.'..row.group) end
     end
   else

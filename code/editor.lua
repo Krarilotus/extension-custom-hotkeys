@@ -1,6 +1,7 @@
 -- Shared keyboard/mouse editor controller. A native UI view owns rendering,
 -- focus and text input; this controller never manufactures native focus facts.
 local M = {}
+local Binding=require('code/binding')
 M.__index = M
 
 function M.new(profiles, catalog, router, labels, fold, pageSize)
@@ -163,9 +164,8 @@ function M:view()
     local row=self.rows[i]
     local b=profile.bindings[row.id]
     rows[#rows+1]={index=i,id=row.id,label=row.label,group=row.group,
-      nativeFallback=self.catalog.actions[row.id].nativeFallback,
       sectionStart=i==self.first or self.rows[i-1].group~=row.group,
-      selected=i==self.selected,binding=b and {scan=b.scan,extended=b.extended,mods=b.mods} or false}
+      selected=i==self.selected,binding=b and assert(Binding.validate(b)) or false}
   end
   local preset=profile.preset and self.catalog.presets and self.catalog.presets[profile.preset]
   local activeLabel=preset and document.active==preset.name and self.labels('preset.'..preset.id) or document.active

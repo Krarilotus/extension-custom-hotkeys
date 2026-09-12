@@ -9,7 +9,8 @@ function M.owns(s)
   local valid=type(s)=='table' and (s.screen==14 or s.screen==16 or s.screen==41)
     and s.modal==9 and s.activeModalID==9 and s.activeModalMenu==A.loadMenu
     and s.loadArray==A.loadItems and s.textModal==9 and s.textEditor==0
-    and require('code/modal_context').background(s) and s.textIndex==4 and s.textState==1
+    and require('code/modal_context').background(s)
+    and s.textIndex==(s.screen==41 and 9 or 4) and s.textState==1
     and integer(s.loadCount,0,500) and s.loadRows==16
     and integer(s.loadOffset,0,math.max(0,s.loadCount-1))
     and integer(s.loadSelected,-1,15)

@@ -45,6 +45,26 @@ def test_change_key_records_physical_chord_and_drains_trigger_and_capture_messag
     ''')
 
 
+def test_mouse_capture_survives_editor_view_apply_and_profile_reload(lua):
+    setup(lua)
+    lua.execute('''
+      current.owner='hotkeys.capture';assert(editor:capture())
+      assert(router:handle({kind='down',scan=0,extended=false,button='middle',mods=2,
+        repeated=false,altgr=false,win=false,composing=false}))
+      assert(not editor.capturing and not editor.error)
+      local row=editor:view().rows[1]
+      assert(row.binding.button=='middle' and row.binding.mods==2)
+      assert(require('code/binding').key(row.binding)==-515)
+      row.binding.button='left'
+      assert(profiles.draft.profiles.Default.bindings['camera.left'].button=='middle')
+      assert(editor:apply())
+      local document=profiles.committed
+      local reloaded=assert(Profiles.new(catalog,{load=function() return document end},router))
+      local view=require('code/editor').new(reloaded,catalog,router,tostring,string.lower,30):view()
+      assert(view.rows[1].binding.button=='middle' and view.rows[1].binding.mods==2)
+    ''')
+
+
 def test_search_group_and_keyboard_scroll_keep_focus_visible(lua):
     setup(lua)
     lua.execute('''
