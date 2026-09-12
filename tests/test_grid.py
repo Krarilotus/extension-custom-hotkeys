@@ -52,3 +52,20 @@ def test_different_icon_heights_keep_visual_left_to_right_order(lua):
       assert(Grid.select(rows,selectors,2)==nil)
       assert(Grid.select(rows,selectors,3)==3)
     ''')
+
+
+def test_status_panel_uses_native_membership_without_global_hud_or_handler_table(lua):
+    lua.execute('''
+      local Grid=require('code/grid')
+      local rows={
+        {address=1,x=0,y=0,height=40,kind=3,action=700,panelScoped=false},
+        {address=2,x=0,y=50,height=40,kind=3,action=800,panelScoped=true},
+        {address=3,x=50,y=50,height=40,kind=3,action=900,panelScoped=true,disabled=true},
+        {address=4,x=100,y=50,height=40,kind=3,action=900,panelScoped=true}}
+      assert(Grid.select(rows,{},1)==2)
+      assert(Grid.select(rows,{},2)==nil)
+      assert(Grid.select(rows,{},3)==4)
+      rows[2].panelScoped=false
+      assert(Grid.select(rows,{},1)==nil)
+      assert(Grid.select(rows,{},2)==4)
+    ''')

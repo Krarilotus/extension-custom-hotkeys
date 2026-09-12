@@ -1,5 +1,5 @@
 -- Read-only interaction-pass traversal of SHC 1.41 Menu::handleMenuItems.
--- Produces candidates for native hit testing, never invokes raw callbacks.
+-- Produces candidates and their native panel membership for shared activation.
 local M={}
 local function has(value,flag) return math.floor(value/flag)%2==1 end
 local function integer(value) return type(value)=='number' and value==math.floor(value) end
@@ -18,21 +18,22 @@ function M.active(read,count,state,includeDisabled)
         or not integer(r.condition) then error('menu.row') end
     return r
   end
-  local ok,result=pcall(function()
+  local ok,result,panels=pcall(function()
     if row(count).type~=0x66 then error('menu.sentinel') end
-    local out,index={},1
+    local out,membership,index,panel={},{},1,nil
     while index<=count do
       local item=row(index)
       local t=item.type
-      if t==0x66 or t==0x67 then return out end
+      if t==0x66 or t==0x67 then return out,membership end
       if t==0x64 then
-        if item.parameter~=state.tab then index=index+item.skip end
+        panel=nil
+        if item.parameter~=state.tab then index=index+item.skip else panel=item.parameter end
       elseif t==0x65 then
-        if item.parameter==state.tab then return out end
+        if item.parameter==state.tab then return out,membership end
       elseif t==8 then
-        if state.sliding~=0 then return out end
+        if state.sliding~=0 then return out,membership end
       elseif t==9 then
-        if state.modal~=-1 then return out end
+        if state.modal~=-1 then return out,membership end
       elseif t==0x21000000 then
         local nextIndex=index+item.skip+1
         local nextRow=row(nextIndex)
@@ -58,6 +59,7 @@ function M.active(read,count,state,includeDisabled)
         if item.type<0x80000000 and base>=2 and base<=6
             and (includeDisabled or item.disabled==0) and item.inactive==0 then
           out[#out+1]=index
+          membership[index]=panel
         end
       end
       index=index+1
@@ -65,6 +67,6 @@ function M.active(read,count,state,includeDisabled)
     error('menu.sentinel')
   end)
   if not ok then return nil,result end
-  return result
+  return result,nil,panels
 end
 return M

@@ -73,3 +73,22 @@ def test_grid_inventory_includes_disabled_but_never_hidden_controls(lua):
       local grid=assert(T.active(read,#rows,state,true))
       assert(#grid==2 and grid[1]==4 and grid[2]==6)
     ''')
+
+
+def test_native_panel_membership_excludes_global_and_hidden_controls(lua):
+    lua.execute('''
+      local T=require('code/menu_traversal')
+      local rows={{type=3},{type=0x64,parameter=1,skip=1},{type=3},
+        {type=0x64,parameter=44,skip=2},{type=3},{type=3,disabled=1},
+        {type=0x64,parameter=2,skip=1},{type=3},{type=0x66}}
+      local function read(i)
+        local r=rows[i];r.parameter=r.parameter or 0;r.skip=r.skip or 0
+        r.condition=0;r.disabled=r.disabled or 0;r.inactive=0;return r
+      end
+      local active,err,panels=T.active(read,#rows,{tab=44,subtab=0,modal=-1,sliding=0},true)
+      assert(not err and #active==3)
+      assert(active[1]==1 and panels[1]==nil)
+      assert(active[2]==5 and panels[5]==44)
+      assert(active[3]==6 and panels[6]==44)
+      assert(panels[3]==nil and panels[8]==nil)
+    ''')

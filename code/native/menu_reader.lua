@@ -15,7 +15,7 @@ function M:read(menuAddress, state, origin,includeDisabled)
   local count
   for i=0,4095 do if n(array[i].menuItemType)==0x66 then count=i+1;break end end
   if not count then return nil,'menu.sentinel' end
-  local active,err=Traversal.active(function(index)
+  local active,err,panels=Traversal.active(function(index)
     local r=array[index-1]
     return {type=n(ffi.cast('uint32_t',r.menuItemType)),parameter=n(r.callbackParameter.parameter),
       skip=n(r.firstItemTypeData.itemsToSkip),condition=n(r.field9_0x28),
@@ -47,7 +47,7 @@ function M:read(menuAddress, state, origin,includeDisabled)
         and x>=0 and y>=0 and x+width<=state.width and y+height<=state.height then
       rows[#rows+1]={index=index,address=n(ffi.cast('uintptr_t',array+index-1)),
         x=x,y=y,width=width,height=height,parameter=n(r.callbackParameter.parameter),
-        action=action,
+        action=action,panelScoped=panels[index]==state.tab,
         help=n(ffi.cast('uint32_t *',ffi.cast('uint8_t *',array+index-1)+0x2c)[0]),
         control=n(r.ucId_0x30),kind=n(r.menuItemType)%0x800000,
         disabled=n(r.iconDeactivated_0x36)~=0}

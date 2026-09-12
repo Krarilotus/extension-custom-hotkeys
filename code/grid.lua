@@ -6,24 +6,20 @@ function M.select(rows,selectors,slot)
   if type(rows)~='table' or type(slot)~='number' or slot<1 or slot>12
       or slot~=math.floor(slot) then return nil end
   local commands={}
-  local toolbar={}
-  for _,selector in ipairs(selectors) do
-    if not selector.id:match('^menu%.build%.') then toolbar[selector.action]=true end
-  end
   for _,row in ipairs(rows) do
-    local accepted=false
+    local accepted=row.kind==3 and row.panelScoped==true
     for _,selector in ipairs(selectors) do
       local category=selector.id:match('^menu%.build%.(.+)$')
-      if not categories[category] and row.kind==(selector.kind or 3)
+      if row.kind==(selector.kind or 3)
           and row.action==selector.action and row.parameter==selector.parameter
           and row.help==selector.help then
-        accepted=true;break
+        accepted=not categories[category];break
       end
     end
-    -- Recruitment, market goods and status-panel controls share the original
-    -- toolbar handler. Read the actual active row/parameter instead of copying
-    -- a second table of its commands into this extension.
-    if accepted or (row.kind==3 and toolbar[row.action]) then commands[#commands+1]=row end
+    -- Native tab blocks identify recruitment, goods and status controls even
+    -- when their callback differs from the construction handler. Global HUD
+    -- controls have no panel membership. No second command table is needed.
+    if accepted then commands[#commands+1]=row end
   end
   table.sort(commands,function(a,b) return a.y==b.y and a.x<b.x or a.y<b.y end)
   -- Native building icons have different heights. Their top edge is not a
