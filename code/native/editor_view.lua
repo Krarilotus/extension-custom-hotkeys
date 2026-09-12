@@ -14,7 +14,7 @@ local rows=Geometry.rows
 function M.new(profiles,catalog,router,scene,platform,labels)
   local self=setmetatable({profiles=profiles,catalog=catalog,router=router,scene=scene,
     platform=platform,labels=labels,opened=false,focus=1,pins={},textCache={},keyNames={},
-    codepage=require('code/native/text').codepage()},M)
+    codepage=NativeText.codepage()},M)
   local manager=remote.interface.manager
   self.menuID=manager.getAvailableMenuID(2040)
   self.modalID=manager.getAvailableModalMenuID(2041)
@@ -233,7 +233,7 @@ end
 function M:bindingName(binding)
   if not binding then return self.labels('unbound') end
   if self.nameLayout~=self.platform.layout then self.nameLayout=self.platform.layout;self.keyNames={} end
-  local key=require('code/binding').key(binding)
+  local key=Binding.key(binding)
   if self.keyNames[key] then return self.keyNames[key] end
   local name=binding.button and self.labels('mouse.'..binding.button) or self.platform:keyName(binding) or '?'
   if binding.mods%2==1 then name='Ctrl+'..name end
@@ -271,6 +271,7 @@ function M:draw(text,x,y,color,font,width,slot)
   self:drawEncoded(result.text,x,y+2,color,font)
 end
 function M:renderButton(id)
+  -- The registered render callback above owns the protected FFI boundary.
   if not self.opened or not self:visible(id) then return end
   local e=self.controller;local v=e:view();local label,selected,binding='',false,nil
   local section
@@ -299,50 +300,45 @@ function M:renderButton(id)
   local s=game.Rendering.ButtonState
   -- Inherit the native menu renderer's surface. Forcing texture surface0 hides
   -- table/button graphics during gameplay, whose menu renderer owns surface1.
-  local ok,err=pcall(function()
-    local render=game.Rendering;local core=render.pencilRenderCore
-    local isRow=id<=rows
-    local skin=require('code/native/editor_skin')
-    local color=selected and skin.selectedText or skin.text
-    if isRow then
-      skin.row(e.first+id-2,selected)
-    elseif id==105 then
-      skin.field()
-    else
-      skin.button(selected)
-    end
-    local font=(isRow or id==105) and Geometry.bodyFont or Geometry.buttonFont
-    local labelWidth=s.width-16
-    local keyLayout
-    if binding then
-      keyLayout=self:layout('key-'..id,binding,174,Geometry.bodyFont)
-      labelWidth=s.width-350
-      skin.border(s.x+s.width-190,s.y+2,s.x+s.width-6,s.y+s.height-2)
-    end
-    local result=self:layout(id,label,labelWidth,font,editing)
-    local textX=s.x+(isRow and 152 or 8)
-    if isRow and section then
-      if id>1 then skin.border(s.x,s.y,s.x+s.width,s.y) end
-      self:draw(section,s.x+8,s.y+3,color,Geometry.bodyFont,132,'section-'..id)
-    end
-    local textY=s.y+(isRow and 5 or 7)
-    if result.selectionEnd then
-      skin.border(s.x+8+result.selectionStart,textY,
-        s.x+8+result.selectionEnd,s.y+s.height-3)
-    end
-    if isRow or editing or id==105 then
-      self:drawEncoded(result.text,textX,textY,color,font)
-    else skin.caption(result.text,color) end
-    if keyLayout then
-      self:drawEncoded(keyLayout.text,s.x+s.width-14-keyLayout.width,s.y+6,color,Geometry.bodyFont)
-    end
-    if result.caret then self:drawEncoded('|',s.x+8+result.caret,textY,0xFFFFFF,font) end
-  end)
-  if not ok then error(err) end
+  local isRow=id<=rows
+  local skin=require('code/native/editor_skin')
+  local color=selected and skin.selectedText or skin.text
+  if isRow then
+    skin.row(e.first+id-2,selected)
+  elseif id==105 then
+    skin.field()
+  else
+    skin.button(selected)
+  end
+  local font=(isRow or id==105) and Geometry.bodyFont or Geometry.buttonFont
+  local labelWidth=s.width-16
+  local keyLayout
+  if binding then
+    keyLayout=self:layout('key-'..id,binding,174,Geometry.bodyFont)
+    labelWidth=s.width-350
+    skin.border(s.x+s.width-190,s.y+2,s.x+s.width-6,s.y+s.height-2)
+  end
+  local result=self:layout(id,label,labelWidth,font,editing)
+  local textX=s.x+(isRow and 152 or 8)
+  if isRow and section then
+    if id>1 then skin.border(s.x,s.y,s.x+s.width,s.y) end
+    self:draw(section,s.x+8,s.y+3,color,Geometry.bodyFont,132,'section-'..id)
+  end
+  local textY=s.y+(isRow and 5 or 7)
+  if result.selectionEnd then
+    skin.border(s.x+8+result.selectionStart,textY,
+      s.x+8+result.selectionEnd,s.y+s.height-3)
+  end
+  if isRow or editing or id==105 then
+    self:drawEncoded(result.text,textX,textY,color,font)
+  else skin.caption(result.text,color) end
+  if keyLayout then
+    self:drawEncoded(keyLayout.text,s.x+s.width-14-keyLayout.width,s.y+6,color,Geometry.bodyFont)
+  end
+  if result.caret then self:drawEncoded('|',s.x+8+result.caret,textY,0xFFFFFF,font) end
 end
 function M:render(x,y,width,height)
   if not self.opened then return end
-  local render=game.Rendering;local core=render.pencilRenderCore
   -- The native modal already paints its framed, dimmed background.
   -- Keep that game-owned surface instead of covering it with a custom palette.
   self:draw(self.labels(self.page=='profiles' and 'profiles' or 'title'),x+20,y+18,0xCCFAFF,Geometry.titleFont,450,'title')

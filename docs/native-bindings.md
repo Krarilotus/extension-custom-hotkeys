@@ -106,8 +106,8 @@ were used by offline verification. Separately owned branches were not edited.
 
 Final-diff review removed obsolete executable/identity adapters and production
 reference-address literals. Simple building/category/Grid actions no longer use
-positional click transport. Sliders, traversal focus and explicit world targeting
-still require the native cursor adapter. Bindings resolve once before enable-time
+positional click transport. Sliders use their native handler/state; traversal
+focus and explicit world targeting use the native cursor adapter. Bindings resolve once before enable-time
 patches and copy once into LuaJIT, with no input-frame scans or per-binding
 remote lookups.
 

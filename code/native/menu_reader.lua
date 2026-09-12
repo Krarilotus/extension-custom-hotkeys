@@ -4,8 +4,8 @@ local Traversal=require('code/menu_traversal')
 local M={}
 M.__index=M
 local function n(value) return tonumber(value) end
-function M.new(manager)
-  return setmetatable({manager=manager},M)
+function M.new()
+  return setmetatable({},M)
 end
 function M:read(menuAddress, state, origin,includeDisabled)
   if not menuAddress or menuAddress==0 then return nil,'menu.missing' end

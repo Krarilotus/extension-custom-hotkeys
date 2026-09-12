@@ -33,6 +33,10 @@ unchanged. Native launcher integration still needs acceptance.
 - Editor rows and profile lists already cache their view until it changes;
   text measurements and key labels retain their existing caches. Native controls
   are read from the active owner's array and rechecked before activation.
+- Button rendering has one protected FFI callback. The obsolete nested protected
+  closure and unused rendering locals were removed from each row; the native
+  surface remains owned by the game. The menu reader also drops an unused manager
+  argument/state. Existing editor, geometry, scrollbar and text checks pass (38).
 - `files.xml` is the source of the installable payload for both builders. Only
   runtime code, definition, required configuration and README are installed.
   Test tools, investigations, screenshots and online descriptions stay outside
