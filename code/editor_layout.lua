@@ -4,7 +4,7 @@ local M={width=760,height=552,rows=16,rowHeight=20,listY=114,listWidth=692,
 function M.controls(page)
   local result={}
   local function add(id,x,y,w,label,h)
-    result[#result+1]={id=id,x=x,y=y,width=w,height=h or 26,label=label}
+    result[#result+1]={id=id,x=x,y=y,width=w,height=h or 30,label=label}
   end
   if page=='profiles' then
     add(118,584,18,156,'bindings')

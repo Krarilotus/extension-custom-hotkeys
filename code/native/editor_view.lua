@@ -305,15 +305,18 @@ function M:renderButton(id)
       skin.border(s.x+s.width-190,s.y+2,s.x+s.width-6,s.y+s.height-2)
     end
     local result=self:layout(id,label,labelWidth,font,editing)
+    local textY=s.y+(isRow and 3 or 7)
     if result.selectionEnd then
-      skin.border(s.x+8+result.selectionStart,s.y+3,
+      skin.border(s.x+8+result.selectionStart,textY,
         s.x+8+result.selectionEnd,s.y+s.height-3)
     end
-    self:drawEncoded(result.text,s.x+8,s.y+3,color,font)
+    if isRow or editing or id==105 then
+      self:drawEncoded(result.text,s.x+8,textY,color,font)
+    else skin.caption(result.text,color) end
     if keyLayout then
       self:drawEncoded(keyLayout.text,s.x+s.width-14-keyLayout.width,s.y+3,color,Geometry.bodyFont)
     end
-    if result.caret then self:drawEncoded('|',s.x+8+result.caret,s.y+3,0xFFFFFF,font) end
+    if result.caret then self:drawEncoded('|',s.x+8+result.caret,textY,0xFFFFFF,font) end
   end)
   game.Rendering.pDrawBufferChoiceValue[0]=old
   if not ok then error(err) end

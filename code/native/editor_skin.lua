@@ -16,6 +16,13 @@ function M.button(selected)
   state.interacting=interacting
   if not ok then error(err) end
 end
+function M.caption(encoded,color)
+  -- Original Save/Load button492B46: font18, center alignment1, x+width/2,
+  -- y+7 on the 30px native button. Let TextManager center the actual glyphs.
+  local r=game.Rendering;local s=r.ButtonState
+  r.renderTextToScreenConst(r.textManager,encoded,s.x+math.floor(s.width/2),
+    s.y+7,1,color,18,false,0)
+end
 function M.border(x,y,right,bottom)
   game.Rendering.drawBorderBox(game.Rendering.pencilRenderCore,x,y,right,bottom,border[0])
 end
