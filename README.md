@@ -44,15 +44,15 @@ Run `python -m pip install -r tests/requirements.txt` and
 `python -m pytest tests -q`. The same component cases run in Lua 5.4 and LuaJIT;
 they do not establish native ABI, keyboard-only or multiplayer compatibility.
 
-See [component contracts](docs/components.md) and the
-[pending manual two-PC route](docs/manual-multiplayer.md).
-The [three development presets](docs/presets.md) share the binding catalog and
+See [component contracts](https://github.com/Krarilotus/extension-custom-hotkeys/blob/feat/binding-core/docs/components.md) and the
+[pending manual two-PC route](https://github.com/Krarilotus/extension-custom-hotkeys/blob/feat/binding-core/docs/manual-multiplayer.md).
+The [three development presets](https://github.com/Krarilotus/extension-custom-hotkeys/blob/feat/binding-core/docs/presets.md) share the binding catalog and
 include a native-panel grid. Mouse rebinding and building/camera bookmarks remain
-required work. The [compact editor](docs/editor-layout.md) shows16 rows and reuses
+required work. The [compact editor](https://github.com/Krarilotus/extension-custom-hotkeys/blob/feat/binding-core/docs/editor-layout.md) shows16 rows and reuses
 the game's native scrollbar.
-Native development evidence covers [profile editing](docs/native-editor-evidence.md)
-and [menu navigation](docs/native-navigation-evidence.md); neither is a complete
+Native development evidence covers [profile editing](https://github.com/Krarilotus/extension-custom-hotkeys/blob/feat/binding-core/docs/native-editor-evidence.md)
+and [menu navigation](https://github.com/Krarilotus/extension-custom-hotkeys/blob/feat/binding-core/docs/native-navigation-evidence.md); neither is a complete
 keyboard-only acceptance pass.
-Additional evidence covers [world actions](docs/native-world-actions-evidence.md),
-[building placement](docs/native-building-evidence.md) and the
-[language/encoding contract](docs/localization.md), with their remaining gates.
+Additional evidence covers [world actions](https://github.com/Krarilotus/extension-custom-hotkeys/blob/feat/binding-core/docs/native-world-actions-evidence.md),
+[building placement](https://github.com/Krarilotus/extension-custom-hotkeys/blob/feat/binding-core/docs/native-building-evidence.md) and the
+[language/encoding contract](https://github.com/Krarilotus/extension-custom-hotkeys/blob/feat/binding-core/docs/localization.md), with their remaining gates.

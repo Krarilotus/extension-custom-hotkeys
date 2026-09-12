@@ -30,6 +30,28 @@ it does not read the Save/Load list. Faithful original source is unchanged.
 
 ## Native evidence — 12 September 2026
 
+The user requested native button text placement after observing top-aligned
+captions. Original492B46 uses a30px button, font18, y+7 and TextManager alignment1
+at x+width/2. The editor now uses those same values and native centering. Input
+fields and table columns retain their own alignment. PID24132 compared this
+directly with original Load/Back buttons and verified both editor pages.
+
+That gameplay check also caught missing button/table textures: the editor forced
+texture target0, which only worked on the main menu.18ca42f preserves the native
+menu renderer's target; basic buttons use native target-1 selection and restore.
+PID16012 tested the frozen18ca42f ZIP after starting A Mighty Oasis, opened F12,
+and verified the corrected red rows, selected row and centered button captions
+on both gameplay pages. No Lua error; no profile Apply or world save. Closed
+normally and released the desktop04:18:04 CEST (2m26s of4m).
+
+Screenshots are original window captures, without compositing or recoloring:
+[gameplay editor](images/hotkeys-ingame.jpg),
+[gameplay profiles](images/hotkeys-profiles-ingame.jpg),
+[main-menu editor](images/hotkeys-menu.jpg),
+[original Load/Back reference](images/native-button-reference.jpg).
+These bounded checks do not establish the complete keyboard-only route,
+minimum resolution, all languages, multiplayer or replay acceptance.
+
 SHC1.41 SHA256 `3bb0a8c1e72331b3a30a5aa93ed94beca0081b476b04c1960e26d5b45387ac5a`,
 UCP3.0.7-77c6a, UI1.0.1, LuaJIT1, cffi1, winProcHandler1, graphics1.3.
 English game text and German Windows key names, 1280×720 game rendering.

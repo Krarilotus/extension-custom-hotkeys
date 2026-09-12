@@ -30,6 +30,9 @@ unchanged. Native launcher integration still needs acceptance.
 - Context identity field lists and the protected Windows observer are allocated
   once. Type annotations document binding and context contracts without a new
   runtime type system or dependency.
+- Editor rows and profile lists already cache their view until it changes;
+  text measurements, key labels and native menu arrays also retain their existing
+  caches. These were audited and reused rather than replaced with another cache.
 - `files.xml` is the source of the installable payload for both builders. Only
   runtime code, definition, required configuration and README are installed.
   Test tools, investigations, screenshots and online descriptions stay outside
@@ -58,3 +61,7 @@ performance acceptance remains required; component results do not establish it.
 
 Store publication and normal approved merge remain held for unfinished required
 work and acceptance. The downloadable ZIP is explicitly a test build.
+
+Native visual follow-up uses original Save/Load caption alignment and fixes a
+real gameplay-only texture-target defect discovered during screenshot capture.
+See [the editor evidence and native references](editor-layout.md).

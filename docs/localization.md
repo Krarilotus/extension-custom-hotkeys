@@ -6,7 +6,10 @@ normalizes that value and supplies editor, navigation and targeting labels for
 all seven values. American English shares English labels. Building and native
 control names use the game's own text lookup, including its native help table
 mapping, rather than copied English asset strings. Launcher language is a
-separate packaging integration requirement.
+separate source: Store descriptions now cover all nine Store3.0.7/GUI catalogs
+(en,de,fr,es,hu,tr,ru,ch,fa), with opening instructions, automatic activation and
+optional Legacy conflict resolution. This is separate from the seven game API
+values; installing a different GUI language does not override in-game text.
 
 The verified SHC 1.41 font paths use code page 1252 or 1250. The extension reads
 the active game code page and converts UTF-8 explicitly. Component checks prove
@@ -24,7 +27,7 @@ and key-name system calls every paint for unchanged text.
 
 Pending: fluent review of new translations; actual native checks of all game
 languages and supported keyboard layouts; minimum resolution/scaling; long and
-RTL profile names; launcher option/conflict localization. No language acceptance
+RTL profile names; fluent review of Store descriptions. No language acceptance
 pass is inferred from source coverage or byte encoding alone.
 
 Native PID29652 (SHC1.41, same verified dependencies as the building evidence)
