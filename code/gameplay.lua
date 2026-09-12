@@ -1,3 +1,4 @@
+local A=require('code/addresses')
 local M={}
 local Options=require('code/options_context')
 local Load=require('code/load_context')
@@ -16,11 +17,11 @@ function M.live(s,allowPaused)
       or s.newPlayer~=0 or s.delay~=-1
       or s.focused~=true or s.composing~=false
       or not integer(s.player,1,8) or s.playerDead~=0 or s.playerDisabled~=0
-      or not integer(s.selectedCount,0,2500) or not integer(s.selectedLast,0,2499)
-      or not integer(s.tribe,0,1249)
-      or type(s.selectionBits)~='string' or #s.selectionBits~=400
+      or not integer(s.selectedCount,0,A.unitCapacity) or not integer(s.selectedLast,0,(A.unitCapacity-1))
+      or not integer(s.tribe,0,(A.tribeCapacity-1))
+      or type(s.selectionBits)~='string' or #s.selectionBits~=A.selectionBytes
       or not integer(s.building,0,1999) or s.building~=s.nextBuilding
-      or not integer(s.unit,0,2499) or s.unit~=s.nextUnit
+      or not integer(s.unit,0,(A.unitCapacity-1)) or s.unit~=s.nextUnit
       or not integer(s.placement,0,65535) or not integer(s.rotation,0,6) or s.rotation%2~=0
       or not integer(s.cameraX,-1000000,1000000) or not integer(s.cameraY,-1000000,1000000)
       or s.pendingRotation~=8 or not integer(s.zoom,0,1) or not integer(s.patrol,0,1)
@@ -36,7 +37,7 @@ function M.resolve(s,ownedModal)
   if (ownedModal==5 and not options) or (ownedModal==9 and not load)
       or not M.live(s,options or load)
       or (s.modal~=-1 and (ownedModal==nil or s.modal~=ownedModal))
-      or s.modal2~=-1 or s.modal3~=-1
+      or not require('code/modal_context').background(s)
       or (s.textModal~=0 and not options and not load) or s.textEditor~=0 then return nil end
 
   return {owner=options and 'game.options' or load and 'game.load' or (s.screen==14 and 'game.build' or 'game.status'),

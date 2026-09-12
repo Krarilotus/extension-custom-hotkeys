@@ -4,8 +4,9 @@ Development of one UCP3 extension for in-game rebinding, persistent local profil
 and keyboard access to native menus, building placement and unit targeting.
 
 This is an incomplete test version, not an accepted release.
-The [0.1.4 integration tester build](docs/unrestricted-preview.md) enables
-multiplayer and removes Hotkeys' Recorder API/version and playback input locks.
+The [0.1.5 tester build](docs/native-bindings.md) uses UCP byte-pattern
+resolution and native button callbacks that preserve the construction cursor.
+Crusader and Extreme are open for testing, including multiplayer and Recorder.
 Native actions must retain the game's validation, authority and synchronized
 command path. Legacy hotkey modifications must be disabled before activation.
 
@@ -18,8 +19,9 @@ recorder replay/state-restore acceptance, localization, an installable tested
 artifact and verified reviewed merge. Work in progress remains draft.
 
 The current branch contains the binding router, persistent profiles, native
-profile editor and Windows input transport. Native menu navigation moves the
-visible cursor and activates eligible controls through the original input path.
+profile editor and Windows input transport. Direct menu, building and Grid shortcuts invoke the active native button
+without moving the cursor. Positional navigation and world targeting retain
+the native mouse-input path.
 Gameplay adapters include bounded visible targeting, local camera pan,
 displaced armory/signpost/stance actions and107 native build/unit control
 selectors. The complete action catalog and native acceptance are still being

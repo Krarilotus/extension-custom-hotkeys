@@ -1,3 +1,4 @@
+local A=require('code/addresses')
 local Context=require('code/context')
 local M={}
 M.__index=M
@@ -35,7 +36,7 @@ function M:dispatch(id,context)
   local group=id:match('^unit%.group%.assign%.([0-9])$')
   if group then
     if s.screen~=14 or (s.tab~=61 and s.tab~=62) or s.selectedCount<=0
-        or not integer(s.tribe,1,1249) or s.tribeOwner~=s.player
+        or not integer(s.tribe,1,(A.tribeCapacity-1)) or s.tribeOwner~=s.player
         or s.ownedSelection~=1 or not a.validGroupMembers(s.tribe,s.player) then return false end
     a.assignGroup(tonumber(group),s.tribe)
     return true
@@ -50,7 +51,7 @@ function M:dispatch(id,context)
   end
   if id=='camera.focus.lord' or id=='camera.cycle.lords' then
     local function valid(lord,player)
-      return lord and integer(lord.id,1,2499) and lord.type==55 and lord.state==2
+      return lord and integer(lord.id,1,(A.unitCapacity-1)) and lord.type==55 and lord.state==2
         and lord.owner==player and integer(lord.tile,0,159999)
     end
     if id=='camera.focus.lord' then
@@ -85,7 +86,7 @@ function M:dispatch(id,context)
   end
   if stances[id]~=nil then
     if s.screen~=14 or (s.tab~=61 and s.tab~=62) or s.selectedCount<=0
-        or not integer(s.tribe,0,1249) or s.tribeOwner~=s.player then return false end
+        or not integer(s.tribe,0,(A.tribeCapacity-1)) or s.tribeOwner~=s.player then return false end
     a.stance(s.tribe,stances[id]);return true
   end
   local verb,name=id:match('^(camera%.return%.)(.+)$')

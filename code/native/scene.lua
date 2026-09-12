@@ -46,7 +46,7 @@ function M:resolve(editor)
   self.current=s
   local options,load=Options.owns(s),Load.owns(s)
   if not s.focused or self.platform.composing or s.delay~=-1 or s.newPlayer~=0
-      or (s.textModal~=0 and not options and not load) or s.textEditor~=0 or s.modal2~=-1 or s.modal3~=-1 then return nil end
+      or (s.textModal~=0 and not options and not load) or s.textEditor~=0 or not require('code/modal_context').background(s) then return nil end
   local ownedModal=editor and editor.opened and editor.parentScreen==s.screen and editor.modalID or nil
   if not ownedModal and options then ownedModal=5 end
   if not ownedModal and load then ownedModal=9 end

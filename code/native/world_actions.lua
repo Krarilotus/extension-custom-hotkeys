@@ -26,7 +26,7 @@ local clearGroup=ffi.cast('void (__thiscall *)(void *,int)',A.clearGroup)
 local assignGroup=ffi.cast('void (__thiscall *)(void *,int,int)',A.assignGroup)
 local tribeUnit=ffi.cast('int (__thiscall *)(void *,int,int)',A.tribeUnit)
 local function lord(id)
-  if id<1 or id>2499 then return nil end
+  if id<1 or id>(A.unitCapacity-1) then return nil end
   local offset=id*0x490
   return {id=id,type=short(A.unitType+offset),state=short(A.unitState+offset),
     owner=short(A.unitOwner+offset),tile=i(A.unitTile+offset)}
@@ -39,11 +39,11 @@ function M.new(scene,view)
     toggleInterface=function() toggleInterface(ffi.cast('void *',A.gameCore)) end,
     saveLoadDialog=function(modal) saveLoadDialog(ffi.cast('void *',A.textDialog),modal) end,
     validGroupMembers=function(tribe,player)
-      local count=short(A.tribeCount+tribe*0x334)
-      if count<1 or count>2500 then return false end
+      local count=short(A.tribeCount+tribe*A.tribeStride)
+      if count<1 or count>A.unitCapacity then return false end
       for index=0,count-1 do
         local id=tribeUnit(ffi.cast('void *',A.tribes),tribe,index)
-        if id<1 or id>2499 or short(A.unitOwner+id*0x490)~=player then return false end
+        if id<1 or id>(A.unitCapacity-1) or short(A.unitOwner+id*0x490)~=player then return false end
       end
       return true
     end,
@@ -68,14 +68,14 @@ function M.new(scene,view)
       s.synchronyMode=i(A.synchronyMode);s.sessionHost=i(A.sessionHost)
       s.scenarioRestriction=i(A.scenarioRestriction)
       if s.player>=1 and s.player<=8 then s.playerDead=i(A.playerDead+s.player*0x39f4) end
-      if s.tribe>=0 and s.tribe<1250 then s.tribeOwner=i(A.tribeOwner+s.tribe*0x334) end
+      if s.tribe>=0 and s.tribe<A.tribeCapacity then s.tribeOwner=i(A.tribeOwner+s.tribe*A.tribeStride) end
       return s
     end,
     building=function(spec,player) return building(i(spec.reference+player*0x39f4)) end,
     lord=function(player) return lord(i(A.playerLord+player*0x39f4)) end,
     aliveLord=function(player)
       local count=i(A.units)
-      if count<1 or count>2500 then return nil end
+      if count<1 or count>A.unitCapacity then return nil end
       return lord(aliveLord(ffi.cast('void *',A.units),player))
     end,
     lordIndex=function(value) if value~=nil then write(A.lordCycleIndex,value) end;return i(A.lordCycleIndex) end,

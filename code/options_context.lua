@@ -5,7 +5,7 @@ local M={}
 function M.owns(s)
   return type(s)=='table' and (s.screen==14 or s.screen==16)
     and s.modal==5 and s.activeModalID==5 and s.activeModalMenu==A.optionsMenu
-    and s.textModal==5 and s.textEditor==0 and s.modal2==-1 and s.modal3==-1
+    and s.textModal==5 and s.textEditor==0 and require('code/modal_context').background(s)
 end
 function M.origin(s)
   if not M.owns(s) then return nil end

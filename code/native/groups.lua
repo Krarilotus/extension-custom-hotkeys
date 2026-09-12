@@ -14,15 +14,15 @@ local screen=ffi.cast('void (__thiscall *)(void *,int,int)',A.changeScreen)
 function M.inspect(group,player)
   if type(group)~='number' or group~=math.floor(group) or group<0 or group>9 then return nil end
   local count=i(A.units)
-  if count<1 or count>2500 then return nil end
+  if count<1 or count>A.unitCapacity then return nil end
   local first
-  -- Native selection reads all2500 entries, including holes. Validate every
+  -- Native selection reads the full group capacity, including holes. Validate every
   -- index before allowing it to dereference that table; never stop at a hole.
-  for index=0,2499 do
-    local address=A.controlGroups+group*0x4e20+index*8
+  for index=0,(A.unitCapacity-1) do
+    local address=A.controlGroups+group*A.groupStride+index*8
     local id=i(address)
     if id~=-1 then
-      if id<1 or id>2499 then return nil end
+      if id<1 or id>(A.unitCapacity-1) then return nil end
       local offset=id*0x490
       if i(address+4)==i(A.unitSerial+offset) then
         if s(A.unitOwner+offset)~=player then return nil end

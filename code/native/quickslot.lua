@@ -26,7 +26,7 @@ function M.new(scene,view,world,cursor,reader)
         or not Gameplay.live(s,true) or s.screen~=token.screen or s.mode~=token.mode
         or s.player~=token.player or s.synchronyMode~=token.synchronyMode
         or s.platformGeneration~=token.platformGeneration or s.width~=token.width or s.height~=token.height
-        or s.modal2~=-1 or s.modal3~=-1 or s.textEditor~=0
+        or not require('code/modal_context').background(s) or s.textEditor~=0
         or read(A.scenarioRestriction)~=0 or (s.synchronyMode==99 and read(A.sessionHost)~=1) then return nil end
     s.textIndex=read(A.textEntries);s.textState=read(A.textDialog)
     s.operation=read(A.confirmationState)

@@ -10,7 +10,7 @@ function M.new(scene,view,platform,router)
     available=function()
       local units=read(A.units)
       return read(A.mouseRightHeld)==0 and read(A.lowerHeld)==0
-        and units>=1 and units<=2500
+        and units>=1 and units<=A.unitCapacity
     end,
     setV=function(value) ffi.cast('int32_t *',A.lowerHeld)[0]=value and 1 or 0 end,
     lower=function(mode) lower(ffi.cast('void *',A.buildingView),mode) end,

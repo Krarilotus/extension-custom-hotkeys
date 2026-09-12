@@ -180,6 +180,15 @@ function M.resolve(core,utils,game,ffi)
   menuArray('confirmationItems','saveMenu')
   local _,rectangleOffset=utils.AOBExtract('8B 44 24 04 8B 54 24 0C 53 89 81 I(? ? ? ?) 89 81 ? ? ? ? 8B 44 24 14')
   addresses.viewportRectangle=addresses.viewport+rectangleOffset
+  local _,groupStride,unitCapacity=utils.AOBExtract(
+    '8B 44 24 04 69 C0 I(? ? ? ?) 03 C1 B9 I(? ? ? ?) 83 CA FF 89 10 89 50 04 83 C0 08')
+  addresses.groupStride,addresses.unitCapacity=groupStride,unitCapacity
+  local _,tribeStride,tribeCapacity=utils.AOBExtract(
+    '69 C0 I(? ? ? ?) 8D 44 30 28 50 6A 00 68 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 83 C0 01 3D I(? ? ? ?) A3 ? ? ? ? 7C')
+  addresses.tribeStride,addresses.tribeCapacity=tribeStride,tribeCapacity
+  local _,selectionWords=utils.AOBExtract(
+    '83 C0 01 83 C6 02 3D I(? ? ? ?) 7C ? 5D 33 C0 5E 5B 5F C2 08 00')
+  addresses.selectionBytes=selectionWords*2
   return addresses
 end
 return M

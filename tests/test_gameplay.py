@@ -46,6 +46,24 @@ def test_gameplay_text_pause_authority_and_transition_gates(lua):
     ''')
 
 
+def test_extreme_hud_and_resolved_unit_capacity_preserve_real_modal_ownership(lua):
+    setup(lua)
+    lua.execute('''
+      local A=require('code/addresses')
+      A.unitCapacity=10000;A.selectionBytes=1250
+      s.selectionBits=string.rep(string.char(0),1250)
+      s.selectedLast=9000;s.unit=9000;s.nextUnit=9000
+      s.modal3=130
+      assert(Gameplay.resolve(s).owner=='game.build')
+      s.screen=16;assert(Gameplay.resolve(s).owner=='game.status')
+      s.textModal=1;assert(not Gameplay.resolve(s));s.textModal=0
+      s.modal=11;assert(not Gameplay.resolve(s));s.modal=-1
+      s.modal2=5;assert(not Gameplay.resolve(s));s.modal2=-1
+      s.modal3=131;assert(not Gameplay.resolve(s));s.modal3=130
+      s.selectedLast=10000;assert(not Gameplay.resolve(s))
+    ''')
+
+
 def test_multiplayer_catalog_and_text_ownership_keep_native_save_load_restrictions(lua):
     setup(lua)
     lua.execute('''

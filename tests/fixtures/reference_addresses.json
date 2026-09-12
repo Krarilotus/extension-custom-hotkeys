@@ -162,5 +162,10 @@
   "zoom": 35318888,
   "viewportRectangle": 36938496,
   "secondaryModal": 37762724,
-  "textEditor": 37763840
+  "textEditor": 37763840,
+  "unitCapacity": 2500,
+  "groupStride": 20000,
+  "tribeStride": 820,
+  "tribeCapacity": 1250,
+  "selectionBytes": 400
 }

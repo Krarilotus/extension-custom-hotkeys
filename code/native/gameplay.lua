@@ -14,7 +14,7 @@ function M.snapshot(s)
   s.selectedCount=read(A.selectedCount);s.selectedLast=read(A.selectedLast)
   -- The native selected bitset is identity, not a cached world-coordinate map.
   -- The separate owned-selection flag remains stale after native deselection.
-  s.selectionBits=ffi.string(ffi.cast('const char *',A.selectionBits),400)
+  s.selectionBits=ffi.string(ffi.cast('const char *',A.selectionBits),A.selectionBytes)
   s.building=read(A.selectedBuilding);s.nextBuilding=read(A.nextBuilding)
   s.unit=read(A.selectedUnit);s.nextUnit=read(A.nextUnit)
   s.placement=read(A.placement);s.rotation=read(A.rotation)
