@@ -29,3 +29,24 @@ protection evidence describes those builds and is not a claim about 0.1.4.
 messages and updating descriptions, all 42 affected localization/module/metadata
 checks passed again. Native multiplayer and complete feature acceptance remain
 pending, without disabling the available implementation for testers.
+
+Native check, 12 September 2026: exact ZIP/source319ccf0, SHC1.41/UCP3.0.7,
+Recorder0.50.4/Automarket1.1.0 with their pinned dependencies. PID25780 recorded
+a fresh SP fixture, opened the editor with scan-code F12 while recording, quit
+through native Game Options, then replayed that recording. F12 opened the editor
+during active playback. Cancel returned to playback at tick1166/2169 with
+the Recorder HUD reporting matching checks. No bindings or world commands were
+changed during this smoke test; playback was exited before its end. This is
+not multiplayer or full replay/state-restore acceptance. Error log has headers
+only. Normal exit and PID absence verified before desktop release07:55:01 CEST;
+original config and profile slots restored byte-for-byte.
+
+The older 0.1.2 fixture was rejected by Recorder's exact-asset verification;
+its stored ZIP digest did not match the installed old archive. A fresh 0.1.4
+recording resolved this test prerequisite without changing Recorder ownership.
+
+![Editor during the 0.1.4 recording](images/hotkeys-014-recording.png)
+
+![Editor opened during playback](images/hotkeys-014-playback.png)
+
+![Playback after closing the editor](images/hotkeys-014-playback-return.png)
