@@ -36,7 +36,7 @@ def test_module_starts_once_after_native_initialization(lua):
 def test_bootstrap_uses_ucp_game_language_only_after_init(lua):
     lua.execute('''
       configFinal={};allActiveExtensions={};INFO=1;core={}
-      local initialized,languageReads,callback=false,0,nil
+      local initialized,languageReads,callback,uiLoads=false,0,nil,0
       data={version={getGameLanguage=function()
         assert(initialized,'language read before game text initialization')
         languageReads=languageReads+1;return 'german' end}}
@@ -46,7 +46,10 @@ def test_bootstrap_uses_ucp_game_language_only_after_init(lua):
       json={encode=function() return 'receipt' end};log=function() end
       package.loaded['code/native/interface']={open=function() return {},{} end}
       package.loaded['code/native/identity']={file=function() return 'game.exe' end}
-      package.loaded['ui']={}
+      package.loaded['ui']=nil
+      package.preload['ui']=function()
+        assert(not initialized,'UI entry points resolved after enable-time hooks')
+        uiLoads=uiLoads+1;return {} end
       package.loaded['code/executable']={check=function() return true end}
       package.loaded['code/native/runtime']={start=function(language)
         assert(language=='german')
@@ -58,7 +61,8 @@ def test_bootstrap_uses_ucp_game_language_only_after_init(lua):
           return {importHeaderFile=function() end,executeString=function(_,code)
             return assert((loadstring or load)(code))() end} end}}
       local module=dofile(source_root..'/init.lua')
-      module:enable();assert(languageReads==0)
+      assert(uiLoads==1)
+      module:enable();assert(languageReads==0 and uiLoads==1)
       initialized=true;callback()
       assert(languageReads==1 and module.runtime.receipt.installed)
     ''')
