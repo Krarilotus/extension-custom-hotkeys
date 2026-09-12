@@ -151,11 +151,26 @@ PEs have bounded native evidence; the four official variants have offline bindin
 evidence. Other variants still need fixtures and native acceptance;
 AOB matches alone do not prove compatibility.
 
-All 155 patterns were unique in both fixtures. Missing matches propagate UCP's
-initialization error before hooks. UCP3.0.7 returns the first match and exposes
-no uniqueness assertion. Its lower-level `scanForAOB` supports subsequent/ranged
-searches, as the inspected AI Swapper implementation demonstrates; scanning all
-process memory for each binding would add substantial startup cost. Efficient
-runtime ambiguity diagnostics remain unfinished integration work, not a claimed
-protection or a user approval prerequisite. Occupied input sites are rejected
-by the displaced-byte check. No executable-hash or Recorder lock was restored.
+The 0.1.8 source uses shared `core.AOBScanUnique`/`utils.AOBExtractUnique`
+for all 155 patterns, including the input-frame hook and derived menu/stride
+bindings. Missing or ambiguous results include the binding name; no addresses
+are published and no extension hooks are registered before complete resolution.
+UI exports remain owned by UI. No extension scanner, PE parser, cache, new
+hook, fixed-address fallback or executable/Recorder activation lock was added.
+
+This requires [UCP PR149](https://github.com/UnofficialCrusaderPatch/UnofficialCrusaderPatch3/pull/149)
+and [RPS PR16](https://github.com/gynt/RuntimePatchingSystem/pull/16). The prior
+RPS scanner did not strictly respect bounds and could over-read a region from
+an interior start. Its owner fix also handles boundary/overlapping matches and
+provides bounded first/second matches in main-image executable pages. UCP owns
+cache updates and the unchanged operand/capture decoder. Do not publish 0.1.8
+as a standalone stock-3.0.7 ZIP or claim the prerequisite has shipped.
+
+Correction to the earlier fixture audit: its non-overlapping regex missed a
+second overlapping `playerLord` signature. In Crusader, starts 0x40FCE7 and
+0x40FD18 captured different player fields; Extreme has the same instruction
+sequence shifted by 0x10. The signature now includes the next short conditional
+branch, distinguishing the intended lord field from the following reset block,
+with relocatable operands still wildcarded. The read-only verifier now includes
+overlapping matches. Historical 0.1.7 uniqueness claims are superseded by this
+finding; previously recorded native gameplay observations remain separate.

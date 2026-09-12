@@ -9,9 +9,9 @@ function M.resolve(core,utils,game,ffi)
     buttonSurface=pointer(game.Rendering.alphaAndButtonSurface)}
   local function scan(name,pattern,capture)
     if capture then
-      local _,value=utils.AOBExtract(pattern)
+      local _,value=utils.AOBExtractUnique(pattern,'custom-hotkeys.'..name)
       addresses[name]=value
-    else addresses[name]=core.AOBScan(pattern) end
+    else addresses[name]=core.AOBScanUnique(pattern,'custom-hotkeys.'..name) end
   end
   scan('acceptTextEntry','C7 41 08 01 00 00 00 C3 CC CC CC CC CC CC',false)
   scan('armoryBookmark','89 3D I(? ? ? ?) 5F 89 35 ? ? ? ? 89 35 ? ? ? ? 89 35 ? ? ? ? 89 35 ? ? ? ? 89 35 ? ? ? ? 89 35 ? ? ? ?',true)
@@ -87,7 +87,7 @@ function M.resolve(core,utils,game,ffi)
   scan('playerEngineersGuild','8B 80 I(? ? ? ?) E9 ? ? ? ? 6A 0A 50 B9 ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 69 C0 F4 39 00 00',true)
   scan('playerGranary','8B 80 I(? ? ? ?) 3B C3 74 ? 69 C0 2C 03 00 00 8B 88 ? ? ? ? 0F BF 90 ? ? ? ? 8B E9 0F AF E9',true)
   scan('playerKeep','8B B8 I(? ? ? ?) 8B CA 69 C9 F4 39 00 00 3B F2 89 B9 ? ? ? ? 8B B8 ? ? ? ? 89 B9 ? ? ? ? 8B B8 ? ? ? ?',true)
-  scan('playerLord','66 89 98 ? ? ? ? 66 89 88 ? ? ? ? 89 BE ? ? ? ? 8B 86 I(? ? ? ?) 3B C7 74 ? 69 C0 90 04 00 00 66 89 90 ? ? ? ? 89 B8 ? ? ? ? 66 89 98 ? ? ? ? 66 89 88 ? ? ? ?',true)
+  scan('playerLord','66 89 98 ? ? ? ? 66 89 88 ? ? ? ? 89 BE ? ? ? ? 8B 86 I(? ? ? ?) 3B C7 74 ? 69 C0 90 04 00 00 66 89 90 ? ? ? ? 89 B8 ? ? ? ? 66 89 98 ? ? ? ? 66 89 88 ? ? ? ? 89 BE ? ? ? ? 8B 86 ? ? ? ? 3B C7 74 ?',true)
   scan('playerMarket','52 03 CB 50 51 B9 ? ? ? ? E8 ? ? ? ? 85 C0 74 ? 8B 15 ? ? ? ? 69 D2 F4 39 00 00 83 BA I(? ? ? ?) 00 74 ? 8B 87 ? ? ? ? 50 B9 ? ? ? ? E8 ? ? ? ? 85 C0 74 ? 8B 0D ? ? ? ? 69 C9 F4 39 00 00 8B 91 ? ? ? ? 6A 00',true)
   scan('playerMercenaryPost','83 BE I(? ? ? ?) 00 7E ? 83 FF 10 75 ? 66 83 BE ? ? ? ? 00 74 ? 8B 86 ? ? ? ? EB ?',true)
   scan('playerStockpile','39 A8 I(? ? ? ?) 0F 84 ? ? ? ? 55 6A 10 B9 ? ? ? ? C7 05 ? ? ? ? 0B 00 00 00 E8 ? ? ? ? A1 ? ? ? ?',true)
@@ -174,22 +174,24 @@ function M.resolve(core,utils,game,ffi)
   addresses.modalClosing=addresses.primaryModal+64
   local function menuArray(name,owner)
     local operand=utils.bytesToAOBString(utils.intToBytes(addresses[owner]))
-    local _,array=utils.AOBExtract('68 I(? ? ? ?) B9 '..operand..' E8 ? ? ? ?')
+    local _,array=utils.AOBExtractUnique('68 I(? ? ? ?) B9 '..operand..' E8 ? ? ? ?',
+      'custom-hotkeys.'..name)
     addresses[name]=array
   end
   menuArray('loadItems','loadMenu')
   menuArray('saveItems','confirmationMenu')
   menuArray('confirmationItems','saveMenu')
-  local _,rectangleOffset=utils.AOBExtract('8B 44 24 04 8B 54 24 0C 53 89 81 I(? ? ? ?) 89 81 ? ? ? ? 8B 44 24 14')
+  local _,rectangleOffset=utils.AOBExtractUnique('8B 44 24 04 8B 54 24 0C 53 89 81 I(? ? ? ?) 89 81 ? ? ? ? 8B 44 24 14',
+    'custom-hotkeys.viewportRectangle')
   addresses.viewportRectangle=addresses.viewport+rectangleOffset
-  local _,groupStride,unitCapacity=utils.AOBExtract(
-    '8B 44 24 04 69 C0 I(? ? ? ?) 03 C1 B9 I(? ? ? ?) 83 CA FF 89 10 89 50 04 83 C0 08')
+  local _,groupStride,unitCapacity=utils.AOBExtractUnique(
+    '8B 44 24 04 69 C0 I(? ? ? ?) 03 C1 B9 I(? ? ? ?) 83 CA FF 89 10 89 50 04 83 C0 08','custom-hotkeys.groupStride/unitCapacity')
   addresses.groupStride,addresses.unitCapacity=groupStride,unitCapacity
-  local _,tribeStride,tribeCapacity=utils.AOBExtract(
-    '69 C0 I(? ? ? ?) 8D 44 30 28 50 6A 00 68 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 83 C0 01 3D I(? ? ? ?) A3 ? ? ? ? 7C')
+  local _,tribeStride,tribeCapacity=utils.AOBExtractUnique(
+    '69 C0 I(? ? ? ?) 8D 44 30 28 50 6A 00 68 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 83 C0 01 3D I(? ? ? ?) A3 ? ? ? ? 7C','custom-hotkeys.tribeStride/tribeCapacity')
   addresses.tribeStride,addresses.tribeCapacity=tribeStride,tribeCapacity
-  local _,selectionWords=utils.AOBExtract(
-    '83 C0 01 83 C6 02 3D I(? ? ? ?) 7C ? 5D 33 C0 5E 5B 5F C2 08 00')
+  local _,selectionWords=utils.AOBExtractUnique(
+    '83 C0 01 83 C6 02 3D I(? ? ? ?) 7C ? 5D 33 C0 5E 5B 5F C2 08 00','custom-hotkeys.selectionBytes')
   addresses.selectionBytes=selectionWords*2
   return addresses
 end
