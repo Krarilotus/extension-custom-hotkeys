@@ -10,4 +10,4 @@ UCP2-Legacy n’est **pas nécessaire**. S’il est actif, ses modifications de 
 
 **Version de test :** réaffectation de la souris, groupes de bâtiments, positions de caméra et parcours entièrement au clavier restent en développement. Testez le solo, le multijoueur, la lecture Recorder et les combinaisons avec Automarket. Cette version ne verrouille pas les actions selon la version de Recorder ou la lecture. La disponibilité des commandes du jeu et le contrôle des champs de saisie restent applicables. SHC 1.41 et Extreme 1.41 sont ouverts aux tests ; la validation complète de compatibilité reste à effectuer.
 
-![Menu de sélection des raccourcis dans le jeu](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/f67fc6d9779f8ffe12b6ebd72462f317a565a160/docs/images/hotkeys-ingame.jpg)
+![Menu de sélection des raccourcis dans le jeu](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/4f5932ec3be14c1b3d6d9daf0ace7e5cf5c2e549/docs/images/hotkeys-015-extreme-ingame.png)

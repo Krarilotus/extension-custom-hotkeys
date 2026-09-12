@@ -10,4 +10,4 @@
 
 **测试版本：**鼠标按键重绑定、建筑编组、相机位置书签和完整键盘操作流程仍在开发中。请测试单人、多人、Recorder 回放及 Automarket 组合。此版本不按 Recorder 版本或回放状态锁定操作。游戏控件本身的可用性和输入框焦点规则仍然适用。 SHC 1.41 和 Extreme 1.41 均开放测试；完整兼容性验证尚未完成。
 
-![游戏内快捷键选择菜单](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/f67fc6d9779f8ffe12b6ebd72462f317a565a160/docs/images/hotkeys-ingame.jpg)
+![游戏内快捷键选择菜单](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/4f5932ec3be14c1b3d6d9daf0ace7e5cf5c2e549/docs/images/hotkeys-015-extreme-ingame.png)

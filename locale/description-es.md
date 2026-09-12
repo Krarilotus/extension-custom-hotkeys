@@ -10,4 +10,4 @@ UCP2-Legacy **no es necesario**. Si está activo, sus modificaciones de atajos (
 
 **Versión de prueba:** la reasignación del ratón, los grupos de edificios, las posiciones de cámara y los recorridos completos con teclado siguen en desarrollo. Prueba partidas individuales, multijugador, reproducciones de Recorder y combinaciones con Automarket. Esta versión no impone bloqueos por versión de Recorder o reproducción. Se mantiene la disponibilidad de los controles del juego y la gestión del foco de entrada. SHC 1.41 y Extreme 1.41 están abiertos a pruebas; la validación completa de compatibilidad sigue pendiente.
 
-![Menú de atajos dentro del juego](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/f67fc6d9779f8ffe12b6ebd72462f317a565a160/docs/images/hotkeys-ingame.jpg)
+![Menú de atajos dentro del juego](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/4f5932ec3be14c1b3d6d9daf0ace7e5cf5c2e549/docs/images/hotkeys-015-extreme-ingame.png)

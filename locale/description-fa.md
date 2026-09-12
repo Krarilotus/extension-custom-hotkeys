@@ -10,4 +10,4 @@ UCP2-Legacy **لازم نیست**. اگر فعال است، تغییرات می�
 
 **نسخهٔ آزمایشی:** تغییر عملکرد دکمه‌های ماوس، گروه‌های ساختمان، موقعیت‌های ذخیره‌شدهٔ دوربین و کنترل کامل با صفحه‌کلید هنوز در حال توسعه‌اند. تک‌نفره، چندنفره، بازپخش Recorder و ترکیب‌های Automarket را آزمایش کنید. این نسخه قفلی بر اساس نسخهٔ Recorder یا بازپخش ندارد. دسترس‌پذیری کنترل‌های بازی و تمرکز کادرهای ورودی همچنان اعمال می‌شوند. SHC 1.41 و Extreme 1.41 برای آزمایش باز هستند؛ تأیید کامل سازگاری هنوز انجام نشده است.
 
-![منوی انتخاب میانبرها درون بازی](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/f67fc6d9779f8ffe12b6ebd72462f317a565a160/docs/images/hotkeys-ingame.jpg)
+![منوی انتخاب میانبرها درون بازی](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/4f5932ec3be14c1b3d6d9daf0ace7e5cf5c2e549/docs/images/hotkeys-015-extreme-ingame.png)

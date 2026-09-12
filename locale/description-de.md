@@ -10,4 +10,4 @@ UCP2-Legacy wird **nicht benötigt**. Wenn es aktiv ist, müssen seine Hotkey-Ä
 
 **Testversion:** Mausbelegung, Gebäudegruppen, Kameralesezeichen und vollständige Tastaturabläufe sind noch in Entwicklung. Einzelspieler, Multiplayer, Recorder-Wiedergabe und Automarket-Kombinationen testen. Dieser Build enthält keine Recorder-Versions- oder Wiedergabesperre. Die Verfügbarkeit der Spielaktionen und die Zuständigkeit der Eingabefelder gelten weiterhin. SHC 1.41 und Extreme 1.41 sind zum Testen freigegeben; die vollständige Kompatibilitätsprüfung steht noch aus.
 
-![Tastenkürzel-Auswahlmenü im Spiel](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/f67fc6d9779f8ffe12b6ebd72462f317a565a160/docs/images/hotkeys-ingame.jpg)
+![Tastenkürzel-Auswahlmenü im Spiel](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/4f5932ec3be14c1b3d6d9daf0ace7e5cf5c2e549/docs/images/hotkeys-015-extreme-ingame.png)

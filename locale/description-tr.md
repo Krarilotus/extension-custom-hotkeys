@@ -10,4 +10,4 @@ UCP2-Legacy **gerekli değildir**. Etkinse kısayol değişiklikleri (`o_keys.en
 
 **Test sürümü:** fare tuşu atamaları, bina grupları, kayıtlı kamera konumları ve tam klavye kontrolü geliştirilmektedir. Tek oyunculu, çok oyunculu, Recorder tekrarları ve Automarket birleşimlerini test edin. Bu sürüm Recorder sürümü veya tekrar oynatım kilidi uygulamaz. Oyun kontrollerinin kullanılabilirliği ve giriş alanlarının odağı geçerliliğini korur. SHC 1.41 ve Extreme 1.41 teste açıktır; tam uyumluluk doğrulaması henüz tamamlanmadı.
 
-![Oyun içi kısayol seçim menüsü](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/f67fc6d9779f8ffe12b6ebd72462f317a565a160/docs/images/hotkeys-ingame.jpg)
+![Oyun içi kısayol seçim menüsü](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/4f5932ec3be14c1b3d6d9daf0ace7e5cf5c2e549/docs/images/hotkeys-015-extreme-ingame.png)

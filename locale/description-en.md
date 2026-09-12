@@ -10,4 +10,4 @@ UCP2-Legacy is **not required**. If it is active, its hotkey modifications (`o_k
 
 **Test version:** mouse rebinding, building groups, camera bookmarks and complete keyboard workflows are still being developed. Test single-player, multiplayer, Recorder playback and Automarket combinations. No Recorder-version or playback activation lock is imposed by this build. Existing game control availability and input ownership still apply. SHC 1.41 and Extreme 1.41 are open for testing; full compatibility acceptance is pending.
 
-![In-game hotkey selection menu](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/f67fc6d9779f8ffe12b6ebd72462f317a565a160/docs/images/hotkeys-ingame.jpg)
+![In-game hotkey selection menu](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/4f5932ec3be14c1b3d6d9daf0ace7e5cf5c2e549/docs/images/hotkeys-015-extreme-ingame.png)

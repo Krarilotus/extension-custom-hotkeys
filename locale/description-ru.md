@@ -10,4 +10,4 @@ UCP2-Legacy **не требуется**. Если он активен, его и
 
 **Тестовая версия:** переназначение кнопок мыши, группы зданий, сохранённые позиции камеры и полное управление с клавиатуры ещё разрабатываются. Тестируйте одиночную и сетевую игру, повторы Recorder и сочетания с Automarket. Эта сборка не блокирует действия по версии Recorder или режиму воспроизведения. Доступность игровых команд и фокус полей ввода по-прежнему учитываются. SHC 1.41 и Extreme 1.41 открыты для тестирования; полная проверка совместимости ещё не завершена.
 
-![Меню выбора горячих клавиш в игре](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/f67fc6d9779f8ffe12b6ebd72462f317a565a160/docs/images/hotkeys-ingame.jpg)
+![Меню выбора горячих клавиш в игре](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/4f5932ec3be14c1b3d6d9daf0ace7e5cf5c2e549/docs/images/hotkeys-015-extreme-ingame.png)
