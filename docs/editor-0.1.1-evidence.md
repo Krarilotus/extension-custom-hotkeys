@@ -1,5 +1,37 @@
 # Native editor check for 0.1.1
 
+## Compact layout follow-up
+
+Frozen `6a952f9c4d61e09aa1432f7f71744524fff38ec8`, ZIP87,776bytes,
+SHA256 `2aec300003a8a059e235cd0ba5b72b9910b550577e3af35d4f75e59dbc6c933a`.
+PID7852, same executable/dependencies/configuration/language/resolution as below.
+The revised editor shows18 rows, aligned equal-width Profile/Group buttons,
+a recessed search field and one footer row for counter/Reset/Apply/Cancel.
+No Change/Clear buttons, Enter/Delete hint or selection-explanation line remains.
+Key glyphs are one further pixel lower; other non-button labels are two lower.
+The ordinary button captions retain their original native position.
+
+F12 opened the editor in A Mighty Oasis. Clicking Search showed the caret;
+typing `group` filtered live through119/50/33/33/32 results. Enter accepted
+without starting capture; the next Enter started capture for assignment0.
+Ctrl+F11 displayed correctly, Delete cleared it, and the relocated Reset action
+restored Ctrl+0. Cancel closed without saving. The viewport showed no camera
+change during those search/edit steps; no native command-count claim is inferred.
+Some immediate captures caught partial painting; fresh observations showed all
+rows intact. Both current screenshots below are stable, unedited PID7852 captures.
+
+474 component cases passed19.15s (Lua5.4/LuaJIT), including live search, focus,
+Enter/Tab/Escape, clearing and reset. Native search Escape/Tab and all supported
+languages/minimum resolution are not established by this bounded visual run.
+Error log header-only. Normal Alt+F4 exit/process absence verified; desktop
+released05:12:33 CEST12 September2026, baseline configuration restored. Saved
+profiles unchanged. Task receipts `compact-011-build.json`, `compact-7852*.log`.
+
+An earlier alignment-only PID27508 run on d981d05 also checked the new text
+baselines; it was closed and released05:03:18 before this layout implementation.
+
+## Earlier capture and persistence check
+
 Frozen source `21dab2a79b84e0aaffb2c770681281675969f1d4`, ZIP88,172bytes,
 SHA256 `2f1eb40cef2b2a6352d2db9c6adb9d1c08cdbff2a2b4d29626c91e5c5ffb0db0`.
 PID13032 on12 September2026, SHC1.41 executable SHA256
