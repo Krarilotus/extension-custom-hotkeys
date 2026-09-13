@@ -1,0 +1,52 @@
+local A=require('code/addresses')
+local M={}
+local Dialog=require('code/dialog_context')
+local Load=require('code/load_context')
+local function integer(value,lo,hi)
+  return type(value)=='number' and value==math.floor(value) and value>=lo and value<=hi
+end
+-- Shared session/world validation. This does not authorize an input owner;
+-- callers must separately prove the actual modal/text/control ownership.
+function M.live(s,allowPaused)
+  if (s.screen~=14 and s.screen~=16)
+      or not integer(s.mode,0,6)
+      or (s.synchronyMode~=0 and s.synchronyMode~=1 and s.synchronyMode~=99)
+      or s.inGame~=1 or s.syncStatus~=0 or s.saveRelated~=0
+      or (s.paused~=0 and not (allowPaused and s.paused==1))
+      or s.halted~=0 or s.sliding~=0
+      or s.newPlayer~=0 or s.delay~=-1
+      or s.focused~=true or s.composing~=false
+      or not integer(s.player,1,8) or s.playerDead~=0 or s.playerDisabled~=0
+      or not integer(s.selectedCount,0,A.unitCapacity) or not integer(s.selectedLast,0,(A.unitCapacity-1))
+      or not integer(s.tribe,0,(A.tribeCapacity-1))
+      or type(s.selectionBits)~='string' or #s.selectionBits~=A.selectionBytes
+      or not integer(s.building,0,1999) or s.building~=s.nextBuilding
+      or not integer(s.unit,0,(A.unitCapacity-1)) or s.unit~=s.nextUnit
+      or not integer(s.placement,0,65535) or not integer(s.rotation,0,6) or s.rotation%2~=0
+      or not integer(s.cameraX,-1000000,1000000) or not integer(s.cameraY,-1000000,1000000)
+      or s.pendingRotation~=8 or not integer(s.zoom,0,1) or not integer(s.patrol,0,1)
+      or not integer(s.unitMode,-2147483648,2147483647)
+      or not integer(s.unitModeAux,-2147483648,2147483647) then return false end
+  return true
+end
+-- Synchrony GameMode: 0 solitary, 1 multiplayer, 99 skirmish single-player.
+-- End-of-game values 2/666 remain ineligible. Recorder owns playback eligibility.
+function M.resolve(s,ownedModal)
+  local options=ownedModal~=nil and ownedModal==s.modal and Dialog.owns(s)
+  local load=ownedModal==9 and Load.owns(s)
+  if ((ownedModal==5 or ownedModal==2025) and not options) or (ownedModal==9 and not load)
+      or not M.live(s,options or load)
+      or (s.modal~=-1 and (ownedModal==nil or s.modal~=ownedModal))
+      or not require('code/modal_context').background(s)
+      or (s.textModal~=0 and not options and not load) or s.textEditor~=0 then return nil end
+
+  return {owner=options and 'game.options' or load and 'game.load' or (s.screen==14 and 'game.build' or 'game.status'),
+    state=s.synchronyMode==1 and 'live-mp' or 'live-sp',authority=true,
+    selection=load and Load.identity(s) or table.concat({s.player,s.building,s.unit,s.tribe,s.selectedCount,s.selectedLast},':')..':'..s.selectionBits,
+    -- Camera position changes during a local pan hold. Queued world clicks
+    -- carry their own projection guard; a pan must not cancel itself.
+    -- These native mode values are identity, not permission to invoke an
+    -- action. A changed mode invalidates any gesture aimed in the old mode.
+    targeting=table.concat({s.placement,s.rotation,s.zoom,s.patrol,s.unitMode,s.unitModeAux},':')}
+end
+return M

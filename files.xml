@@ -1,0 +1,9 @@
+<module>
+  <files>
+    <file src="definition.yml" />
+    <file src="config.yml" />
+    <file src="init.lua" />
+    <file src="code" />
+    <file src="README.md" />
+  </files>
+</module>
