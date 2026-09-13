@@ -73,10 +73,20 @@ function M:apply(bindings,options)
         local states=self.index[key][owner] or {}
         self.index[key][owner]=states
         for state in pairs(action.states) do
-          -- Catalog.validate proved unique ownership for each overlapping
-          -- context/state. Compile on Apply, never scan other menus on input.
-          assert(not states[state],'binding.conflict')
-          states[state]=action
+          -- Compile each key's disjoint native panels on Apply. Input retains
+          -- constant-time lookup and never enumerates inactive menus.
+          local scope=states[state] or {panels={}}
+          states[state]=scope
+          if action.panels then
+            assert(not scope.any,'binding.conflict')
+            for panel in pairs(action.panels) do
+              assert(not scope.panels[panel],'binding.conflict')
+              scope.panels[panel]=action
+            end
+          else
+            assert(not scope.any and next(scope.panels)==nil,'binding.conflict')
+            scope.any=action
+          end
         end
       end
     end
@@ -214,7 +224,8 @@ function M:handle(event)
   if self.blocked then return false end
   local owners = self.index[Binding.key(event)]
   local states = owners and owners[context.owner]
-  local chosen = states and states[context.state]
+  local scope = states and states[context.state]
+  local chosen = scope and (scope.any or scope.panels[Context.panel(context)])
   if chosen and not Context.allows(chosen,context) then chosen=nil end
   if not chosen then
     for _, action in ipairs(self.nativeMasks[Binding.key(event)] or empty) do

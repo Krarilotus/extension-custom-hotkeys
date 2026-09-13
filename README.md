@@ -1,15 +1,19 @@
 # Custom Hotkeys for Stronghold Crusader
 
-Version 0.1.8 uses the existing UCP 3.0.7 `core.AOBScan` and
-`utils.AOBExtract` APIs. It fixes the overlapping player-lord signature;
-ambiguity is audited against executable fixtures during development.
+Version 0.1.9 allows the same binding in different native construction/unit
+panels. Woodcutter, Wheat Farm and Catapult can share a key; Woodcutter and
+Quarry still conflict because both are available in Industry. Global actions
+still conflict with panel actions wherever they overlap. Inactive buttons never
+receive the key, and held keys must be released before a new panel can use them.
+
+Uses the existing UCP 3.0.7 `core.AOBScan`, shared cache and `utils.AOBExtract`.
 No replacement framework files or new scanner API are required.
 
 Development of one UCP3 extension for in-game rebinding, persistent local profiles
 and keyboard access to native menus, building placement and unit targeting.
 
 This is an incomplete test version, not an accepted release.
-The [0.1.8 candidate](docs/features-0.1.8.md) includes keyboard/mouse rebinding,
+The [0.1.9 candidate](docs/features-0.1.9.md) includes keyboard/mouse rebinding,
 building groups, camera bookmarks, keyboard targeting and native panel controls.
 UCP byte-pattern resolution and original button callbacks preserve the construction cursor.
 Crusader and Extreme are open for testing, including multiplayer and Recorder.

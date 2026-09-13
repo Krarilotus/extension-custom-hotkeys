@@ -9,7 +9,9 @@ def test_control_catalog_has_unique_semantics_and_no_authoring_or_raw_dispatch(l
         assert(control.textGroup==8 and control.text>0 and control.help>0)
         local action=catalog.actions[control.id]
         assert(action.command and action.behavior=='press' and not action.default)
-        assert(Context.allows(action,Context.resolve(facts('game.build'))))
+        local active=facts('game.build');active.panel=(control.panels and control.panels[1] or '10')..':0'
+        assert(Context.allows(action,Context.resolve(active)))
+        if action.panels then active.panel='999:0';assert(not Context.allows(action,Context.resolve(active))) end
         assert(not Context.allows(action,Context.resolve(facts('game.status'))))
         assert(not Context.allows(action,Context.resolve(facts('game.build','replay'))))
       end

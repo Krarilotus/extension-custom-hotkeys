@@ -174,3 +174,16 @@ overlapping matches. Historical 0.1.7 uniqueness claims are superseded by this
 finding; previously recorded native gameplay observations remain separate.
 
 [0.1.8 validation and native startup evidence](features-0.1.8.md).
+
+
+## 0.1.9 panel scope reuse
+
+Reuse: `Scene:resolve` already supplies native tab:subtab identity;
+`MenuTraversal.active` and `MenuReader:read` already select active native controls;
+`Navigation:activateMatching` / `beforeFrame` retain final button identity and
+eligibility checks. `Catalog.validate`, `Context.overlap/allows` and `Router:apply`
+now share tab restrictions rather than treating all screen14 controls as global.
+Panel IDs are game enum data, not executable addresses or replacement hooks.
+The read-only original menu inventory (SHC SHA3bb0a8c1) supplies control membership;
+unit stance61/62 comes from the existing verified `WorldActions:dispatch` guard.
+No owner API addition is needed. The existing runtime AOB APIs are unchanged.

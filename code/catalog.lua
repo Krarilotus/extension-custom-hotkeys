@@ -28,7 +28,8 @@ function M.new(entries, nativeBindings)
     assert(not entry.command or behavior == 'press', 'action.command-repeat')
     local default
     if entry.default then default = assert(Binding.validate(entry.default)) end
-    local a = {id=entry.id, contexts=contexts, states=states,
+    local panels=entry.panels and assert(set(entry.panels),'action.panels') or nil
+    local a = {id=entry.id, contexts=contexts, states=states, panels=panels,
       command=entry.command, behavior=behavior, default=default, label=entry.label or entry.id,
       introduced=entry.introduced or 1}
     actions[a.id], ordered[#ordered+1] = a, a

@@ -305,6 +305,8 @@ def test_production_defaults_require_displaced_actions_and_retain_native_arrows(
       assert(not router:handle(arrow) and count==0)
       assert(router:handle(event(17)));assert(router:handle(repeat_event(17)) and count==1)
       assert(router:handle(event(17,'up')))
+      assert(not router:handle(event(17,'down',4)) and count==1) -- no stance outside unit panel
+      router:handle(event(17,'up',4));current.panel='61:0'
       assert(router:handle(event(17,'down',4)) and count==2)
     ''')
 

@@ -69,7 +69,7 @@ def test_multiplayer_catalog_and_text_ownership_keep_native_save_load_restrictio
     lua.execute('''
       s.synchronyMode=1;s.mode=1
       local resolved=assert(Gameplay.resolve(s))
-      local context=Context.resolve(facts(resolved.owner,resolved.state))
+      local context=Context.resolve(facts(resolved.owner,resolved.state));context.panel='61:0'
       local catalog=Catalog.production()
       local singlePlayer={['game.quicksave']=true,['game.quickload']=true,
         ['game.save.open']=true,['game.load.open']=true}

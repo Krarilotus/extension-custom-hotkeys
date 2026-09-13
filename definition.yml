@@ -1,6 +1,6 @@
 name: custom-hotkeys
 display-name: Custom Hotkeys (development)
-version: 0.1.8
+version: 0.1.9
 author: Krarilotus
 type: module
 game: [SHC==1.41, SHCE==1.41]

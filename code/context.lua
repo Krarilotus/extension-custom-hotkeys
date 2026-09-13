@@ -42,15 +42,27 @@ function M.same(a, b)
   return true
 end
 
+-- panel carries the existing native tab:subtab identity. Restrict only the
+-- tab here; active-control traversal still validates visibility and substates.
+function M.panel(context)
+  return context and context.panel:match('^([^:]+):')
+end
+
 function M.allows(action, context)
   if not context or not action.contexts[context.owner] then return false end
   if not action.states[context.state] then return false end
+  if action.panels and not action.panels[M.panel(context)] then return false end
   if action.command and (not context.authority
       or (context.state ~= 'live-sp' and context.state ~= 'live-mp')) then return false end
   return true
 end
 
 function M.overlap(a, b)
+  if a.panels and b.panels then
+    local shared=false
+    for panel in pairs(a.panels) do if b.panels[panel] then shared=true;break end end
+    if not shared then return false end
+  end
   for owner in pairs(a.contexts) do
     if b.contexts[owner] then
       for state in pairs(a.states) do

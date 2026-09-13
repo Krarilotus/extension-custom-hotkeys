@@ -80,7 +80,7 @@ def test_unknown_preset_cannot_change_router_or_store(presets):
 
 def test_game_default_preserves_native_aliases_until_action_is_rebound(presets):
     presets.execute('''
-      current=facts('game.build')
+      current=facts('game.build');current.panel='61:0'
       assert(not router:handle(event(17,'down',2)))
       assert(not router:handle(event(17,'up',2)))
       profiles:begin();assert(profiles:bind('unit.stance.defensive',key(17,4)))

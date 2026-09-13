@@ -78,7 +78,7 @@ for _,action in ipairs({{'camera.cycle.signposts',31,4},
     {'camera.focus.lord',38,0},{'camera.cycle.lords',38,2},
     {'unit.stance.stand-ground',16,0},{'unit.stance.defensive',17,4},
     {'unit.stance.aggressive',18,0}}) do
-  entries[#entries+1]={id=action[1],contexts=world,states={'live-sp','live-mp'},command=action[1]:sub(1,5)=='unit.',
+  entries[#entries+1]={id=action[1],contexts=world,panels=action[1]:sub(1,12)=='unit.stance.' and {'61','62'} or nil,states={'live-sp','live-mp'},command=action[1]:sub(1,5)=='unit.',
     default={scan=action[2],extended=false,mods=action[3]}}
 end
 for _,building in ipairs(require('code/building_actions')) do
@@ -89,7 +89,7 @@ for _,building in ipairs(require('code/building_actions')) do
   end
 end
 for _,control in ipairs(require('code/controls')) do
-  entries[#entries+1]={id=control.id,contexts={'game.build'},states={'live-sp','live-mp'},
+  entries[#entries+1]={id=control.id,contexts={'game.build'},panels=control.panels,states={'live-sp','live-mp'},
     command=true,default=false}
 end
 for slot=1,12 do
