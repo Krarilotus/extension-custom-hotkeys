@@ -20,7 +20,7 @@ return {
  nativeGroup='Oyunun grup veya bina kısayolu ',
  ['game.save.open']='Kaydet penceresini aç',['game.load.open']='Yükle penceresini aç',
  ['camera.focus.lord']='Kendi lordunu göster',['camera.cycle.lords']='Yaşayan lordlar arasında geçiş yap',
- mainHelp1='Klavye kısayollarını değiştir.',mainHelp2='Profil oluştur, içe ve dışa aktar.',
+
  ['view.rotate-left']='Görünümü sola döndür',['view.rotate-right']='Görünümü sağa döndür',
  ['view.toggle-zoom']='Yakınlaştırmayı değiştir',['view.lower-buildings']='Binaları alçalt',
  ['view.toggle-interface']='Araç çubuğunu göster / gizle',['group.view']='Görünüm',

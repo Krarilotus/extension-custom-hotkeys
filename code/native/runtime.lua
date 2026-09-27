@@ -99,7 +99,7 @@ function M.start(language)
   local runtime={lock=lock,platform=platform,scene=scene,catalog=catalog,router=router,
     profiles=profiles,view=view,chain=chain,cursor=cursor,navigation=navigation,
     inputFrame=inputFrame,lowering=lowering,quickslot=quickslot,pointer=pointer,targeting=targeting,camera=camera,worldActions=worldActions,pins={}}
-  runtime.pins=require('code/native/main_menu').install(scene,view)
+  runtime.pins=require('code/native/options_menu').install(scene,view)
   return runtime
 end
 return M

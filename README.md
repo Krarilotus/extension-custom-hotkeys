@@ -1,6 +1,7 @@
 # Custom Hotkeys for Stronghold Crusader
 
-Version 0.1.9 allows the same binding in different native construction/unit
+Version 0.1.10 places the editor in the game's main and in-game Options menus.
+It also allows the same binding in different native construction/unit
 panels. Woodcutter, Wheat Farm and Catapult can share a key; Woodcutter and
 Quarry still conflict because both are available in Industry. Global actions
 still conflict with panel actions wherever they overlap. Inactive buttons never
@@ -13,7 +14,7 @@ Development of one UCP3 extension for in-game rebinding, persistent local profil
 and keyboard access to native menus, building placement and unit targeting.
 
 This is an incomplete test version, not an accepted release.
-The [0.1.9 candidate](docs/features-0.1.9.md) includes keyboard/mouse rebinding,
+The [0.1.9 feature candidate](docs/features-0.1.9.md) includes keyboard/mouse rebinding,
 building groups, camera bookmarks, keyboard targeting and native panel controls.
 UCP byte-pattern resolution and original button callbacks preserve the construction cursor.
 Crusader and Extreme are open for testing, including multiplayer and Recorder.
@@ -40,7 +41,8 @@ the target, 5 centers it, Enter confirms and Decimal cancels. All are configurab
 See [presets](docs/presets.md) for defaults and migration behavior.
 
 Activate the module in UCP and start the game: no additional launcher switch or
-customization options are needed. Open **Custom Hotkeys** from the main menu or
+customization options are needed. Open **Options > Custom Hotkeys** from the main
+menu or from the in-game pause menu, or
 press **F12** in a supported menu/live single-player or multiplayer game. **Ctrl+Shift+F12** is
 the recovery shortcut if F12 was reassigned. Change bindings and select **Apply**
 to save them. The editor uses the **game language**, read through UCP after game

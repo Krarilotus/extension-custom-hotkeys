@@ -73,8 +73,6 @@ for group=0,9 do
 end
 en['game.save.open']='Open Save dialog';de['game.save.open']='Speicherdialog öffnen'
 en['game.load.open']='Open Load dialog';de['game.load.open']='Ladedialog öffnen'
-en.mainHelp1='Change keyboard shortcuts.';en.mainHelp2='Create, import and export profiles.'
-de.mainHelp1='Tastenkürzel anpassen.';de.mainHelp2='Profile erstellen und austauschen.'
 en['view.rotate-left']='Rotate view left';de['view.rotate-left']='Ansicht nach links drehen'
 en['view.rotate-right']='Rotate view right';de['view.rotate-right']='Ansicht nach rechts drehen'
 en['view.toggle-zoom']='Toggle zoom';de['view.toggle-zoom']='Zoom umschalten'

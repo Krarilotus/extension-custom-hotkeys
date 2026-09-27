@@ -36,15 +36,40 @@ function M.validate(catalog, document)
         or not catalog.presets[profile.preset]) then return nil,'profiles.preset' end
     local candidate=copy(profile.bindings)
     if document.schema<3 and type(candidate)=='table' then
+      local missing={}
       for _,action in ipairs(catalog.ordered) do
-        -- Only known additions may be absent from an older schema. They start
-        -- unbound so an upgrade cannot activate an unexpected command.
-        if action.introduced>document.schema and candidate[action.id]==nil then candidate[action.id]=false end
+        if action.introduced>document.schema and candidate[action.id]==nil then
+          candidate[action.id]=false
+          missing[#missing+1]=action.id
+        end
         -- These numbers previously always passed to SHC, even when the editor
         -- displayed an unbound custom recall. Preserve that existing behavior
         -- as an explicit, now-rebindable default; keep actual custom choices.
         if action.id:match('^unit%.group%.recall%.%d$') and candidate[action.id]==false then
           candidate[action.id]=copy(action.default)
+        end
+      end
+      -- A named preset should acquire its newly introduced controls. Try each
+      -- new binding against the existing profile: a user's older assignment
+      -- takes precedence if it would overlap. Custom profiles stay unbound.
+      local preset=profile.preset and catalog.presets[profile.preset]
+      if preset then
+        local additions={}
+        for _,id in ipairs(missing) do
+          local binding=preset.bindings[id]
+          if binding then
+            candidate[id]=copy(binding)
+            additions[#additions+1]=id
+          end
+        end
+        if #additions>0 and not Catalog.validate(catalog,candidate) then
+          -- Only profiles with an older conflicting assignment need the
+          -- slower per-binding fallback; ordinary preset loading validates once.
+          for _,id in ipairs(additions) do candidate[id]=false end
+          for _,id in ipairs(additions) do
+            candidate[id]=copy(preset.bindings[id])
+            if not Catalog.validate(catalog,candidate) then candidate[id]=false end
+          end
         end
       end
     end
