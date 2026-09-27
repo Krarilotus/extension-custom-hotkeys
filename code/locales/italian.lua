@@ -30,7 +30,7 @@ return {
  nativeGroup='Scorciatoia originale di gruppo o edificio ',
  ['game.save.open']='Apri Salva', ['game.load.open']='Apri Carica',
  ['camera.focus.lord']='Centra sul tuo signore', ['camera.cycle.lords']='Scorri i signori vivi',
- mainHelp1='Modifica le scorciatoie da tastiera.',mainHelp2='Crea e scambia profili.',
+
  ['view.rotate-left']='Ruota la visuale a sinistra', ['view.rotate-right']='Ruota la visuale a destra',
  ['view.toggle-zoom']='Cambia zoom', ['view.lower-buildings']='Abbassa gli edifici',
  ['view.toggle-interface']='Mostra o nascondi la barra', ['group.view']='Visuale',

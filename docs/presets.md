@@ -52,8 +52,10 @@ This six-column adaptation uses SHC's own toolbar and command panels.
 
 Profile document schema3 supports keyboard and mouse bindings and64 named profiles.
 Schema1/2 imports/load preserve existing bindings, profile names and active
-selection. Only explicitly versioned new actions may be absent; they become
-unbound in old profiles. Missing old actions, unknown fields/actions and conflicts
+selection. Only explicitly versioned new actions may be absent. Named preset
+profiles receive their new preset bindings when these do not conflict with an
+older assignment; new actions in custom profiles start unbound. Missing old
+actions, unknown fields/actions and conflicts
 still fail validation. The three preset copies are added under unique names,
 without replacing a same-named user profile. Migration is saved only through the
 normal Apply operation and alternating verified store. The storage envelope

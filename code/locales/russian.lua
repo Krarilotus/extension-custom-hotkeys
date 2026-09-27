@@ -20,7 +20,7 @@ return {
  nativeGroup='Игровая клавиша группы или здания ',
  ['game.save.open']='Открыть сохранение',['game.load.open']='Открыть загрузку',
  ['camera.focus.lord']='Показать своего лорда',['camera.cycle.lords']='Перебрать живых лордов',
- mainHelp1='Изменить горячие клавиши.',mainHelp2='Создать, импортировать и экспортировать профили.',
+
  ['view.rotate-left']='Повернуть вид влево',['view.rotate-right']='Повернуть вид вправо',
  ['view.toggle-zoom']='Изменить масштаб',['view.lower-buildings']='Скрыть высоту зданий',
  ['view.toggle-interface']='Показать или скрыть панель',['group.view']='Вид',

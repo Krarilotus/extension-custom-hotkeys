@@ -20,7 +20,7 @@ return {
  nativeGroup='میانبر اصلی گروه یا ساختمان ',
  ['game.save.open']='باز کردن پنجره ذخیره',['game.load.open']='باز کردن پنجره بارگذاری',
  ['camera.focus.lord']='نمایش فرمانروای خود',['camera.cycle.lords']='گردش میان فرمانروایان زنده',
- mainHelp1='تغییر میانبرهای صفحه‌کلید.',mainHelp2='ساخت، وارد کردن و صادر کردن پروفایل‌ها.',
+
  ['view.rotate-left']='چرخش نما به چپ',['view.rotate-right']='چرخش نما به راست',
  ['view.toggle-zoom']='تغییر بزرگ‌نمایی',['view.lower-buildings']='کاهش ارتفاع نمای ساختمان‌ها',
  ['view.toggle-interface']='نمایش یا پنهان کردن نوار ابزار',['group.view']='نما',

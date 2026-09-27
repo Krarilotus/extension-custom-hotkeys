@@ -20,7 +20,7 @@ return {
  nativeGroup='Eredeti csoport- vagy épületbillentyű: ',
  ['game.save.open']='Mentés megnyitása',['game.load.open']='Betöltés megnyitása',
  ['camera.focus.lord']='Saját nagyúr mutatása',['camera.cycle.lords']='Élő nagyurak váltása',
- mainHelp1='Gyorsbillentyűk módosítása.',mainHelp2='Profilok létrehozása, importálása és exportálása.',
+
  ['view.rotate-left']='Nézet forgatása balra',['view.rotate-right']='Nézet forgatása jobbra',
  ['view.toggle-zoom']='Nagyítás váltása',['view.lower-buildings']='Épületek leengedése',
  ['view.toggle-interface']='Eszköztár megjelenítése / elrejtése',['group.view']='Nézet',

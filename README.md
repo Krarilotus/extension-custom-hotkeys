@@ -1,6 +1,7 @@
 # Custom Hotkeys for Stronghold Crusader
 
-Version 0.1.9 allows the same binding in different native construction/unit
+Version 0.1.10 places the editor in the game's main and in-game Options menus.
+It also allows the same binding in different native construction/unit
 panels. Woodcutter, Wheat Farm and Catapult can share a key; Woodcutter and
 Quarry still conflict because both are available in Industry. Global actions
 still conflict with panel actions wherever they overlap. Inactive buttons never
@@ -13,7 +14,7 @@ Development of one UCP3 extension for in-game rebinding, persistent local profil
 and keyboard access to native menus, building placement and unit targeting.
 
 This is an incomplete test version, not an accepted release.
-The [0.1.9 candidate](docs/features-0.1.9.md) includes keyboard/mouse rebinding,
+The [0.1.9 feature candidate](docs/features-0.1.9.md) includes keyboard/mouse rebinding,
 building groups, camera bookmarks, keyboard targeting and native panel controls.
 UCP byte-pattern resolution and original button callbacks preserve the construction cursor.
 Crusader and Extreme are open for testing, including multiplayer and Recorder.

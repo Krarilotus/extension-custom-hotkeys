@@ -20,7 +20,7 @@ return {
  nativeGroup='原有编队或建筑快捷键',
  ['game.save.open']='打开保存窗口',['game.load.open']='打开载入窗口',
  ['camera.focus.lord']='聚焦自己的领主',['camera.cycle.lords']='循环查看存活的领主',
- mainHelp1='更改键盘快捷键。',mainHelp2='创建、导入和导出配置方案。',
+
  ['view.rotate-left']='向左旋转视角',['view.rotate-right']='向右旋转视角',
  ['view.toggle-zoom']='切换缩放',['view.lower-buildings']='降低建筑显示高度',
  ['view.toggle-interface']='显示或隐藏工具栏',['group.view']='视图',
