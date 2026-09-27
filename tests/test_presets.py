@@ -69,6 +69,37 @@ def test_v1_migration_preserves_old_bindings_names_and_active(presets):
     ''')
 
 
+def test_v2_preset_migration_fills_new_camera_and_mouse_bindings(presets):
+    presets.execute('''
+      local source=profiles.committed
+      local old={schema=2,active='Grid',profiles={}}
+      for name,profile in pairs(source.profiles) do
+        local bindings={}
+        for id,binding in pairs(profile.bindings) do
+          if catalog.actions[id].introduced<=2 then bindings[id]=binding end
+        end
+        old.profiles[name]={preset=profile.preset,bindings=bindings}
+      end
+      local migrated=assert(Profiles.validate(catalog,old))
+      local grid=migrated.profiles.Grid.bindings
+      assert(grid['camera.bookmark.assign.0'].scan==11)
+      assert(grid['camera.bookmark.assign.0'].mods==6)
+      assert(grid['camera.bookmark.recall.0'].mods==5)
+      assert(grid['pointer.primary'].button=='left')
+      assert(grid['pointer.secondary'].button=='right')
+      local modern=migrated.profiles['Modern RTS'].bindings
+      assert(modern['pointer.primary']==false)
+      assert(modern['pointer.select'].button=='left')
+      assert(modern['pointer.order'].button=='right')
+      -- An older user assignment wins when a newly introduced preset key
+      -- would overlap; that new action remains available for manual binding.
+      old.profiles.Grid.bindings['camera.group.0']={scan=11,mods=6,extended=false}
+      migrated=assert(Profiles.validate(catalog,old))
+      assert(migrated.profiles.Grid.bindings['camera.group.0'].mods==6)
+      assert(migrated.profiles.Grid.bindings['camera.bookmark.assign.0']==false)
+    ''')
+
+
 def test_unknown_preset_cannot_change_router_or_store(presets):
     presets.execute('''
       profiles:begin();local d=profiles:export()

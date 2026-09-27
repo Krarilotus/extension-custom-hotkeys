@@ -96,7 +96,9 @@ function M:open()
   self.parentScreen=self.scene.current.screen
   self.parentModal=self.scene.current.modal
   self.parentInputGeneration=self.scene.current.inputGeneration
-  game.UI.activateModalMenu(game.UI.MenuModalComposition1,self.modalID,self.parentModal~=-1)
+  -- Options is a native modal owner. Replace it while editing so its text/modal
+  -- state cannot continue to own input behind this editor.
+  game.UI.activateModalMenu(game.UI.MenuModalComposition1,self.modalID,false)
   -- Native display21 is the world hover banner. Preserve its native enable
   -- state while this editor covers the world, rather than painting over it.
   if (self.parentScreen==14 or self.parentScreen==16) and self.displayVisible(21)~=0 then
@@ -116,7 +118,8 @@ function M:close(apply)
   self.router:barrier();self.opened=false;self.text=nil
   local returnToOptions=(self.parentModal==12 or self.parentModal==44)
     and self.scene.current.inputGeneration==self.parentInputGeneration
-  game.UI.activateModalMenu(game.UI.MenuModalComposition1,-1,returnToOptions)
+  game.UI.activateModalMenu(game.UI.MenuModalComposition1,
+    returnToOptions and self.parentModal or -1,false)
   self.resetMouse(game.Input.mouseState)
   return true
 end

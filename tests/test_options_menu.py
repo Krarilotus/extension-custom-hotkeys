@@ -54,12 +54,12 @@ def test_editor_returns_to_owning_options_modal(lua):
       view.scene.resolve=function() view.scene.current=snapshot;return {owner='game.options'} end
       game.UI.activateModalMenu=function(_,id,retain)
         calls[#calls+1]={id,retain}
-        snapshot.modal=id==2041 and id or 12
+        snapshot.modal=id
       end
       assert(view:open() and view.parentModal==12)
-      assert(calls[1][1]==2041 and calls[1][2]==true)
+      assert(calls[1][1]==2041 and calls[1][2]==false)
       assert(view:close(false))
-      assert(calls[2][1]==-1 and calls[2][2]==true)
+      assert(calls[2][1]==12 and calls[2][2]==false)
       snapshot.modal=5
       assert(not view:open())
     ''')
