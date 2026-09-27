@@ -88,12 +88,15 @@ end
 function M:open()
   local c=self.scene:resolve(self)
   if self.opened or not c or (c.owner:sub(1,5)~='menu.' and c.owner~='game.build'
-      and c.owner~='game.status') then return false end
+      and c.owner~='game.status' and not (c.owner=='game.options'
+        and self.scene.current.modal==12)) then return false end
   self.controller=Controller.new(self.profiles,self.catalog,self.router,self.labels,string.lower,rows)
   self:setPage('bindings')
   self.focus,self.text,self.error,self.opened=4,nil,nil,true
   self.parentScreen=self.scene.current.screen
-  game.UI.activateModalMenu(game.UI.MenuModalComposition1,self.modalID,false)
+  self.parentModal=self.scene.current.modal
+  self.parentInputGeneration=self.scene.current.inputGeneration
+  game.UI.activateModalMenu(game.UI.MenuModalComposition1,self.modalID,self.parentModal~=-1)
   -- Native display21 is the world hover banner. Preserve its native enable
   -- state while this editor covers the world, rather than painting over it.
   if (self.parentScreen==14 or self.parentScreen==16) and self.displayVisible(21)~=0 then
@@ -111,7 +114,9 @@ function M:close(apply)
   if not apply then self.controller:cancel() end
   self:restoreHover(self.scene:snapshot())
   self.router:barrier();self.opened=false;self.text=nil
-  game.UI.activateModalMenu(game.UI.MenuModalComposition1,-1,false)
+  local returnToOptions=(self.parentModal==12 or self.parentModal==44)
+    and self.scene.current.inputGeneration==self.parentInputGeneration
+  game.UI.activateModalMenu(game.UI.MenuModalComposition1,-1,returnToOptions)
   self.resetMouse(game.Input.mouseState)
   return true
 end

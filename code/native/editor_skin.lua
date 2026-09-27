@@ -24,12 +24,12 @@ function M.field()
   -- with hover disabled. Keep its recessed field without owning native text state.
   background(-1,false)
 end
-function M.caption(encoded,color)
+function M.caption(encoded,color,blend)
   -- Original Save/Load button492B46: font18, center alignment1, x+width/2,
   -- y+7 on the 30px native button. Let TextManager center the actual glyphs.
   local r=game.Rendering;local s=r.ButtonState
   r.renderTextToScreenConst(r.textManager,encoded,s.x+math.floor(s.width/2),
-    s.y+7,1,color,18,false,0)
+    s.y+7,1,color,18,false,blend or 0)
 end
 function M.border(x,y,right,bottom)
   game.Rendering.drawBorderBox(game.Rendering.pencilRenderCore,x,y,right,bottom,border[0])
