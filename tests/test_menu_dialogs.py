@@ -29,6 +29,8 @@ def test_main_options_uses_current_registered_menu_and_no_text_or_world_actions(
       Options.bind(function(id) return id==44 and 12345 or nil end)
       s.screen=41;s.modal=44;s.activeModalID=44;s.textModal=44;s.activeModalMenu=12345
       assert(Options.owns(s))
+      -- UI.activateModalMenu restores the Options root with textModal zero.
+      s.textModal=0;assert(Options.owns(s));s.textModal=44
       for field,value in pairs({activeModalMenu=12346,activeModalID=5,modal=5,
         textModal=25,textEditor=1,modal2=27,screen=35}) do
         local old=s[field];s[field]=value;assert(not Options.owns(s),field);s[field]=old

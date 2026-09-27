@@ -54,10 +54,20 @@ function M.validate(catalog, document)
       -- takes precedence if it would overlap. Custom profiles stay unbound.
       local preset=profile.preset and catalog.presets[profile.preset]
       if preset then
+        local additions={}
         for _,id in ipairs(missing) do
           local binding=preset.bindings[id]
           if binding then
             candidate[id]=copy(binding)
+            additions[#additions+1]=id
+          end
+        end
+        if #additions>0 and not Catalog.validate(catalog,candidate) then
+          -- Only profiles with an older conflicting assignment need the
+          -- slower per-binding fallback; ordinary preset loading validates once.
+          for _,id in ipairs(additions) do candidate[id]=false end
+          for _,id in ipairs(additions) do
+            candidate[id]=copy(preset.bindings[id])
             if not Catalog.validate(catalog,candidate) then candidate[id]=false end
           end
         end

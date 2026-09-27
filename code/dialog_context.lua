@@ -15,7 +15,8 @@ function M.owns(s)
   local menu=menus[s.modal]
   local parent=s.screen==41 or s.screen==14 or s.screen==16
   return parent and menu~=nil and s.activeModalID==s.modal and s.activeModalMenu==menu
-    and ((standard[s.modal] and s.textModal==s.modal)
+    and ((standard[s.modal] and (s.textModal==s.modal
+        or ((s.modal==12 or s.modal==44) and s.textModal==0)))
       or (s.modal==2025 and s.screen~=41 and s.textModal==0))
 end
 function M.origin(s)
