@@ -7,7 +7,7 @@ local function n(value) return tonumber(value) end
 function M.new()
   return setmetatable({},M)
 end
-function M:read(menuAddress, state, origin,includeDisabled)
+function M:read(menuAddress, state, origin,includeDisabled,allowSliding)
   if not menuAddress or menuAddress==0 then return nil,'menu.missing' end
   local menu=ffi.cast('Menu *',menuAddress)
   local array=menu[0].menuItemArray
@@ -20,7 +20,7 @@ function M:read(menuAddress, state, origin,includeDisabled)
     return {type=n(ffi.cast('uint32_t',r.menuItemType)),parameter=n(r.callbackParameter.parameter),
       skip=n(r.firstItemTypeData.itemsToSkip),condition=n(r.field9_0x28),
       disabled=n(r.iconDeactivated_0x36),inactive=n(r.field15_0x38)}
-  end,count,state,includeDisabled)
+  end,count,state,includeDisabled,allowSliding)
   if not active then return nil,err end
   local rows={}
   for _,index in ipairs(active) do
@@ -29,7 +29,7 @@ function M:read(menuAddress, state, origin,includeDisabled)
     -- the active registry Menu when multiple Menu objects share the array.
     local owner=r.menuPointer
     if owner==nil or owner[0].menuItemArray~=array then return nil,'menu.owner' end
-    if n(owner[0].currentBuildMenuButtonShift_0x14)~=0 then return nil,'menu.shifted' end
+    if not allowSliding and n(owner[0].currentBuildMenuButtonShift_0x14)~=0 then return nil,'menu.shifted' end
     local baseX,baseY=n(owner[0].xPosition),n(owner[0].yPosition)
     if origin then
       if origin.menu~=menuAddress or n(ffi.cast('uintptr_t',owner))~=menuAddress then

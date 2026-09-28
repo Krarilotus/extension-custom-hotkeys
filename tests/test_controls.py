@@ -11,6 +11,9 @@ def test_control_catalog_has_unique_semantics_and_no_authoring_or_raw_dispatch(l
         assert(action.command and action.behavior=='press' and not action.default)
         local active=facts('game.build');active.panel=(control.panels and control.panels[1] or '10')..':0'
         assert(Context.allows(action,Context.resolve(active)))
+        active.owner='game.build.slide'
+        assert(Context.allows(action,Context.resolve(active)))
+        active.owner='game.build'
         if action.panels then active.panel='999:0';assert(not Context.allows(action,Context.resolve(active))) end
         assert(not Context.allows(action,Context.resolve(facts('game.status'))))
         assert(not Context.allows(action,Context.resolve(facts('game.build','replay'))))
@@ -18,6 +21,13 @@ def test_control_catalog_has_unique_semantics_and_no_authoring_or_raw_dispatch(l
       assert(seen['menu.build.industry'] and seen['build.select.woodsman'])
       assert(seen['build.select.granary'] and seen['unit.control.catapult'])
       assert(not seen['build.select.people-archers'] and not seen['build.select.people-arab-bow'])
+      local slide=Context.resolve(facts('game.build.slide'))
+      slide.panel='20:0'
+      assert(Context.allows(catalog.actions['grid.slot.1'],slide))
+      for _,id in ipairs({'camera.pan.up','target.confirm','game.quicksave',
+          'unit.stance.defensive','menu.next','game.menu.activate'}) do
+        assert(not Context.allows(catalog.actions[id],slide),id)
+      end
     ''')
 
 

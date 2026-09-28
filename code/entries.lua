@@ -89,11 +89,11 @@ for _,building in ipairs(require('code/building_actions')) do
   end
 end
 for _,control in ipairs(require('code/controls')) do
-  entries[#entries+1]={id=control.id,contexts={'game.build'},panels=control.panels,states={'live-sp','live-mp'},
+  entries[#entries+1]={id=control.id,contexts={'game.build','game.build.slide'},panels=control.panels,states={'live-sp','live-mp'},
     command=true,default=false}
 end
 for slot=1,12 do
-  entries[#entries+1]={id='grid.slot.'..slot,contexts=world,states={'live-sp','live-mp'},
+  entries[#entries+1]={id='grid.slot.'..slot,contexts={'game.build','game.build.slide','game.status'},states={'live-sp','live-mp'},
     command=true,default=false,introduced=2}
 end
 return entries

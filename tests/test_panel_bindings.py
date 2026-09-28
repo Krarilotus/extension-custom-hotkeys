@@ -36,6 +36,9 @@ def test_editor_capture_shares_key_across_construction_tabs_and_persists(lua):
       current.panel='28:0';local before=#calls
       assert(not router:handle(event(87)));router:handle(event(87,'up'))
       assert(#calls==before)
+      current.owner='game.build.slide';current.panel='20:0'
+      assert(router:handle(event(87)));router:handle(event(87,'up'))
+      assert(#calls==before+1 and calls[#calls]=='build.select.woodsman')
     ''')
 
 

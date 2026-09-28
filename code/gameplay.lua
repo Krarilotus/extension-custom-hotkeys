@@ -7,13 +7,13 @@ local function integer(value,lo,hi)
 end
 -- Shared session/world validation. This does not authorize an input owner;
 -- callers must separately prove the actual modal/text/control ownership.
-function M.live(s,allowPaused)
+function M.live(s,allowPaused,allowBuildSlide)
   if (s.screen~=14 and s.screen~=16)
       or not integer(s.mode,0,6)
       or (s.synchronyMode~=0 and s.synchronyMode~=1 and s.synchronyMode~=99)
       or s.inGame~=1 or s.syncStatus~=0 or s.saveRelated~=0
       or (s.paused~=0 and not (allowPaused and s.paused==1))
-      or s.halted~=0 or s.sliding~=0
+      or s.halted~=0 or (s.sliding~=0 and not (allowBuildSlide and s.sliding==1))
       or s.newPlayer~=0 or s.delay~=-1
       or s.focused~=true or s.composing~=false
       or not integer(s.player,1,8) or s.playerDead~=0 or s.playerDisabled~=0
@@ -35,12 +35,13 @@ function M.resolve(s,ownedModal)
   local options=ownedModal~=nil and ownedModal==s.modal and Dialog.owns(s)
   local load=ownedModal==9 and Load.owns(s)
   if ((ownedModal==5 or ownedModal==2025) and not options) or (ownedModal==9 and not load)
-      or not M.live(s,options or load)
+      or not M.live(s,options or load,s.screen==14 and not options and not load)
       or (s.modal~=-1 and (ownedModal==nil or s.modal~=ownedModal))
       or not require('code/modal_context').background(s)
       or (s.textModal~=0 and not options and not load) or s.textEditor~=0 then return nil end
 
-  return {owner=options and 'game.options' or load and 'game.load' or (s.screen==14 and 'game.build' or 'game.status'),
+  return {owner=options and 'game.options' or load and 'game.load'
+      or (s.screen==14 and (s.sliding==1 and 'game.build.slide' or 'game.build') or 'game.status'),
     state=s.synchronyMode==1 and 'live-mp' or 'live-sp',authority=true,
     selection=load and Load.identity(s) or table.concat({s.player,s.building,s.unit,s.tribe,s.selectedCount,s.selectedLast},':')..':'..s.selectionBits,
     -- Camera position changes during a local pan hold. Queued world clicks

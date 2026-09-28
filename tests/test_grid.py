@@ -69,3 +69,31 @@ def test_status_panel_uses_native_membership_without_global_hud_or_handler_table
       assert(Grid.select(rows,{},1)==nil)
       assert(Grid.select(rows,{},2)==4)
     ''')
+
+
+def test_direct_panel_callback_during_slide_revalidates_once_without_positional_navigation(lua):
+    lua.execute('''
+      local Navigation=require('code/navigation')
+      local row={address=100,x=10,y=20,width=20,height=20,kind=3,
+        action=2,parameter=51,help=65578}
+      local controls={row};local calls=0;local slide=true
+      local adapter={controls=function(_,direct)
+          if slide and not direct then return nil end
+          return controls
+        end,
+        gridControls=function() return controls end,
+        invoke=function() calls=calls+1 end,
+        point=function(r) return r.x,r.y end}
+      local cursor={pending=false,adapter={busy=function() return false end},
+        valid=function() return true end,cancel=function() end}
+      local nav=Navigation.new(adapter,cursor)
+      local context=Context.resolve(facts())
+      assert(not nav:move(1,context))
+      local selector={action=2,parameter=51,help=65578}
+      assert(nav:activateMatching(selector,context) and calls==0)
+      nav:beforeFrame();nav:beforeFrame();assert(calls==1)
+      assert(nav:activateMatching(selector,context))
+      controls={};nav:beforeFrame();assert(calls==1)
+      controls={row};assert(nav:activateMatching(selector,context))
+      nav:cancel();nav:beforeFrame();assert(calls==1)
+    ''')

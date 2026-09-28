@@ -8,13 +8,17 @@ function M.new(scene,reader)
   local sliderOffset=ffi.offsetof('MenuItem','secondItemTypeData')
   return {
     gridControls=function(context)
-      if not context or (context.owner~='game.build' and context.owner~='game.status') then return nil end
+      if not context or (context.owner~='game.build' and context.owner~='game.build.slide'
+          and context.owner~='game.status') then return nil end
       local s=scene:snapshot()
       if tostring(s.screen)~=context.screen or s.modal~=-1 or not require('code/modal_context').background(s) then return nil end
-      return reader:read(remote.interface.menuAddress(s.screen),s,nil,true)
+      -- Direct callbacks use the native tab immediately; the toolbar slide is
+      -- visual. Grid still reads the current tab's native disabled state.
+      return reader:read(remote.interface.menuAddress(s.screen),s,nil,true,true)
     end,
-    controls=function(context)
+    controls=function(context,direct)
       if not context or (context.owner:sub(1,5)~='menu.' and context.owner~='game.build'
+          and context.owner~='game.build.slide'
           and context.owner~='game.status' and context.owner~='game.options' and context.owner~='game.load') then return nil end
       local s=scene:snapshot()
       if context.owner=='game.load' or context.owner=='menu.load' then
@@ -30,7 +34,9 @@ function M.new(scene,reader)
         return reader:read(s.activeModalMenu,s,origin)
       end
       if tostring(s.screen)~=context.screen or s.modal~=-1 or not require('code/modal_context').background(s) then return nil end
-      return reader:read(remote.interface.menuAddress(s.screen),s)
+      return reader:read(remote.interface.menuAddress(s.screen),s,nil,false,
+        direct and (context.owner=='game.build' or context.owner=='game.build.slide'
+          or context.owner=='game.status'))
     end,
     point=function(row) return row.x+math.floor(row.width/2),row.y+math.floor(row.height/2) end,
     hit=function(address) return ffi.cast('MenuItem *',address)[0].hovering~=0 end,

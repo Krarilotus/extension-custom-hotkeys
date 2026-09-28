@@ -7,9 +7,9 @@ M.__index=M
 function M.new(adapter,cursor)
   return setmetatable({adapter=adapter,cursor=cursor},M)
 end
-function M:current(context)
+function M:current(context,direct)
   if not Context.same(self.context,context) then self.context=context;self.address=nil end
-  local rows=self.adapter.controls(context)
+  local rows=self.adapter.controls(context,direct)
   if not rows then self.address=nil;return nil end
   return rows
 end
@@ -25,9 +25,9 @@ function M:move(delta,context)
   self.address=row.address
   return true
 end
-function M:activate(context)
+function M:activate(context,direct)
   if self.pending or self.cursor.pending then return false end
-  local rows=self:current(context)
+  local rows=self:current(context,direct)
   if not rows or not self.address then return false end
   local expected
   for _,row in ipairs(rows) do if row.address==self.address then expected=row;break end end
@@ -35,7 +35,7 @@ function M:activate(context)
   if self.adapter.invoke and (expected.kind==2 or expected.kind==3 or expected.kind==4) then
     if not self.cursor:valid(context) or self.cursor.adapter.busy() then return false end
     self.pending={context=context,address=expected.address,kind=expected.kind,
-      parameter=expected.parameter,action=expected.action,help=expected.help}
+      parameter=expected.parameter,action=expected.action,help=expected.help,direct=direct}
     return true
   end
   local x,y=self.adapter.point(expected)
@@ -72,7 +72,7 @@ function M:beforeFrame()
   -- Retire before calling game code: callbacks can re-enter the input chain.
   self.pending=nil
   if not pending or not self.cursor:valid(pending.context) or self.cursor.adapter.busy() then return end
-  for _,row in ipairs(self.adapter.controls(pending.context) or {}) do
+  for _,row in ipairs(self.adapter.controls(pending.context,pending.direct) or {}) do
     if row.address==pending.address and row.kind==pending.kind and row.action==pending.action
         and row.parameter==pending.parameter and row.help==pending.help then
       if pending.delta then self.adapter.adjust(row,pending.delta) else self.adapter.invoke(row) end
@@ -82,7 +82,7 @@ function M:beforeFrame()
 end
 function M:activateMatching(selector,context)
   if self.pending or self.cursor.pending then return false end
-  local rows=self:current(context)
+  local rows=self:current(context,true)
   if not rows then return false end
   local found
   for _,row in ipairs(rows) do
@@ -96,7 +96,7 @@ function M:activateMatching(selector,context)
   end
   if not found then return false end
   self.address=found
-  return self:activate(context)
+  return self:activate(context,true)
 end
 function M:activateGrid(slot,selectors,context)
   if self.pending or self.cursor.pending or not self.adapter.gridControls then return false end
@@ -105,7 +105,7 @@ function M:activateGrid(slot,selectors,context)
   if not address then return false end
   self.context=context;self.address=address
   -- Re-read enabled controls and their identity again at the native input frame.
-  return self:activate(context)
+  return self:activate(context,true)
 end
 function M:cancel() self.pending=nil;self.address=nil;self.context=nil;self.cursor:cancel() end
 return M
