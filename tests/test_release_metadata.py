@@ -1,4 +1,4 @@
-from pathlib import Path
+﻿from pathlib import Path
 import xml.etree.ElementTree as ET
 
 import yaml
@@ -11,6 +11,7 @@ def test_optional_legacy_has_required_conflict_value_without_dependency_or_switc
     definition = yaml.safe_load((ROOT / 'definition.yml').read_text(encoding='utf-8'))
     assert definition['display-name'] == 'Custom Hotkeys'
     assert definition['version'] == '0.2.3'
+    assert definition['tags'] == ['hotkeys', 'interface', 'tools']
     assert 'ucp2-legacy' not in definition['dependencies']
     config = yaml.safe_load((ROOT / 'config.yml').read_text(encoding='utf-8'))['config-sparse']
     assert config['plugins'] == {}
@@ -19,7 +20,7 @@ def test_optional_legacy_has_required_conflict_value_without_dependency_or_switc
         'o_keys': {'enabled': {'contents': {'required-value': False}}}}}}
     assert not (ROOT / 'options.yml').exists()
     files = {entry.attrib['src'] for entry in ET.parse(ROOT / 'files.xml').findall('./files/file')}
-    assert files == {'definition.yml', 'config.yml', 'init.lua', 'code', 'README.md'}
+    assert files == {'definition.yml', 'config.yml', 'init.lua', 'code', 'README.md', 'locale'}
 
 
 def test_all_store_languages_present_the_ingame_editor_without_release_notes():
@@ -29,7 +30,7 @@ def test_all_store_languages_present_the_ingame_editor_without_release_notes():
         text = path.read_text(encoding='utf-8')
         assert text.startswith('# Custom Hotkeys\n')
         assert 'F12' in text
-        assert ' > ' in text and any(key in text for key in ('Enter', 'Eingabe', 'Entrée', 'Intro'))
+        assert ' > ' in text and any(key in text for key in ('Enter', 'Eingabe', 'EntrÃ©e', 'Intro'))
         assert 'v0.2.1/docs/images/hotkeys-010-editor-ingame.jpg' in text
         assert '\ufffd' not in text
         assert not any(term in text for term in (
@@ -37,8 +38,17 @@ def test_all_store_languages_present_the_ingame_editor_without_release_notes():
             'Automarket', 'SHC 1.41', 'Extreme 1.41'))
 
 
+def test_discovery_tags_have_translated_labels_in_every_store_language():
+    assert {p.stem for p in (ROOT / 'locale').glob('*.yml')} == LANGUAGES
+    for lang in LANGUAGES:
+        labels = yaml.safe_load((ROOT / 'locale' / f'{lang}.yml').read_text(encoding='utf-8'))
+        assert set(labels) == {'tags.hotkeys', 'tags.interface', 'tags.tools'}
+        assert all(isinstance(value, str) and value.strip() for value in labels.values())
+
+
 def test_all_runtime_lua_parses(lua):
     # Includes native-only adapters that cannot execute in the host architecture.
     load = lua.eval('function(path) return assert(loadfile(path)) ~= nil end')
     for path in (ROOT / 'code').rglob('*.lua'):
         assert load(path.as_posix())
+
