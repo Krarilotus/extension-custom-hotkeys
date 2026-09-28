@@ -4,4 +4,4 @@ Adapta los controles de Crusader a tu forma de jugar. Elige los controles origin
 
 Abre **Opciones > Teclas personalizadas** desde el menú principal o el de pausa, o pulsa **F12** durante la partida. Selecciona una acción y pulsa **Intro** para asignarle una tecla o un botón del ratón; **Supr** borra la asignación y **Aplicar** guarda el perfil. También puedes configurar posiciones de cámara, grupos, colocación de edificios y órdenes de unidades.
 
-![Editor de atajos dentro del juego](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/v0.2.0/docs/images/hotkeys-010-editor-ingame.jpg)
+![Editor de atajos dentro del juego](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/v0.2.1/docs/images/hotkeys-010-editor-ingame.jpg)

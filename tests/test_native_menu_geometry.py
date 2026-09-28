@@ -68,3 +68,46 @@ def test_options_origin_follows_input_composition_not_render_offsets(lua):
       end
       s.modalX=nil;assert(options.origin(s)==nil)
     ''')
+
+
+def test_native_category_callback_only_shortens_its_accepted_local_menu_switch(lua):
+    lua.execute('''
+      local A=require('code/addresses')
+      local delay={[0]=-1}
+      local s={screen=14,tab=10,subtab=0,modal=-1,modal2=-1,modal3=-1,
+        focused=true,composing=false,textModal=0,textEditor=0,sliding=0}
+      local calls=0;local accepted=true
+      local item={[0]={menuItemActionHandler={simple=function(parameter)
+        calls=calls+1;assert(parameter==20)
+        if accepted then delay[0]=150;s.sliding=1 end
+      end}}}
+      package.loaded.ffi={new=function() return {[0]=0} end,
+        offsetof=function() return 0 end,
+        cast=function(kind,value)
+          if kind=='int32_t *' then assert(value==A.screenDelay);return delay end
+          if kind=='MenuItem *' then assert(value==100);return item end
+          error('unexpected cast '..kind)
+        end}
+      local scene={snapshot=function()
+        local copy={};for k,v in pairs(s) do copy[k]=v end
+        copy.delay=delay[0];return copy
+      end}
+      local adapter=require('code/native/menu_adapter').new(scene,{})
+      local category={address=100,action=A.buildCategoryAction,parameter=20}
+      local owner={owner='game.build',panel='10:0'}
+      adapter.invoke(category,owner)
+      assert(calls==1 and delay[0]==1)
+      delay[0]=-1;s.sliding=0;accepted=false
+      adapter.invoke(category,owner)
+      assert(calls==2 and delay[0]==-1)
+      accepted=true;owner.owner='game.status'
+      adapter.invoke(category,owner)
+      assert(calls==3 and delay[0]==150)
+      owner.owner='game.build';delay[0]=-1;s.sliding=0;s.modal=5
+      adapter.invoke(category,owner)
+      assert(calls==4 and delay[0]==150)
+      s.modal=-1;delay[0]=-1;s.sliding=0
+      category.action=A.toolbarAction
+      adapter.invoke(category,owner)
+      assert(calls==5 and delay[0]==150)
+    ''')

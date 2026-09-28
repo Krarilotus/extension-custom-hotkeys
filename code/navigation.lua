@@ -75,7 +75,7 @@ function M:beforeFrame()
   for _,row in ipairs(self.adapter.controls(pending.context,pending.direct) or {}) do
     if row.address==pending.address and row.kind==pending.kind and row.action==pending.action
         and row.parameter==pending.parameter and row.help==pending.help then
-      if pending.delta then self.adapter.adjust(row,pending.delta) else self.adapter.invoke(row) end
+      if pending.delta then self.adapter.adjust(row,pending.delta) else self.adapter.invoke(row,pending.context) end
       return
     end
   end

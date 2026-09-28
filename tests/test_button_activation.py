@@ -16,8 +16,9 @@ def setup(lua):
         button=function() error('building activation simulated click') end,cancel=function() end})
       nav=Navigation.new({controls=function() return rows end,
         gridControls=function() return rows end,
-        invoke=function(row)
+        invoke=function(row,owner)
           calls=calls+1;assert(row.action==200 and row.parameter==51)
+          assert(Context.same(owner,context))
           nav:beforeFrame() -- synchronous re-entry cannot repeat the callback
         end},cursor)
       selector={id='build.select.woodcutter',action=200,parameter=51,help=65578}
