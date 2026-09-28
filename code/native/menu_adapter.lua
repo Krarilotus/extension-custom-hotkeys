@@ -46,19 +46,24 @@ function M.new(scene,reader)
       -- cdecl callback for kinds2/3/4. Keep native eligibility/submission code;
       -- selecting a building never writes its placement ID or moves the cursor.
       local fast=context and (context.owner=='game.build' or context.owner=='game.build.slide')
-          and row.action==A.buildCategoryAction
+          and (row.action==A.buildCategoryAction or row.action==A.toolbarAction)
       local before=fast and scene:snapshot() or nil
       fast=before and before.screen==14 and before.delay==-1 and before.modal==-1
           and before.focused and not before.composing and before.textModal==0
           and before.textEditor==0 and tostring(before.tab)..':'..before.subtab==context.panel
           and require('code/modal_context').background(before)
+      local placement=fast and row.action==A.toolbarAction
+          and tonumber(ffi.cast('int32_t *',A.placement)[0]) or nil
       ffi.cast('MenuItem *',row.address)[0].menuItemActionHandler.simple(row.parameter)
       if fast then
         local after=scene:snapshot()
         -- The native callback has already accepted the category and scheduled
-        -- GameCore's 150 ms local menu switch. Bring only that UI switch to the
-        -- next frame; GameCore still commits the tab and its native controls.
-        if after.screen==14 and after.tab==before.tab and after.subtab==before.subtab
+        -- GameCore's 150 ms local menu switch. A placement choice can also
+        -- schedule the return to the base tab; prove it changed placement.
+        -- GameCore still commits the tab and its native controls next frame.
+        local selected=placement and tonumber(ffi.cast('int32_t *',A.placement)[0])
+        local chosen=placement==nil or selected>0 and selected~=placement
+        if chosen and after.screen==14 and after.tab==before.tab and after.subtab==before.subtab
             and after.delay==150 and after.modal==-1
             and after.focused and not after.composing and after.textModal==0
             and after.textEditor==0 and require('code/modal_context').background(after) then

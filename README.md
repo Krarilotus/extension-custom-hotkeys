@@ -1,6 +1,6 @@
 # Custom Hotkeys for Stronghold Crusader
 
-Version 0.2.1 shortens the native build-category switch for hotkeys, so a new panel accepts its building keys on the next game frame.
+Version 0.2.1 shortens native build-category and placement-return menu switches for hotkeys, so the next panel accepts its keys on the next game frame.
 The editor remains in the game's main and in-game Options menus.
 It also allows the same binding in different native construction/unit
 panels. Woodcutter, Wheat Farm and Catapult can share a key; Woodcutter and

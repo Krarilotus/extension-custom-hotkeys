@@ -74,17 +74,23 @@ def test_native_category_callback_only_shortens_its_accepted_local_menu_switch(l
     lua.execute('''
       local A=require('code/addresses')
       local delay={[0]=-1}
+      local placement={[0]=0}
       local s={screen=14,tab=10,subtab=0,modal=-1,modal2=-1,modal3=-1,
         focused=true,composing=false,textModal=0,textEditor=0,sliding=0}
-      local calls=0;local accepted=true
+      local calls=0;local accepted=true;local choose=false
       local item={[0]={menuItemActionHandler={simple=function(parameter)
         calls=calls+1;assert(parameter==20)
         if accepted then delay[0]=150;s.sliding=1 end
+        if choose then placement[0]=52 end
       end}}}
       package.loaded.ffi={new=function() return {[0]=0} end,
         offsetof=function() return 0 end,
         cast=function(kind,value)
-          if kind=='int32_t *' then assert(value==A.screenDelay);return delay end
+          if kind=='int32_t *' then
+            if value==A.screenDelay then return delay end
+            if value==A.placement then return placement end
+            error('unexpected int32 address')
+          end
           if kind=='MenuItem *' then assert(value==100);return item end
           error('unexpected cast '..kind)
         end}
@@ -110,4 +116,10 @@ def test_native_category_callback_only_shortens_its_accepted_local_menu_switch(l
       category.action=A.toolbarAction
       adapter.invoke(category,owner)
       assert(calls==5 and delay[0]==150)
+      delay[0]=-1;s.sliding=0;choose=true
+      adapter.invoke(category,owner)
+      assert(calls==6 and delay[0]==1 and placement[0]==52)
+      delay[0]=-1;s.sliding=0;choose=false
+      adapter.invoke(category,owner)
+      assert(calls==7 and delay[0]==150)
     ''')
