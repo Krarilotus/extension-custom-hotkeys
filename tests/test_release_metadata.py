@@ -20,15 +20,19 @@ def test_optional_legacy_has_required_conflict_value_without_dependency_or_switc
     assert files == {'definition.yml', 'config.yml', 'init.lua', 'code', 'README.md'}
 
 
-def test_all_store_languages_describe_access_recovery_and_optional_legacy():
+def test_all_store_languages_present_the_ingame_editor_without_release_notes():
     paths = list((ROOT / 'locale').glob('description-*.md'))
     assert {p.stem.removeprefix('description-') for p in paths} == LANGUAGES
     for path in paths:
         text = path.read_text(encoding='utf-8')
+        assert text.startswith('# Custom Hotkeys\n')
         assert 'F12' in text
-        assert any(chord in text for chord in ('Shift+F12', 'Umschalt+F12', 'Maj+F12', 'Mayús+F12'))
-        assert 'o_keys.enabled' in text and 'UCP2-Legacy' in text
-        assert 'Recorder' in text and '1.41' in text
+        assert ' > ' in text and any(key in text for key in ('Enter', 'Eingabe', 'Entrée', 'Intro'))
+        assert 'v0.1.11/docs/images/hotkeys-010-editor-ingame.jpg' in text
+        assert '\ufffd' not in text
+        assert not any(term in text for term in (
+            'TL;DR', 'UCP2-Legacy', 'o_keys.enabled', 'Recorder',
+            'Automarket', 'SHC 1.41', 'Extreme 1.41'))
 
 
 def test_all_runtime_lua_parses(lua):

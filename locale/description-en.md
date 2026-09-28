@@ -1,13 +1,7 @@
 # Custom Hotkeys
 
-**TL;DR:** 0.1.10 adds mouse-button rebinding, building groups, camera bookmarks and keyboard control of Options and Automarket. Activate the module and press F12. Game Default, Modern RTS and Grid profiles are included; building shortcuts keep the cursor in place.
+Make Crusader's controls feel like your own. Start with Game Default, Modern RTS or Grid, then rebind keys and mouse buttons and save layouts for the way you play. Grid follows the active building or unit panel, so the same keys can serve different actions.
 
-Change keyboard shortcuts in the game and save your own profiles. Includes Game Default, Modern RTS and Grid keyboard presets.
+Open **Options > Custom Hotkeys** from the main menu or pause menu, or press **F12** during play. Select an action and press **Enter** to assign a key or mouse button; **Delete** clears it, and **Apply** saves your profile. Camera positions, control groups, building placement and unit orders are all available in the editor.
 
-Activate the module in UCP and start the game: it is active immediately, with no additional launcher switch or customization options. Open **Options > Custom Hotkeys** from the main menu or the in-game pause menu or press **F12** in a supported menu or live single-player or multiplayer game. **Ctrl+Shift+F12** opens the recovery entry if F12 was rebound. Click an action row, or select it and press **Enter**, then press the combination. **Delete** clears the selected binding; **Apply** saves changes. The editor follows the **game language**; this description follows the launcher language.
-
-UCP2-Legacy is **not required**. If it is active, its hotkey modifications (`o_keys.enabled`) must be **off**; Custom Hotkeys requires that value and checks it before activation. Resolve conflicts and restart the game.
-
-**Test version:** these features are implemented and available for testing in SHC 1.41 and Extreme 1.41. Try single-player, multiplayer, Recorder playback and Automarket together. Multiplayer and Recorder are not locked. Native game rules and text-field focus still apply. Single-player recording/playback has passed a construction, trade and Automarket command check; full multiplayer, state-restore and compatibility acceptance remains outstanding.
-
-![In-game hotkey selection menu](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/v0.1.10/docs/images/hotkeys-010-editor-ingame.jpg)
+![In-game hotkey editor](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/v0.1.11/docs/images/hotkeys-010-editor-ingame.jpg)

@@ -1,13 +1,7 @@
 # Custom Hotkeys
 
-**Röviden:** A 0.1.10 egérgomb-átállítást, épületcsoportokat, mentett kamerapozíciókat, valamint a beállítások és az Automarket billentyűzetes kezelését adja hozzá. Aktiváld a modult, és nyomd meg az F12-t. Játék alapértelmezése, Modern RTS és Rács profilok; az építési gyorsbillentyűk nem mozdítják el az egérmutatót.
+Alakítsd a Crusader irányítását a saját játékstílusodhoz. Válaszd a játék eredeti kiosztását, a modern RTS-vezérlést vagy a rácsos kiosztást, majd állítsd át a billentyűket és az egérgombokat, és mentsd el a kiosztást profilként. A rács az éppen nyitott építési vagy egységpanelt követi, így ugyanazok a billentyűk más-más műveletet indíthatnak.
 
-Módosítsd a gyorsbillentyűket a játékban, és ments saját profilokat. Három billentyűzetkiosztást tartalmaz: eredeti játékvezérlés, modern RTS és rács.
+Nyisd meg a **Beállítások > Egyéni gyorsbillentyűk** menüpontot a főmenüből vagy a szünet menüjéből, vagy játék közben nyomd meg az **F12**-t. Válassz ki egy műveletet, majd az **Enter** megnyomása után adj meg egy billentyűt vagy egérgombot; a **Delete** törli a hozzárendelést, az **Alkalmaz** pedig menti a profilt. Itt állíthatod be a kamerapozíciókat, csoportokat, épületelhelyezést és egységparancsokat is.
 
-Aktiváld a modult az UCP-ben, majd indítsd el a játékot: azonnal működik, nincs külön bekapcsoló vagy további testreszabási lehetőség az indítóban. Nyisd meg a **Beállítások > Egyéni gyorsbillentyűk** menüpontot a főmenüből vagy a játékon belüli szünet menüjéből, vagy nyomd meg az **F12** billentyűt egy támogatott menüben vagy folyamatban lévő egy- vagy többjátékos játékban. Az **Ctrl+Shift+F12** akkor is megnyitja a szerkesztőt, ha az F12-t átállítottad. Kattints egy sorra, vagy jelöld ki és nyomj **Enter**-t, majd add meg a kombinációt. A **Delete** törli a kijelölt kötést; alkalmazd a változtatásokat a mentéshez. A szerkesztő a **játék nyelvét**, ez a leírás az indító nyelvét követi.
-
-Az UCP2-Legacy **nem szükséges**. Ha aktív, a gyorsbillentyű-módosításait (`o_keys.enabled`) **ki kell kapcsolni**. A modul ezt az értéket megköveteli és aktiválás előtt ellenőrzi. Oldd fel az ütközéseket, majd indítsd újra a játékot.
-
-**Tesztverzió:** ezek a funkciók megvalósultak, és SHC 1.41-ben és Extreme 1.41-ben tesztelhetők. Próbáld ki együtt az egyjátékos és többjátékos módot, a Recorder-visszajátszást és az Automarketet. A többjátékos mód és a Recorder nincs lezárva. A játék szabályai és a szövegmezők fókusza továbbra is érvényes. Egy építési, kereskedelmi és Automarket-parancsokat tartalmazó egyjátékos felvétel visszajátszása sikeres volt; a teljes többjátékos, állapot-visszaállítási és kompatibilitási ellenőrzés még hátravan.
-
-![Gyorsbillentyűk kiválasztása a játékban](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/v0.1.10/docs/images/hotkeys-010-editor-ingame.jpg)
+![Gyorsbillentyű-szerkesztő a játékban](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/v0.1.11/docs/images/hotkeys-010-editor-ingame.jpg)

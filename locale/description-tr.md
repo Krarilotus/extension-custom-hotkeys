@@ -1,13 +1,7 @@
 # Custom Hotkeys
 
-**Özet:** 0.1.10; fare tuşlarını yeniden atama, bina grupları, kayıtlı kamera konumları ve Seçenekler ile Automarket için klavye kontrolü ekler. Modülü etkinleştirip F12’ye basın. Oyun Varsayılanı, Modern RTS ve Grid profilleri dahildir; inşaat kısayolları imleci yerinden oynatmaz.
+Crusader kontrollerini oyun tarzına göre düzenle. Oyunun varsayılan düzeni, Modern RTS veya Izgara ile başla; ardından klavye kısayollarını ve fare tuşlarını yeniden ata, düzenlerini profil olarak kaydet. Izgara, açık olan inşa veya birim panelini izler; böylece aynı tuşlar farklı işlemler için kullanılabilir.
 
-Klavye kısayollarını oyun içinde değiştirin ve kendi profillerinizi kaydedin. Üç klavye düzeni içerir: oyunun varsayılanı, modern RTS ve ızgara.
+Ana menüden veya duraklatma menüsünden **Seçenekler > Özel Kısayollar** bölümünü aç ya da oyun sırasında **F12**'ye bas. Bir işlem seçip **Enter**'a bastıktan sonra bir tuş veya fare düğmesi ata; **Delete** atamayı temizler, **Uygula** profili kaydeder. Kamera konumları, gruplar, bina yerleştirme ve birim emirleri de bu editörde ayarlanır.
 
-Modülü UCP’de etkinleştirip oyunu başlatın: başlatıcıda başka bir anahtar veya özelleştirme seçeneği gerekmeden çalışır. Ana menüden veya oyun içi duraklatma menüsünden **Seçenekler > Özel Kısayollar** bölümünü açın veya desteklenen bir menüde ya da devam eden tek veya çok oyunculu oyunda **F12** tuşuna basın. F12 başka bir işleve atanmışsa **Ctrl+Shift+F12** düzenleyiciyi yeniden açar. Bir satıra tıklayın veya seçip **Enter** tuşuna basın, ardından tuş birleşimine basın. **Delete** seçili atamayı temizler; kaydetmek için değişiklikleri uygulayın. Düzenleyici **oyunun dilini**, bu açıklama ise başlatıcının dilini kullanır.
-
-UCP2-Legacy **gerekli değildir**. Etkinse kısayol değişiklikleri (`o_keys.enabled`) **kapalı olmalıdır**. Modül bu değeri zorunlu kılar ve etkinleşmeden önce denetler. Çakışmaları giderip oyunu yeniden başlatın.
-
-**Test sürümü:** bu özellikler uygulanmıştır ve SHC 1.41 ile Extreme 1.41’de test edilebilir. Tek oyunculu, çok oyunculu, Recorder tekrarları ve Automarket’i birlikte deneyin. Çok oyunculu ve Recorder kilitli değildir. Oyunun kuralları ve metin alanlarının odağı geçerliliğini korur. İnşaat, ticaret ve Automarket komutları içeren tek oyunculu kayıt başarıyla oynatıldı; kapsamlı çok oyunculu, durum geri yükleme ve uyumluluk testleri henüz tamamlanmadı.
-
-![Oyun içi kısayol seçim menüsü](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/v0.1.10/docs/images/hotkeys-010-editor-ingame.jpg)
+![Oyun içi kısayol düzenleyicisi](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/v0.1.11/docs/images/hotkeys-010-editor-ingame.jpg)
