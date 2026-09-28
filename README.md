@@ -1,6 +1,6 @@
 # Custom Hotkeys for Stronghold Crusader
 
-Version 0.1.11 places the editor in the game's main and in-game Options menus.
+Version 0.1.12 places the editor in the game's main and in-game Options menus.
 It also allows the same binding in different native construction/unit
 panels. Woodcutter, Wheat Farm and Catapult can share a key; Woodcutter and
 Quarry still conflict because both are available in Industry. Global actions

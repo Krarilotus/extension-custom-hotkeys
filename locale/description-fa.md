@@ -4,4 +4,4 @@
 
 از منوی اصلی یا منوی مکث، **گزینه‌ها > میانبرهای سفارشی** را باز کنید یا هنگام بازی **F12** را بزنید. یک عمل را انتخاب کنید و **Enter** را بزنید تا کلید یا دکمهٔ ماوس را به آن اختصاص دهید؛ **Delete** انتساب را پاک می‌کند و **اعمال** نمایه را ذخیره می‌کند. موقعیت‌های دوربین، گروه‌ها، ساخت ساختمان و فرمان‌های واحدها نیز در همین ویرایشگر تنظیم می‌شوند.
 
-![ویرایشگر میانبرها در بازی](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/v0.1.11/docs/images/hotkeys-010-editor-ingame.jpg)
+![ویرایشگر میانبرها در بازی](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/v0.1.12/docs/images/hotkeys-010-editor-ingame.jpg)
