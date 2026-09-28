@@ -4,4 +4,4 @@ Alakítsd a Crusader irányítását a saját játékstílusodhoz. Válaszd a j�
 
 Nyisd meg a **Beállítások > Egyéni gyorsbillentyűk** menüpontot a főmenüből vagy a szünet menüjéből, vagy játék közben nyomd meg az **F12**-t. Válassz ki egy műveletet, majd az **Enter** megnyomása után adj meg egy billentyűt vagy egérgombot; a **Delete** törli a hozzárendelést, az **Alkalmaz** pedig menti a profilt. Itt állíthatod be a kamerapozíciókat, csoportokat, épületelhelyezést és egységparancsokat is.
 
-![Gyorsbillentyű-szerkesztő a játékban](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/v0.1.11/docs/images/hotkeys-010-editor-ingame.jpg)
+![Gyorsbillentyű-szerkesztő a játékban](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/v0.1.12/docs/images/hotkeys-010-editor-ingame.jpg)

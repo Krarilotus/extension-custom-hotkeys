@@ -1,13 +1,13 @@
 # Local development module
 
-Version **0.1.11** includes mouse bindings, building groups, camera bookmarks,
+Version **0.1.12** includes mouse bindings, building groups, camera bookmarks,
 native recruitment/economy controls and eleven game-language catalogs.
-The Store3.0.7 proposal remains open for live testing. Two-PC
+The Store3.0.7 release is available for live testing. Two-PC
 testing is manual; development and tester access remain available. See the
 [binding review](native-bindings.md) and [current native evidence](features-0.1.7.md).
 
 Commit the intended source, then run `python tools/build.py`. It builds that
-exact commit into `dist/custom-hotkeys-0.1.11.zip` and a SHA256 manifest. The
+exact commit into `dist/custom-hotkeys-0.1.12.zip` and a SHA256 manifest. The
 same `files.xml` controls local and official Store packaging. Game binaries,
 dependencies, profiles, diagnostics, test fixtures and screenshots are excluded.
 

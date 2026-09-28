@@ -4,4 +4,4 @@ Crusader kontrollerini oyun tarzına göre düzenle. Oyunun varsayılan düzeni,
 
 Ana menüden veya duraklatma menüsünden **Seçenekler > Özel Kısayollar** bölümünü aç ya da oyun sırasında **F12**'ye bas. Bir işlem seçip **Enter**'a bastıktan sonra bir tuş veya fare düğmesi ata; **Delete** atamayı temizler, **Uygula** profili kaydeder. Kamera konumları, gruplar, bina yerleştirme ve birim emirleri de bu editörde ayarlanır.
 
-![Oyun içi kısayol düzenleyicisi](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/v0.1.11/docs/images/hotkeys-010-editor-ingame.jpg)
+![Oyun içi kısayol düzenleyicisi](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/v0.1.12/docs/images/hotkeys-010-editor-ingame.jpg)
