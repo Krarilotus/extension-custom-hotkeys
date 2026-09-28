@@ -27,6 +27,9 @@ def test_modal_sliding_and_disabled_rows_do_not_become_candidates(lua):
       assert(#assert(T.active(read,#rows,{tab=0,subtab=0,modal=25,sliding=0}))==0)
       local active=assert(T.active(read,#rows,{tab=0,subtab=0,modal=-1,sliding=1}))
       assert(#active==1 and active[1]==7)
+      local direct=assert(T.active(read,#rows,{tab=0,subtab=0,modal=-1,sliding=1},false,true))
+      assert(#direct==2 and direct[1]==7 and direct[2]==9)
+      assert(#assert(T.active(read,#rows,{tab=0,subtab=0,modal=25,sliding=1},false,true))==0)
     ''')
 
 

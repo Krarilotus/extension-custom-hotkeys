@@ -4,4 +4,4 @@
 
 Откройте **Настройки > Горячие клавиши** из главного меню или меню паузы либо нажмите **F12** во время игры. Выберите действие и нажмите **Enter**, чтобы назначить клавишу или кнопку мыши; **Delete** удаляет назначение, а **Применить** сохраняет профиль. Здесь же настраиваются позиции камеры, группы, размещение зданий и приказы войскам.
 
-![Редактор горячих клавиш в игре](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/v0.1.12/docs/images/hotkeys-010-editor-ingame.jpg)
+![Редактор горячих клавиш в игре](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/v0.2.0/docs/images/hotkeys-010-editor-ingame.jpg)

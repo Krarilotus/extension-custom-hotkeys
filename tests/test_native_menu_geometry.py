@@ -33,6 +33,10 @@ def test_reader_uses_actual_item_owner_and_rejects_foreign_or_shifted_geometry(l
       assert(not bad and why=='menu.owner')
       anchor[0].currentBuildMenuButtonShift_0x14=10
       local value,err=reader:read(55,s);assert(not value and err=='menu.shifted')
+      s.sliding=1
+      rows=assert(reader:read(55,s,nil,false,true))
+      assert(#rows==1 and rows[1].address==1000)
+      s.sliding=0
       anchor[0].currentBuildMenuButtonShift_0x14=0
       anchor[0].menuItemArray={}
       value,err=reader:read(55,s);assert(not value and err=='menu.owner')

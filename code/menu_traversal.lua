@@ -4,7 +4,7 @@ local M={}
 local function has(value,flag) return math.floor(value/flag)%2==1 end
 local function integer(value) return type(value)=='number' and value==math.floor(value) end
 
-function M.active(read,count,state,includeDisabled)
+function M.active(read,count,state,includeDisabled,allowSliding)
   if not integer(count) or count<1 or count>4096 or type(state)~='table'
       or not integer(state.tab) or not integer(state.subtab)
       or not integer(state.modal) or not integer(state.sliding) then
@@ -31,7 +31,7 @@ function M.active(read,count,state,includeDisabled)
       elseif t==0x65 then
         if item.parameter==state.tab then return out,membership end
       elseif t==8 then
-        if state.sliding~=0 then return out,membership end
+        if state.sliding~=0 and not allowSliding then return out,membership end
       elseif t==9 then
         if state.modal~=-1 then return out,membership end
       elseif t==0x21000000 then
