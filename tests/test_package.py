@@ -14,7 +14,8 @@ def test_committed_module_package_is_reproducible_and_excludes_test_data(tmp_pat
         names = set(archive.namelist())
         assert {'init.lua', 'definition.yml', 'config.yml', 'build.json', 'code/native/runtime.lua'} <= names
         assert all(name in ('init.lua', 'definition.yml', 'config.yml', 'README.md', 'build.json')
-                   or name.startswith('code/') for name in names)
+                   or name.startswith(('code/', 'locale/')) for name in names)
+        assert {f'locale/{lang}.yml' for lang in ('en', 'de', 'fr', 'es', 'hu', 'tr', 'ru', 'ch', 'fa')} <= names
         assert not any(name.endswith(('.exe', '.dll')) or 'probe' in name for name in names)
         embedded = json.loads(archive.read('build.json'))
         assert embedded['commit'] == receipt['commit']
