@@ -30,10 +30,16 @@ def test_gameplay_requires_all_native_facts_and_rejects_finished_sessions(lua):
 def test_gameplay_text_pause_authority_and_transition_gates(lua):
     setup(lua)
     lua.execute('''
-      for _,field in ipairs({'paused','halted','sliding','syncStatus','saveRelated',
+      for _,field in ipairs({'paused','halted','syncStatus','saveRelated',
         'textModal','textEditor','newPlayer','playerDead','playerDisabled'}) do
         s[field]=1;assert(not Gameplay.resolve(s),field);s[field]=0
       end
+      s.sliding=1
+      assert(Gameplay.resolve(s).owner=='game.build.slide')
+      assert(not Gameplay.live(s,false)) -- quickslot/other callers remain blocked
+      s.screen=16;assert(not Gameplay.resolve(s))
+      s.screen=14;s.sliding=2;assert(not Gameplay.resolve(s))
+      s.sliding=0
       s.nextBuilding=1;assert(not Gameplay.resolve(s));s.nextBuilding=0
       s.nextUnit=1;assert(not Gameplay.resolve(s));s.nextUnit=0
       for _,pending in ipairs({0,2,4,6,-1,9}) do
@@ -98,6 +104,7 @@ def test_options_owns_only_its_verified_active_modal_and_has_no_world_actions(lu
       s.paused=1
       local resolved=assert(Gameplay.resolve(s,5))
       assert(resolved.owner=='game.options')
+      s.sliding=1;assert(not Gameplay.resolve(s,5));s.sliding=0
       local raw=facts(resolved.owner,resolved.state);raw.screen='14';raw.modal='5'
       local context=Context.resolve(raw)
       local c=Catalog.new(require('code/entries'),require('code/originals'))
