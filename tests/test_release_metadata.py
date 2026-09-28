@@ -12,6 +12,7 @@ def test_optional_legacy_has_required_conflict_value_without_dependency_or_switc
     assert definition['display-name'] == 'Custom Hotkeys'
     assert definition['version'] == '0.2.2'
     assert definition['tags'] == ['hotkeys', 'interface', 'tools']
+    assert 'family' not in definition
     assert 'ucp2-legacy' not in definition['dependencies']
     config = yaml.safe_load((ROOT / 'config.yml').read_text(encoding='utf-8'))['config-sparse']
     assert config['plugins'] == {}
@@ -43,7 +44,8 @@ def test_discovery_tags_have_translated_labels_in_every_store_language():
     for lang in LANGUAGES:
         labels = yaml.safe_load((ROOT / 'locale' / f'{lang}.yml').read_text(encoding='utf-8'))
         assert set(labels) == {'tags.hotkeys', 'tags.interface', 'tags.tools'}
-        assert all(isinstance(value, str) and value.strip() for value in labels.values())
+        assert all(isinstance(value, str) and value.strip() and '?' not in value
+                   for value in labels.values())
 
 
 def test_all_runtime_lua_parses(lua):
