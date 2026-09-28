@@ -10,7 +10,7 @@ LANGUAGES = {'en', 'de', 'fr', 'es', 'hu', 'tr', 'ru', 'ch', 'fa'}
 def test_optional_legacy_has_required_conflict_value_without_dependency_or_switch():
     definition = yaml.safe_load((ROOT / 'definition.yml').read_text(encoding='utf-8'))
     assert definition['display-name'] == 'Custom Hotkeys'
-    assert definition['version'] == '0.2.0'
+    assert definition['version'] == '0.2.1'
     assert 'ucp2-legacy' not in definition['dependencies']
     config = yaml.safe_load((ROOT / 'config.yml').read_text(encoding='utf-8'))['config-sparse']
     assert config['plugins'] == {}
@@ -30,7 +30,7 @@ def test_all_store_languages_present_the_ingame_editor_without_release_notes():
         assert text.startswith('# Custom Hotkeys\n')
         assert 'F12' in text
         assert ' > ' in text and any(key in text for key in ('Enter', 'Eingabe', 'Entrée', 'Intro'))
-        assert 'v0.2.0/docs/images/hotkeys-010-editor-ingame.jpg' in text
+        assert 'v0.2.1/docs/images/hotkeys-010-editor-ingame.jpg' in text
         assert '\ufffd' not in text
         assert not any(term in text for term in (
             'TL;DR', 'UCP2-Legacy', 'o_keys.enabled', 'Recorder',
