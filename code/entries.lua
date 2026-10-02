@@ -27,6 +27,13 @@ local entries={{id='view.lower-buildings',contexts=world,states={'live-sp','live
     default={scan=28,extended=false,mods=0}},
   {id='game.menu.activate',contexts={'game.build','game.status','game.options','game.load'},states={'live-sp','live-mp'},command=true,
     default={scan=28,extended=false,mods=0}}}
+-- Optional providers supply these view actions, while this owner supplies all
+-- binding, profile, modifier and wheel-consumption behavior.
+for _,direction in ipairs({'in','out'}) do
+  entries[#entries+1]={id='view.resolution-zoom-'..direction,contexts=world,
+    states={'live-sp','live-mp','replay'},command=false,introduced=4,
+    default={wheel=direction=='in' and 'up' or 'down',mods=1}}
+end
 for _,adjust in ipairs({{'decrease',75},{'increase',77}}) do
   entries[#entries+1]={id='menu.'..adjust[1],contexts={'menu.options','game.options'},
     states={'menu','live-sp','live-mp'},command=false,introduced=3,

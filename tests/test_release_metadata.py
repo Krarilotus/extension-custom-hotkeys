@@ -10,7 +10,7 @@ LANGUAGES = {'en', 'de', 'fr', 'es', 'hu', 'tr', 'ru', 'ch', 'fa'}
 def test_optional_legacy_has_required_conflict_value_without_dependency_or_switch():
     definition = yaml.safe_load((ROOT / 'definition.yml').read_text(encoding='utf-8'))
     assert definition['display-name'] == 'Custom Hotkeys'
-    assert definition['version'] == '0.2.1'
+    assert definition['version'] == '0.2.3'
     assert 'ucp2-legacy' not in definition['dependencies']
     config = yaml.safe_load((ROOT / 'config.yml').read_text(encoding='utf-8'))['config-sparse']
     assert config['plugins'] == {}

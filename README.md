@@ -1,5 +1,10 @@
 # Custom Hotkeys for Stronghold Crusader
 
+The 0.2.3 integration candidate adds rebindable wheel gestures and two optional
+resolution-zoom actions. With Resolution Based Zoom enabled, Ctrl+wheel zooms;
+ordinary wheel input keeps its normal behavior. Without a zoom provider the
+gesture passes through. See [provider API and acceptance](docs/extension-actions.md).
+
 Version 0.2.1 shortens native build-category and placement-return menu switches for hotkeys, so the next panel accepts its keys on the next game frame.
 The editor remains in the game's main and in-game Options menus.
 It also allows the same binding in different native construction/unit

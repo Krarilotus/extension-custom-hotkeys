@@ -122,6 +122,19 @@ for key,names in pairs({up={'up','oben'},down={'down','unten'},left={'left','lin
   en['target.fine.'..key]='Move target '..names[1]..' precisely'
   de['target.fine.'..key]='Zielcursor fein nach '..names[2]
 end
+local viewLabels={
+  english={'Zoom in','Zoom out','Wheel up','Wheel down','Press a key, mouse button or scroll. Escape cancels.'},
+  german={'Vergrößern','Verkleinern','Mausrad hoch','Mausrad runter','Taste drücken, Maus klicken oder scrollen. Escape bricht ab.'},
+  french={'Zoom avant','Zoom arrière','Molette vers le haut','Molette vers le bas','Appuyez sur une touche, cliquez ou faites défiler. Échap annule.'},
+  italian={'Aumenta zoom','Riduci zoom','Rotella su','Rotella giù','Premi un tasto, un pulsante del mouse o scorri. Esc annulla.'},
+  spanish={'Acercar','Alejar','Rueda hacia arriba','Rueda hacia abajo','Pulsa una tecla, un botón del ratón o desplaza la rueda. Escape cancela.'},
+  polish={'Przybliż','Oddal','Kółko w górę','Kółko w dół','Naciśnij klawisz, przycisk myszy lub przewiń. Escape anuluje.'},
+  russian={'Приблизить','Отдалить','Колесо вверх','Колесо вниз','Нажмите клавишу, кнопку мыши или прокрутите. Escape отменяет.'},
+  hungarian={'Nagyítás','Kicsinyítés','Görgő fel','Görgő le','Nyomj billentyűt, egérgombot vagy görgess. Escape: mégse.'},
+  turkish={'Yakınlaştır','Uzaklaştır','Tekerlek yukarı','Tekerlek aşağı','Bir tuşa, fare düğmesine basın veya kaydırın. Escape iptal eder.'},
+  chinese={'放大','缩小','滚轮向上','滚轮向下','按键、点击鼠标按钮或滚动。Escape 取消。'},
+  persian={'بزرگ‌نمایی','کوچک‌نمایی','چرخ به بالا','چرخ به پایین','کلید یا دکمه ماوس را بزنید یا چرخ را بچرخانید. Escape لغو می‌کند.'},
+}
 local aliases={en='english',american='english',de='german',fr='french',it='italian',
   es='spanish',pl='polish',ru='russian',hu='hungarian',tr='turkish',zh='chinese',
   ch='chinese',fa='persian',farsi='persian'}
@@ -146,6 +159,10 @@ function M.new(language,nativeText)
       chosen['target.'..direction]=chosen.target..chosen.directions[i]
       chosen['target.fine.'..direction]=chosen.fine..chosen.directions[i]
     end
+  end
+  local view=viewLabels[language]
+  for i,key in ipairs({'view.resolution-zoom-in','view.resolution-zoom-out','wheel.up','wheel.down','press'}) do
+    chosen[key]=view[i]
   end
   local controls,buildings,cache={},{},{}
   for slot=1,12 do chosen['grid.slot.'..slot]=(chosen.gridSlot or en.gridSlot)..slot end

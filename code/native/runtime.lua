@@ -23,9 +23,18 @@ function M.start(language)
   for _,control in ipairs(selectors) do controls[control.id]=control end
   local view,cursor,navigation,targeting,camera,worldActions,quickslot,lowering
   local router
+  local function providerAction(id)
+    return id=='view.resolution-zoom-in' or id=='view.resolution-zoom-out'
+  end
   router=Router.new(catalog,Catalog.defaults(catalog),{
     resolve=function() if quickslot and quickslot.active then return nil end;return scene:resolve(view) end,
+    available=function(id)
+      return not providerAction(id) or remote.interface.externalActionAvailable(id)
+    end,
     dispatch=function(id,context,nativeBinding,event)
+      if providerAction(id) then
+        cursor:cancel();return remote.interface.dispatchExternalAction(id)
+      end
       if (id=='game.quicksave' or id=='game.quickload') then router:barrier();return quickslot:start(context,id) end
       if id=='hotkeys.open' then return view:open() end
       if id=='menu.next' then return navigation:move(1,context) end

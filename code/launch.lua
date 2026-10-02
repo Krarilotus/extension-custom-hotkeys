@@ -2,7 +2,8 @@ local M={}
 -- Registered native callbacks cannot be unregistered by winProcHandler 1.0.0.
 -- Pin their state before initialization, including a partially failed startup.
 local live={}
-function M.prepare(modulePath)
+function M.prepare(modulePath,handlers)
+  handlers=handlers or {}
   local recorder
   local access=modules.ui:access()
   local cffi=modules.cffi:cffi()
@@ -30,6 +31,8 @@ function M.prepare(modulePath)
       local text=f:read('*all');f:close();return text
     end,
     interface={env=_ENV,extra={manager=access.manager,chain=function() return chain end,
+      externalActionAvailable=function(id) return type(handlers[id])=='function' end,
+      dispatchExternalAction=function(id) return assert(handlers[id],'hotkeys.provider-unavailable')() end,
       nativeAddresses=function() return addresses end,
       recorderInputGeneration=function() return recorder and recorder.read() or 0 end,
       installInputFrame=function(callback) return require('code/input_patch').install(core,callback) end,
