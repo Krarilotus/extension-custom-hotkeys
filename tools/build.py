@@ -56,7 +56,15 @@ def build(destination, revision='HEAD'):
     name, version, receipt, files = payload(revision)
     destination.mkdir(parents=True, exist_ok=True)
     artifact = destination / f'{name}-{version}.zip'
+    # The launcher probes locale/ before reading tag labels. Keep the explicit
+    # directory entry, just as the framework's release packager does.
+    directories = {'locale/'} if any(name.startswith('locale/') for name in files) else set()
     with zipfile.ZipFile(artifact, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
+        for directory in sorted(directories):
+            entry = zipfile.ZipInfo(directory, date_time=(1980, 1, 1, 0, 0, 0))
+            entry.create_system = 3
+            entry.external_attr = (0o40755 << 16) | 0x10
+            archive.writestr(entry, b'')
         for name, data in sorted(files.items()):
             entry = zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0))
             entry.compress_type = zipfile.ZIP_DEFLATED
@@ -64,7 +72,7 @@ def build(destination, revision='HEAD'):
             entry.external_attr = 0o100644 << 16
             archive.writestr(entry, data, compresslevel=9)
     with zipfile.ZipFile(artifact) as archive:
-        if archive.testzip() is not None or set(archive.namelist()) != set(files):
+        if archive.testzip() is not None or set(archive.namelist()) != set(files) | directories:
             raise ValueError('Archive verification failed')
         for name, data in files.items():
             if archive.read(name) != data:

@@ -13,9 +13,10 @@ def test_committed_module_package_is_reproducible_and_excludes_test_data(tmp_pat
     with zipfile.ZipFile(first) as archive:
         names = set(archive.namelist())
         assert {'init.lua', 'definition.yml', 'config.yml', 'build.json', 'code/native/runtime.lua'} <= names
-        assert all(name in ('init.lua', 'definition.yml', 'config.yml', 'README.md', 'build.json')
+        assert all(name in ('init.lua', 'definition.yml', 'config.yml', 'README.md', 'CREDITS.md', 'build.json')
                    or name.startswith(('code/', 'locale/')) for name in names)
         assert {f'locale/{lang}.yml' for lang in ('en', 'de', 'fr', 'es', 'hu', 'tr', 'ru', 'ch', 'fa')} <= names
+        assert 'locale/' in names  # Required by the launcher's readLocales probe.
         assert not any(name.endswith(('.exe', '.dll')) or 'probe' in name for name in names)
         embedded = json.loads(archive.read('build.json'))
         assert embedded['commit'] == receipt['commit']
