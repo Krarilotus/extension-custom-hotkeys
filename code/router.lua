@@ -17,6 +17,7 @@ function M.new(catalog, bindings, adapter)
 end
 
 function M:cancelGestures()
+  self.wheelPending=nil
   self.pointerHolds=0
   -- Native cancellation may inspect another key's ownership. Revoke every
   -- gesture first so table traversal order cannot preserve an old native hold.
@@ -227,6 +228,7 @@ function M:handle(event)
   local scope = states and states[context.state]
   local chosen = scope and (scope.any or scope.panels[Context.panel(context)])
   if chosen and not Context.allows(chosen,context) then chosen=nil end
+  if chosen and self.adapter.available and not self.adapter.available(chosen.id) then chosen=nil end
   if not chosen then
     for _, action in ipairs(self.nativeMasks[Binding.key(event)] or empty) do
       if Context.allows(action, context) then
@@ -257,6 +259,46 @@ function M:handle(event)
   if ok and event.button and (result=='left' or result=='right') then
     self.pointerHolds=self.pointerHolds+1
     held.forwarded=result;return true,result
+  end
+  return true
+end
+
+-- Wheel input is an impulse, never a held button. Keep sub-notch precision only
+-- while the same binding/context owns it; cancellation drops that partial turn.
+function M:wheel(event)
+  if self.dispatching then return true end
+  local context=self:refresh()
+  if not context or event.win~=false or event.altgr~=false or event.composing~=false
+      or type(event.mods)~='number' or event.mods~=math.floor(event.mods)
+      or event.mods<0 or event.mods>7 or type(event.delta)~='number'
+      or event.delta~=math.floor(event.delta) or event.delta==0
+      or math.abs(event.delta)>32768 then self.wheelPending=nil;return false end
+  local binding={wheel=event.delta>0 and 'up' or 'down',mods=event.mods}
+  if self.capture then
+    if context.owner~='hotkeys.capture' then self:cancelCapture();return false end
+    local callback=self.capture;self.capture=nil;self:barrier();callback(binding);return true
+  end
+  if self.blocked then self.wheelPending=nil;return false end
+  local owners=self.index[Binding.key(binding)]
+  local states=owners and owners[context.owner]
+  local scope=states and states[context.state]
+  local chosen=scope and (scope.any or scope.panels[Context.panel(context)])
+  if not chosen or chosen.behavior=='hold-local' or chosen.id:sub(1,8)=='pointer.' or not Context.allows(chosen,context)
+      or (self.adapter.available and not self.adapter.available(chosen.id)) then
+    self.wheelPending=nil;return false
+  end
+  if not Context.same(context,self:readContext()) then self:barrier();return false end
+  local key=Binding.key(binding)
+  local pending=self.wheelPending
+  if not pending or pending.key~=key then pending={key=key,delta=0};self.wheelPending=pending end
+  pending.delta=pending.delta+math.abs(event.delta)
+  local steps=math.floor(pending.delta/120);pending.delta=pending.delta%120
+  for _=1,steps do
+    if not Context.same(context,self:readContext()) then self:barrier();break end
+    self.dispatching=true
+    local ok=pcall(self.adapter.dispatch,chosen.id,context,false,event)
+    self.dispatching=false
+    if not ok then self.blocked=true;self:barrier();break end
   end
   return true
 end

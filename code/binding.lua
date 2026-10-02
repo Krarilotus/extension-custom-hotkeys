@@ -5,9 +5,13 @@
 ---@class MouseBinding
 ---@field button 'left'|'right'|'middle'|'x1'|'x2'
 ---@field mods integer Ctrl=1, Shift=2, Alt=4
----@alias HotkeyBinding KeyboardBinding|MouseBinding
+---@class WheelBinding
+---@field wheel 'up'|'down'
+---@field mods integer Ctrl=1, Shift=2, Alt=4
+---@alias HotkeyBinding KeyboardBinding|MouseBinding|WheelBinding
 local M = {}
 M.buttons={left=-1,right=-2,middle=-3,x1=-4,x2=-5}
+M.wheels={up=-6,down=-7}
 function M.modifier(scan)
   return scan==29 or scan==56 or scan==42 or scan==54 or scan==91 or scan==92
 end
@@ -18,7 +22,7 @@ end
 -- These gestures belong to Windows even while the binding editor captures.
 -- Recovery is reserved by validate(), but remains owned by this extension.
 function M.system(value)
-  if value.button then return false end
+  if value.button or value.wheel then return false end
   local s,m=value.scan,value.mods
   if not integer(m,0,7) then return false end
   local ctrl,alt=m%2==1,m>=4
@@ -33,6 +37,13 @@ end
 ---@return string? error
 function M.validate(value)
   if type(value) ~= 'table' then return nil, 'binding.type' end
+  if value.wheel~=nil then
+    for field in pairs(value) do
+      if field~='wheel' and field~='mods' then return nil,'binding.field' end
+    end
+    if not M.wheels[value.wheel] or not integer(value.mods,0,7) then return nil,'binding.invalid' end
+    return {wheel=value.wheel,mods=value.mods}
+  end
   if value.button~=nil then
     for field in pairs(value) do
       if field~='button' and field~='mods' then return nil,'binding.field' end
@@ -57,13 +68,14 @@ function M.validate(value)
   return {scan = s, extended = e, mods = m}
 end
 
-function M.physical(scan, extended,button)
+function M.physical(scan, extended,button,wheel)
+  if wheel then return M.wheels[wheel] end
   if button then return M.buttons[button] end
   return scan + (extended and 128 or 0)
 end
 
 function M.key(binding)
-  local physical=M.physical(binding.scan,binding.extended,binding.button)
+  local physical=M.physical(binding.scan,binding.extended,binding.button,binding.wheel)
   return physical+(physical<0 and -256 or 256)*binding.mods
 end
 

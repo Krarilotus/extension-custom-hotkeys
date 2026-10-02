@@ -71,6 +71,9 @@ function M.validate(catalog, bindings)
     else
       local binding, err = Binding.validate(value)
       if not binding then return nil, err, action.id end
+      if binding.wheel and (action.behavior=='hold-local' or action.id:sub(1,8)=='pointer.') then
+        return nil,'binding.unsupported',action.id
+      end
       normalized[action.id] = binding
     end
   end

@@ -57,7 +57,24 @@ function M.new(router, nextProc, modifierState, ownsWindow, exclusiveInput)
       end
     end
     if not ownOk or not owned then return nextProc(priority,hwnd,message,wparam,lparam) end
-    if barriers[message] then
+    if message==0x20a then
+      -- WM_MOUSEWHEEL carries Ctrl/Shift at the time of the gesture, unlike a
+      -- later keyboard snapshot. Alt/IME/focus still come from the input owner.
+      local entered=false
+      local ok,consumed=pcall(function()
+        local modifiers=modifierState()
+        local delta=math.floor(wparam/65536)%65536
+        if delta>=32768 then delta=delta-65536 end
+        local flags=wparam%65536
+        local mods=(math.floor(flags/8)%2)+(math.floor(flags/4)%2)*2
+        if type(modifiers.mods)=='number' and modifiers.mods>=4 then mods=mods+4 end
+        entered=true
+        return router:wheel({delta=delta,mods=mods,win=modifiers.win,
+          altgr=modifiers.altgr,composing=modifiers.composing,position=lparam})
+      end)
+      if not ok then stop();if entered then return 0 end
+      elseif consumed then return 0 end
+    elseif barriers[message] then
       local ok = pcall(router.barrier,router)
       if not ok then stop() end
     elseif kind then
