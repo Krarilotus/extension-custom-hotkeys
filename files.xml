@@ -6,5 +6,6 @@
     <file src="code" />
     <file src="README.md" />
     <file src="locale" />
-  </files>
+    <file src="CREDITS.md" />
+</files>
 </module>
