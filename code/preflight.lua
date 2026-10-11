@@ -6,7 +6,6 @@ function M.check(config, activeExtensions)
   if type(config) ~= 'table' or type(activeExtensions) ~= 'table' then
     return nil, 'activation.config-unavailable'
   end
-  local found = false
   local count = 0
   for key in pairs(activeExtensions) do
     if type(key) ~= 'number' or key < 1 or key ~= math.floor(key) then
@@ -23,18 +22,25 @@ function M.check(config, activeExtensions)
     -- Recorder's public lifecycle is checked after all modules initialize.
     -- Its presence alone does not distinguish ordinary recording from playback.
     if extension.name == 'ucp2-legacy' then
-      found = true
       local effective = config[extension.name .. '-' .. extension.version]
-      if type(effective) ~= 'table' or type(effective.o_keys) ~= 'table'
-          or effective.o_keys.enabled ~= false then return nil, 'activation.legacy-hotkeys' end
-    end
-  end
-  -- Reject a stale/imported extra Legacy version too, even when it is absent
-  -- from the extension list. Never guess which contradictory input wins.
-  for key, effective in pairs(config) do
-    if type(key) == 'string' and key:match('^ucp2%-legacy%-') then
-      if not found or type(effective) ~= 'table' or type(effective.o_keys) ~= 'table'
-          or effective.o_keys.enabled ~= false then return nil, 'activation.legacy-hotkeys' end
+      if effective ~= nil and type(effective) ~= 'table' then
+        return nil, 'activation.config-unavailable'
+      end
+      local options = effective and effective.o_keys
+      if options ~= nil then
+        if type(options) ~= 'table' or
+            (options.enabled ~= nil and type(options.enabled) ~= 'boolean') then
+          return nil, 'activation.config-unavailable'
+        end
+        -- Legacy enables a port only for enabled=true or an enabled direct child.
+        -- Omitted settings are off; disabled/inactive configuration is no conflict.
+        if options.enabled == true then return nil, 'activation.legacy-hotkeys' end
+        for _, child in pairs(options) do
+          if type(child) == 'table' and child.enabled == true then
+            return nil, 'activation.legacy-hotkeys'
+          end
+        end
+      end
     end
   end
   return true
