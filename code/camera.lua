@@ -8,7 +8,8 @@ end
 function M:start(id,context)
   local direction=id:match('^camera%.pan%.([a-z]+)$') or id:match('^camera%.pan%.([a-z]+)%.alternate$')
   if not directions[direction] or not context or
-      (context.owner~='game.build' and context.owner~='game.status') then return false end
+      (context.owner~='game.build' and context.owner~='game.status'
+        and not (context.owner=='editor.map' and context.state=='editor')) then return false end
   if self.held[id] then return false end
   self.held[id]={direction=direction,context=context};self.count=self.count+1
   self.adapter.set(direction,true)

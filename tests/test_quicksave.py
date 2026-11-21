@@ -93,7 +93,8 @@ def native_setup(lua):
       end}
       package.loaded['code/native/quickslot']=nil
       q=require('code/native/quickslot').new(scene,{},world,cursor,
-        {read=function(_,address,state,origin) assert(address==0xb97ad8 and origin.x==280);return {} end})
+        {matchesPrefix=function(...) return require('code/native/menu_reader').matchesPrefix(...) end,
+         read=function(_,address,state,origin) assert(address==0xb97ad8 and origin.x==280);return {} end})
       function start() assert(q:start(Context.resolve(facts('game.build')))) end
       function overwrite()
         memory[0x1652748]=0;s.modal=11;s.textModal=11;s.activeModalID=11

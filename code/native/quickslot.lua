@@ -39,9 +39,11 @@ function M.new(scene,view,world,cursor,reader)
       return nil
     end
     if s.modal==10 and s.textModal==10 and s.activeModalID==10
-        and s.activeModalMenu==A.confirmationMenu and read(A.confirmationMenu)==A.saveItems
+        and s.activeModalMenu==A.confirmationMenu
         and s.textIndex==2 and s.textState==3 and read(A.textSubmitted)==1
-        and read(A.textEntryState)==1 and Origin.read(s) then return s,'name' end
+        and read(A.textEntryState)==1 and Origin.read(s)
+        and (read(A.confirmationMenu)==A.saveItems
+          or reader.matchesPrefix(A.confirmationMenu,A.saveItems,25,false)) then return s,'name' end
     if s.modal==11 and s.textModal==11 and s.activeModalID==11
         and s.activeModalMenu==A.saveMenu and read(A.saveMenu)==A.confirmationItems
         and s.textIndex==9 and s.textState==3 and s.operation==30

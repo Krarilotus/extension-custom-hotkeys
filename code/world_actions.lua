@@ -25,11 +25,16 @@ function M:groupBuilding(group,player)
       or b.x~=saved.x or b.y~=saved.y then self.buildingGroups[group]=nil;return nil end
   return b
 end
+local editorView={['view.rotate-left']=true,['view.rotate-right']=true,
+  ['view.toggle-zoom']=true,['view.toggle-interface']=true}
+
 function M:dispatch(id,context,nativeBinding,event)
   local a=self.adapter
-  if not context or (context.state~='live-sp' and context.state~='live-mp') or not context.authority
-      or (context.owner~='game.build' and context.owner~='game.status')
-      or not Context.same(context,Context.resolve(a.resolve())) then return false end
+  if not context or not Context.same(context,Context.resolve(a.resolve())) then return false end
+  if context.owner=='editor.map' then
+    if context.state~='editor' or not editorView[id] then return false end
+  elseif (context.state~='live-sp' and context.state~='live-mp') or not context.authority
+      or (context.owner~='game.build' and context.owner~='game.status') then return false end
   local s=a.snapshot()
   if id:sub(1,8)=='pointer.' then
     if not a.pointerAllowed(event and event.position) then
@@ -144,7 +149,7 @@ function M:dispatch(id,context,nativeBinding,event)
     return true
   end
   if id=='view.toggle-interface' then
-    if s.screen~=14 then return false end
+    if s.screen~=14 and not (context.owner=='editor.map' and s.screen==12) then return false end
     a.toggleInterface();return true
   end
   if stances[id]~=nil then
