@@ -90,3 +90,46 @@ def test_editor_mouse_controls_remain_native_except_during_capture(lua):
       assert(h(4,9,0x207,16,123)==0 and h(4,9,0x208,0,123)==0)
       assert(captured.button=='middle' and passed==2 and exclusive==0)
     ''')
+
+
+def test_native_chain_distinguishes_quickslot_release_from_pointer_takeover(lua):
+    lua.execute('''
+      local c=Catalog.new({
+        {id='game.quickload',contexts={'game'},states={'live-sp'},
+         command=false,default={button='middle',mods=0}},
+        {id='pointer.order',contexts={'game'},states={'live-sp'},
+         command=true,default={button='right',mods=0}}})
+      local r,quickslot,forwarded,observed
+      local platform={owns=function(_,hwnd) return hwnd==9 end,
+        observe=function() return false end,
+        modifiers=function() return {mods=0,altgr=false,win=false,composing=false} end}
+      local callback
+      package.loaded.ffi={os='Windows',arch='x86',cast=function(_,value)
+        if value==123 then
+          return function(fn,priority) callback=fn;return priority end
+        end
+        if value==456 then
+          return function(_,_,message) forwarded=message;return 42 end
+        end
+        return value
+      end}
+      package.loaded.jit={off=function() end}
+      r=Router.new(c,Catalog.defaults(c),{
+        resolve=function() if not quickslot then return current end end,
+        dispatch=function(id)
+          if id=='pointer.order' then return 'left' end
+          r:barrier()
+          quickslot=true
+        end,
+        canRecover=function() return false end,recover=function() end,
+        cancelLocalHold=function() end,cancelPending=function() quickslot=false end})
+      require('code/native/chain').install({RegisterProc=123,CallNextProc=456},r,platform,nil,
+        function(message) observed=message;quickslot=false end,function() return true end)
+      local function msg(message,flags) return callback(-110000,9,message,flags,0) end
+      assert(msg(0x207,16)==0 and quickslot and observed==0x207)
+      assert(msg(0x208,0)==0 and quickslot and observed==0x207 and forwarded==nil)
+      assert(msg(0x201,1)==42 and not quickslot and observed==0x201)
+      assert(msg(0x202,0)==42 and observed==0x202 and forwarded==0x202)
+      assert(msg(0x204,2)==42 and observed==0x204 and forwarded==0x201)
+      assert(msg(0x205,0)==42 and observed==0x205 and forwarded==0x202)
+    ''')

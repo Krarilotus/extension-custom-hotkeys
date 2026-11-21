@@ -1,6 +1,8 @@
 local ffi = require('ffi')
 local jit = require('jit')
 local Messages = require('code/messages')
+local Mouse = require('code/mouse_messages')
+local Binding = require('code/binding')
 local M = {}
 local installed
 
@@ -33,8 +35,15 @@ function M.install(interface, router, platform, exclusiveInput, mouseInput, isRe
   -- Keep one protected observer instead of allocating a closure per message.
   local function observe(message,wparam,lparam)
     if platform:observe(message) then router:barrier() end
-    -- Real mouse input takes ownership before the native handler sees it.
-    if mouseInput and message>=0x200 and message<=0x20e then mouseInput(message,wparam,lparam) end
+    if mouseInput and message>=0x200 and message<=0x20e then
+      local button,kind=Mouse.decode(message,wparam)
+      local held=kind=='up' and router.held[Binding.buttons[button]]
+      -- A consumed shortcut release belongs to the router. Treating it as
+      -- native pointer takeover aborts the quickslot gesture it just started.
+      if not (held and held.consumed and not held.forwarded) then
+        mouseInput(message,wparam,lparam)
+      end
+    end
   end
   result.callback = ffi.cast(signature, function(priority, hwnd, message, wparam, lparam)
     -- HWNDs are numeric keys here; separately boxed pointer cdata must not
