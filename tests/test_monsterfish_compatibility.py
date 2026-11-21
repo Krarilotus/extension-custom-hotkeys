@@ -107,6 +107,8 @@ def test_menu_copy_checks_owner_shape_and_load_callback(lua):
       assert(match(10,20,6,true))
       array[3].menuItemActionHandler.simple=30
       assert(not match(10,20,6,true) and match(10,20,6,false))
+      original[3].menuItemActionHandler.simple=nil
+      assert(match(10,20,6,true)) -- Constructor populated an inherited callback.
       array[3].menuPointer=nil
       assert(not match(10,20,6,false))
       array[3].menuPointer=menu;array[4].menuItemType=0x66

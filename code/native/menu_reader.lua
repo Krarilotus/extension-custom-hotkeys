@@ -21,7 +21,9 @@ function M.matchesPrefix(menuAddress,originalAddress,count,matchAction)
         or row.menuItemType~=reference.menuItemType
         or row.callbackParameter.parameter~=reference.callbackParameter.parameter
         or row.itemWidth~=reference.itemWidth or row.itemHeight~=reference.itemHeight
-        or (matchAction and row.menuItemActionHandler.simple~=reference.menuItemActionHandler.simple) then
+        -- Group members can acquire the header callback during construction.
+        or (matchAction and reference.menuItemActionHandler.simple~=nil
+          and row.menuItemActionHandler.simple~=reference.menuItemActionHandler.simple) then
       return false
     end
   end

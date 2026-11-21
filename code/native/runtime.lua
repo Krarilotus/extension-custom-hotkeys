@@ -31,7 +31,7 @@ function M.start(language)
       remote.interface.logWarning('Hotkeys switched off at '..where..': '..tostring(problem))
     end,
     resolve=function()
-      if not ready or quickslot and quickslot.active then return nil end
+      if quickslot and quickslot.active then return nil end
       return scene:resolve(view)
     end,
     dispatch=function(id,context,nativeBinding,event)
@@ -109,11 +109,10 @@ function M.start(language)
   local inputFrame=require('code/native/input_frame').install(cursor,router,camera,quickslot,lowering,navigation,worldActions)
   local chain=require('code/native/chain').install(remote.interface.chain(),router,platform,
     function(event)
-      if not ready then return false end
       if quickslot.active and (event.kind=='down' or event.kind=='char') then quickslot:cancel() end
       return view:input(event)
     end,function(message,_,lparam)
-      if ready and pointer:observe(message,lparam) then quickslot:cancel();navigation:cancel() end
+      if pointer:observe(message,lparam) then quickslot:cancel();navigation:cancel() end
     end,function() return ready end)
   local runtime={lock=lock,platform=platform,scene=scene,catalog=catalog,router=router,
     profiles=profiles,view=view,chain=chain,cursor=cursor,navigation=navigation,
