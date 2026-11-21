@@ -1,4 +1,4 @@
-# Custom Hotkeys
+# Custom Hotkeys 0.2.18
 
 Adapta los controles de Crusader a tu forma de jugar. Elige los controles originales, RTS moderno o Cuadrícula; después reasigna teclas y botones del ratón y guarda tus distribuciones como perfiles. La cuadrícula sigue el panel de construcción o de unidades que tengas abierto, así que las mismas teclas pueden servir para distintas acciones.
 

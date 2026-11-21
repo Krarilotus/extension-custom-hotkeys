@@ -1,4 +1,4 @@
-# Custom Hotkeys
+# Custom Hotkeys 0.2.18
 
 Adaptez les commandes de Crusader à votre façon de jouer. Partez des commandes d'origine, du RTS moderne ou de la grille, puis réattribuez les touches du clavier et de la souris et enregistrez vos configurations en profils. La grille suit le panneau de construction ou d'unités affiché : les mêmes touches peuvent ainsi servir à différentes actions.
 

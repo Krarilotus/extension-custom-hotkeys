@@ -1,4 +1,4 @@
-# Custom Hotkeys
+# Custom Hotkeys 0.2.18
 
 Alakítsd a Crusader irányítását a saját játékstílusodhoz. Válaszd a játék eredeti kiosztását, a modern RTS-vezérlést vagy a rácsos kiosztást, majd állítsd át a billentyűket és az egérgombokat, és mentsd el a kiosztást profilként. A rács az éppen nyitott építési vagy egységpanelt követi, így ugyanazok a billentyűk más-más műveletet indíthatnak.
 

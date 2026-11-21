@@ -1,5 +1,11 @@
 # Custom Hotkeys for Stronghold Crusader
 
+Version 0.2.18 enables camera and view bindings in the scenario editor, keeps
+gameplay bindings available after a closed ally dialog or during an AI lord
+video, and supports quicksave/quickload with compatible Save and Load menu
+extensions such as Autosave. Startup failures are logged. A second game can
+use saved profiles while the first game retains write access.
+
 Version 0.2.1 shortens native build-category and placement-return menu switches for hotkeys, so the next panel accepts its keys on the next game frame.
 The editor remains in the game's main and in-game Options menus.
 It also allows the same binding in different native construction/unit
