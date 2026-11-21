@@ -57,11 +57,15 @@ function M.prepare(modulePath)
         if not previous and err~='store.missing' then return nil,err end
         return exchange:save(document)
       end,
-      gameLanguage=function() return data.version.getGameLanguage() end}}
+      gameLanguage=function() return data.version.getGameLanguage() end,
+      logWarning=function(message) log(WARNING,'Custom Hotkeys: '..message) end}}
   })
   local prepared={state=state,library=library,store=store,
     connectRecorder=function(value) recorder=value end}
   live[#live+1]=prepared
+  -- This state is created before luajit:enable applies its global defaults.
+  assert(state:executeString("require('jit').off(); return true",'custom-hotkeys/jit-off',true)==true,
+    'jit.off-failed')
   state:importHeaderFile('ucp/modules/ui/ui/headers/latest/ui.h')
   -- Resolve the UI owner's original entry points during module loading. Later
   -- enable-time Recorder hooks legitimately replace some of their prologues.

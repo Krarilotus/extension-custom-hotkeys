@@ -23,7 +23,7 @@ function M.install(cursor,router,camera,quickslot,lowering,navigation,worldActio
         and not (worldActions and worldActions.hasBookmarks) and router.pointerHolds==0) or mouse~=nativeMouse then return end
     local ok,err=pcall(advance)
     if not ok then
-      result.failure=tostring(err);router.blocked=true
+      result.failure=tostring(err);router:block('input frame',err)
       pcall(cursor.cancel,cursor);pcall(router.barrier,router)
     end
   end)

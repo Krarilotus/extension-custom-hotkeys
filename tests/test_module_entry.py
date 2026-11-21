@@ -36,7 +36,7 @@ def test_module_starts_once_after_native_initialization(lua):
 def test_bootstrap_uses_ucp_game_language_only_after_init(lua):
     lua.execute('''
       configFinal={};allActiveExtensions={};INFO=1;core={}
-      local initialized,languageReads,callback,uiLoads=false,0,nil,0
+      local initialized,languageReads,callback,uiLoads,jitOff=false,0,nil,0,false
       data={version={getGameLanguage=function()
         assert(initialized,'language read before game text initialization')
         languageReads=languageReads+1;return 'german' end}}
@@ -47,8 +47,10 @@ def test_bootstrap_uses_ucp_game_language_only_after_init(lua):
       package.loaded['code/native/interface']={open=function() return {},{} end}
       package.loaded['code/address_bindings']={resolve=function()
         assert(not initialized);return reference_addresses end}
+      package.loaded['jit']={off=function() jitOff=true end}
       package.loaded['ui']=nil
       package.preload['ui']=function()
+        assert(jitOff,'UI must load with JIT disabled')
         assert(not initialized,'UI entry points resolved after enable-time hooks')
         uiLoads=uiLoads+1;return {} end
       package.loaded['code/native/runtime']={start=function(language)

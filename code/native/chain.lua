@@ -8,7 +8,7 @@ local installed
 -- private LuaJIT state alive until process exit: the owner has no unregister API.
 local signature = 'int32_t (__stdcall *)(int32_t, void *, uint32_t, uint32_t, int32_t)'
 
-function M.install(interface, router, platform, exclusiveInput, mouseInput)
+function M.install(interface, router, platform, exclusiveInput, mouseInput, isReady)
   assert(not installed, 'chain.already-installed')
   assert(ffi.os == 'Windows' and ffi.arch == 'x86', 'chain.unsupported-abi')
   assert(type(interface) == 'table', 'chain.interface-required')
@@ -27,7 +27,6 @@ function M.install(interface, router, platform, exclusiveInput, mouseInput)
   local handle = Messages.new(router, function(priority, hwnd, message, wparam, lparam)
     return nextProc(priority, ffi.cast('void *',hwnd), message, wparam, lparam)
   end, function()
-    assert(not result.failure, 'chain.failed')
     return platform:modifiers()
   end,
   function(hwnd) return platform:owns(hwnd) end, exclusiveInput)
@@ -41,16 +40,24 @@ function M.install(interface, router, platform, exclusiveInput, mouseInput)
     -- HWNDs are numeric keys here; separately boxed pointer cdata must not
     -- split gesture debt into a different Lua table on every callback.
     local window = tonumber(ffi.cast('uintptr_t',hwnd))
-    if platform:owns(window) then
+    if not result.failure and isReady() and platform:owns(window) then
       local ok, err = pcall(observe,message,wparam,lparam)
-      if not ok then result.failure=tostring(err); router.blocked=true end
+      if not ok then
+        result.failure=tostring(err)
+        router:block('window observation',err)
+        pcall(router.barrier,router)
+      end
+    end
+    if result.failure or not isReady() then
+      local ok,value=pcall(nextProc,priority,hwnd,message,wparam,lparam)
+      return ok and value or 0
     end
     -- No Lua error may escape the C callback. An uncertain downstream failure
     -- is consumed once, never retried through another native handler.
     local ok, value = pcall(handle,priority,window,message,wparam,lparam)
     if ok then return value end
     result.failure=tostring(value)
-    router.blocked=true
+    router:block('window dispatch',value)
     pcall(router.barrier,router)
     return 0
   end)
@@ -64,8 +71,8 @@ function M.install(interface, router, platform, exclusiveInput, mouseInput)
   -- the graphics owner. The callback remains pinned even on rejected setup.
   installed=result
   if result.priority >= -100000 then
-    router.blocked=true
     result.failure='chain.priority-unavailable'
+    router:block('window registration',result.failure)
     error(result.failure)
   end
   return result

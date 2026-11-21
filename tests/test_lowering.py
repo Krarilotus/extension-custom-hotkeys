@@ -116,7 +116,7 @@ def test_existing_input_frame_skips_idle_and_refreshes_shared_hold_context_once(
       local refresh,frames,pan=0,0,0
       local camera={count=0,beforeFrame=function() pan=pan+1 end}
       local lowering={active=false,beforeFrame=function(_,context) assert(context=='current');frames=frames+1 end}
-      local router={refresh=function() refresh=refresh+1;return 'current' end}
+      local router={pointerHolds=0,refresh=function() refresh=refresh+1;return 'current' end}
       local frame=require('code/native/input_frame').install({},router,camera,{},lowering)
       frame.callback(0xf2c9b0);assert(refresh==0 and frames==0)
       lowering.active=true;frame.callback(0xf2c9b0)

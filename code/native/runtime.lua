@@ -14,7 +14,10 @@ local View=require('code/native/editor_view')
 local M={}
 function M.start(language)
   require('code/dialog_context').bind(remote.interface.modalMenuAddress)
-  local lock=assert(require('code/native/profile_lock').acquire())
+  local lock,lockProblem=require('code/native/profile_lock').acquire()
+  if not lock then
+    remote.interface.logWarning('Profiles are read-only in this process ('..tostring(lockProblem)..')')
+  end
   local platform=Platform.new(tonumber(ffi.cast('int32_t *',A.gameWindow)[0]))
   local scene=Scene.new(platform,function() return remote.interface.recorderInputGeneration() end)
   local catalog=Catalog.production()
@@ -22,9 +25,15 @@ function M.start(language)
   local controls={}
   for _,control in ipairs(selectors) do controls[control.id]=control end
   local view,cursor,navigation,targeting,camera,worldActions,quickslot,lowering
-  local router
+  local router,ready
   router=Router.new(catalog,Catalog.defaults(catalog),{
-    resolve=function() if quickslot and quickslot.active then return nil end;return scene:resolve(view) end,
+    report=function(where,problem)
+      remote.interface.logWarning('Hotkeys switched off at '..where..': '..tostring(problem))
+    end,
+    resolve=function()
+      if not ready or quickslot and quickslot.active then return nil end
+      return scene:resolve(view)
+    end,
     dispatch=function(id,context,nativeBinding,event)
       if (id=='game.quicksave' or id=='game.quickload') then router:barrier();return quickslot:start(context,id) end
       if id=='hotkeys.open' then return view:open() end
@@ -59,9 +68,18 @@ function M.start(language)
     cancelPointerHold=function() if cursor then cursor.adapter.cancel() end end,
   })
   local store={load=function() return remote.interface.loadProfiles() end,
-    save=function(_,document) return remote.interface.saveProfiles(document) end}
+    save=function(_,document)
+      if not lock then return nil,lockProblem end
+      return remote.interface.saveProfiles(document)
+    end}
   local profiles,err=Profiles.new(catalog,store,router)
-  assert(profiles,err)
+  if not profiles then
+    remote.interface.logWarning('Using presets without saving ('..tostring(err)..')')
+    local unavailable=err
+    profiles,err=Profiles.new(catalog,{load=function() return nil,'store.missing' end,
+      save=function() return nil,unavailable end},router)
+    assert(profiles,err)
+  end
   view=View.new(profiles,catalog,router,scene,platform,require('code/locale').new(language,
     require('code/native/text').label))
   camera=require('code/native/camera').new(platform,router)
@@ -88,18 +106,20 @@ function M.start(language)
     return targeting:dispatch(button=='left' and 'target.confirm' or 'target.cancel',context)
   end)
   quickslot=require('code/native/quickslot').new(scene,view,worldActions,cursor,reader)
+  local inputFrame=require('code/native/input_frame').install(cursor,router,camera,quickslot,lowering,navigation,worldActions)
   local chain=require('code/native/chain').install(remote.interface.chain(),router,platform,
     function(event)
+      if not ready then return false end
       if quickslot.active and (event.kind=='down' or event.kind=='char') then quickslot:cancel() end
       return view:input(event)
     end,function(message,_,lparam)
-      if pointer:observe(message,lparam) then quickslot:cancel();navigation:cancel() end
-    end)
-  local inputFrame=require('code/native/input_frame').install(cursor,router,camera,quickslot,lowering,navigation,worldActions)
+      if ready and pointer:observe(message,lparam) then quickslot:cancel();navigation:cancel() end
+    end,function() return ready end)
   local runtime={lock=lock,platform=platform,scene=scene,catalog=catalog,router=router,
     profiles=profiles,view=view,chain=chain,cursor=cursor,navigation=navigation,
     inputFrame=inputFrame,lowering=lowering,quickslot=quickslot,pointer=pointer,targeting=targeting,camera=camera,worldActions=worldActions,pins={}}
-  runtime.pins=require('code/native/options_menu').install(scene,view)
+  runtime.pins=require('code/native/options_menu').install(scene,view,function() return ready end)
+  ready=true
   return runtime
 end
 return M

@@ -16,6 +16,12 @@ function M.new(catalog, bindings, adapter)
   return self
 end
 
+function M:block(where,problem)
+  if self.blocked then return end
+  self.blocked=true
+  if self.adapter.report then pcall(self.adapter.report,where,problem) end
+end
+
 function M:cancelGestures()
   self.pointerHolds=0
   -- Native cancellation may inspect another key's ownership. Revoke every
@@ -41,8 +47,8 @@ function M:cancelCapture()
   local callback = self.capture
   self.capture = nil
   if callback then
-    local ok = pcall(callback, nil, 'capture.cancel')
-    if not ok then self.blocked = true end
+    local ok,err = pcall(callback, nil, 'capture.cancel')
+    if not ok then self:block('capture cancel',err) end
   end
 end
 
@@ -54,9 +60,9 @@ function M:cancelHold(held)
   -- screen is already gone. It must never submit a simulation command.
   local wasDispatching = self.dispatching
   self.dispatching = true
-  local ok = pcall(self.adapter.cancelLocalHold, action)
+  local ok,err = pcall(self.adapter.cancelLocalHold, action)
   self.dispatching = wasDispatching
-  if not ok then self.blocked = true end
+  if not ok then self:block('hold release',err) end
 end
 
 function M:apply(bindings,options)
@@ -215,10 +221,10 @@ function M:handle(event)
     end
     held.consumed = true
     self.dispatching = true
-    local ok = pcall(self.adapter.recover, now)
+    local ok,err = pcall(self.adapter.recover, now)
     self.dispatching = false
     self:barrier()
-    if not ok then self.blocked = true end
+    if not ok then self:block('recovery',err) end
     return true
   end
   if self.blocked then return false end
@@ -249,7 +255,7 @@ function M:handle(event)
   local nativeBinding=self.nativeDispatch[Binding.key(event)]==chosen.id
   local ok,result = pcall(self.adapter.dispatch, chosen.id, now,nativeBinding,event)
   self.dispatching = false
-  if not ok then self.blocked = true; self:barrier() end
+  if not ok then self:block(chosen.id,result); self:barrier() end
   if ok and result=='native' and nativeBinding then held.consumed=false;return false end
   if ok and result=='pointer-native' and event.button and chosen.id:sub(1,8)=='pointer.' then
     held.consumed=false;return false

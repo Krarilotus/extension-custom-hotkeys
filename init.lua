@@ -13,7 +13,9 @@ function M:enable()
   self.started=true
   hooks.registerHookCallback('afterInit',function()
     self.runtime=launch.start(prepared)
-    log(INFO,'Custom Hotkeys initialized: '..json:encode(self.runtime.receipt))
+    if self.runtime.receipt.installed then
+      log(INFO,'Custom Hotkeys initialized: '..json:encode(self.runtime.receipt))
+    end
   end)
 end
 function M:disable()
