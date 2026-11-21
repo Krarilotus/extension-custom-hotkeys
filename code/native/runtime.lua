@@ -81,7 +81,10 @@ function M.start(language)
     assert(profiles,err)
   end
   view=View.new(profiles,catalog,router,scene,platform,require('code/locale').new(language,
-    require('code/native/text').label))
+    function(document)
+      if not lock then return nil,lockProblem end
+      return remote.interface.saveExchange(document)
+    end))
   camera=require('code/native/camera').new(platform,router)
   lowering=require('code/native/lowering').new(scene,view,platform,router)
   local pointer=require('code/native/pointer').new(platform,scene)

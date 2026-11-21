@@ -11,9 +11,9 @@ local Scrollbar=require('code/editor_scrollbar')
 local M={}
 M.__index=M
 local rows=Geometry.rows
-function M.new(profiles,catalog,router,scene,platform,labels)
+function M.new(profiles,catalog,router,scene,platform,labels,saveExchange)
   local self=setmetatable({profiles=profiles,catalog=catalog,router=router,scene=scene,
-    platform=platform,labels=labels,opened=false,focus=1,pins={},textCache={},keyNames={},
+    platform=platform,labels=labels,saveExchange=saveExchange,opened=false,focus=1,pins={},textCache={},keyNames={},
     codepage=NativeText.codepage()},M)
   local manager=remote.interface.manager
   self.menuID=manager.getAvailableMenuID(2040)
@@ -184,7 +184,7 @@ function M:activate(id)
       self.text.edit:selectAll()
     end
   elseif id==117 then
-    local ok,err=remote.interface.saveExchange(e:exportProfile())
+    local ok,err=self.saveExchange(e:exportProfile())
     if ok then self.notice='exported' else self.error=err end
   elseif id==109 then e:resetAction()
   elseif id==110 then e:resetProfile()
