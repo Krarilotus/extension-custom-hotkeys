@@ -74,11 +74,22 @@ function M.start(prepared)
   local recorder=require('code/recorder').connect(modules,allActiveExtensions)
   prepared.connectRecorder(recorder)
   local state=prepared.state
+  -- Local change (0.2.9): an error while starting is caught inside the LuaJIT state (an error
+  -- leaving it takes the game down) and logged; the hotkeys then stay off for this session.
   local receipt=state:executeString([[
-    _G.customHotkeys=require('code/native/runtime').start(remote.interface.gameLanguage())
-    return {installed=true,modal=customHotkeys.view.modalID,priority=customHotkeys.chain.priority,
-      profile=customHotkeys.profiles.committed.active}
+    local ok,result=pcall(function()
+      _G.customHotkeys=require('code/native/runtime').start(remote.interface.gameLanguage())
+      return {installed=true,modal=customHotkeys.view.modalID,priority=customHotkeys.chain.priority,
+        profile=customHotkeys.profiles.committed.active}
+    end)
+    if not ok then return {failed=tostring(result)} end
+    return result
   ]],'custom-hotkeys/bootstrap',true)
+  if type(receipt)=='table' and receipt.failed then
+    log(ERROR,'Custom Hotkeys could not start, the hotkeys are off: '..receipt.failed)
+    prepared.receipt={installed=false,failed=receipt.failed}
+    return prepared
+  end
   assert(type(receipt)=='table' and receipt.installed,'runtime.initialize')
   if recorder.observe then
     prepared.stopObserving=recorder.observe(function()
