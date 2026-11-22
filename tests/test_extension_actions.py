@@ -323,3 +323,37 @@ def test_generic_native_dialog_binding_requires_stable_composition(actions):
       end
       assert(hits==2)
     """)
+
+
+def test_preview_assignments_take_precedence_over_new_presets(actions):
+    actions.execute("""
+      local old=Profiles.initial(Catalog.production())
+      old.schema=4
+      old.profiles[old.active].bindings['view.resolution-zoom-in']=key(66,4)
+      local r=Registry.new()
+      require('code/wheel_preview').register(r,'view.resolution-zoom-in',function() end)
+      r.register(spec('ext.example.new',{kind='world'},key(66,4)))
+      local saved=assert(Profiles.validate(Catalog.production(r.freeze()),old)).profiles[old.active]
+      assert(saved.bindings['ext.resolution-based-zoom.in'].scan==66)
+      assert(saved.bindings['ext.example.new']==false and saved.unavailable==nil)
+    """)
+
+
+def test_barrier_stops_same_context_wheel_burst(actions):
+    actions.execute("""
+      local r=Registry.new()
+      local hits,router=0,nil
+      r.register(spec(id,{kind='world'},{wheel='up',mods=1},function(_,input)
+        assert(input.delta==120)
+        hits=hits+1
+        router:barrier()
+        return true
+      end))
+      local catalog=Catalog.production(r.freeze())
+      router=routed(catalog,Catalog.defaults(catalog),r)
+      current=facts('game.status')
+      local messages=require('code/messages').new(router,function() return 42 end,
+        function() return {mods=0,composing=false,win=false,altgr=false} end,function() return true end)
+      assert(messages(1,1,0x20a,240*65536+8,0)==0)
+      assert(hits==1)
+    """)

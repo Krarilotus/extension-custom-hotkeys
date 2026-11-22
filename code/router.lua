@@ -266,17 +266,22 @@ function M:handle(event)
     self.localHolds=self.localHolds+1
   end
   local key=Binding.key(event)
-  local steps=1
+  local steps,wheelBatch=1,nil
   if event.wheel then
     local pending=self.wheelPending
     local units=math.abs(event.delta)+(pending and pending.key==key and pending.units or 0)
     steps=math.floor(units/120)
-    self.wheelPending={key=key,units=units%120}
+    wheelBatch={key=key,units=units%120}
+    self.wheelPending=wheelBatch
+    event.delta=event.delta>0 and 120 or -120
   end
   local nativeBinding=self.nativeDispatch[key]==chosen.id
   local ok,result
   for step=1,steps do
-    if step>1 and not Context.same(now,self:readContext()) then self:barrier();break end
+    if step>1 and (not Context.same(now,self:readContext()) or self.wheelPending~=wheelBatch) then
+      self:barrier()
+      break
+    end
     self.dispatching = true
     ok,result = pcall(self.adapter.dispatch,chosen.id,now,nativeBinding,event)
     self.dispatching = false
