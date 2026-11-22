@@ -2,13 +2,14 @@ local M={}
 -- Registered native callbacks cannot be unregistered by winProcHandler 1.0.0.
 -- Pin their state before initialization, including a partially failed startup.
 local live={}
-function M.prepare(modulePath)
-  local recorder
+function M.prepare(modulePath,registry)
+  local recorder,catalog,definitions,suggestions
   local access=modules.ui:access()
   local cffi=modules.cffi:cffi()
   local addresses=require('code/addresses')
-  for name,value in pairs(require('code/address_bindings').resolve(core,utils,access.game,cffi)) do addresses[name]=value end
-  local catalog=require('code/catalog').production()
+  local bindings=require('code/address_bindings')
+  for name,value in pairs(bindings.resolve(core,utils,access.game,cffi)) do addresses[name]=value end
+  local clickBound,click=pcall(bindings.resolveClick,core)
   local profiles=require('code/profiles')
   local codec={encode=function(value) return json:encode(value) end,
     decode=function(value) return json:decode(value) end}
@@ -31,6 +32,10 @@ function M.prepare(modulePath)
     end,
     interface={env=_ENV,extra={manager=access.manager,chain=function() return chain end,
       nativeAddresses=function() return addresses end,
+      extensionActions=function() return definitions,suggestions,clickBound and click or nil end,
+      dispatchExtension=function(id,phase,context,event)
+        return registry.dispatch(id,phase,context,event,recorder.canSubmit)
+      end,
       recorderInputGeneration=function() return recorder and recorder.read() or 0 end,
       installInputFrame=function(callback) return require('code/input_patch').install(core,callback) end,
       menuAddress=function(id)
@@ -61,7 +66,20 @@ function M.prepare(modulePath)
       logWarning=function(message) log(WARNING,'Custom Hotkeys: '..message) end}}
   })
   local prepared={state=state,library=library,store=store,
-    connectRecorder=function(value) recorder=value end}
+    connectRecorder=function(value) recorder=value end,
+    configureActions=function(bindings)
+      definitions=registry.freeze()
+      suggestions=type(bindings)=='table' and bindings or {}
+      catalog=require('code/catalog').production(definitions,suggestions)
+      if not clickBound then
+        for _,entry in ipairs(definitions) do
+          if entry.clickSound then
+            log(WARNING,'Custom Hotkeys: native action click sound unavailable: '..tostring(click))
+            break
+          end
+        end
+      end
+    end}
   live[#live+1]=prepared
   -- This state is created before luajit:enable applies its global defaults.
   assert(state:executeString("require('jit').off(); return true",'custom-hotkeys/jit-off',true)==true,
@@ -74,7 +92,8 @@ function M.prepare(modulePath)
   return prepared
 end
 
-function M.start(prepared)
+function M.start(prepared,bindings)
+  prepared.configureActions(bindings)
   local recorder=require('code/recorder').connect(modules,allActiveExtensions)
   prepared.connectRecorder(recorder)
   local state=prepared.state

@@ -72,25 +72,25 @@ function M:apply(bindings,options)
   self.bindings, self.index, self.nativeMasks, self.nativeDispatch = normalized, {}, {}, {}
   for id, binding in pairs(normalized) do
     if binding then
+      local action=self.catalog.actions[id]
       local key = Binding.key(binding)
       self.index[key] = self.index[key] or {}
-      local action=self.catalog.actions[id]
       for owner in pairs(action.contexts) do
         local states=self.index[key][owner] or {}
         self.index[key][owner]=states
         for state in pairs(action.states) do
           -- Compile each key's disjoint native panels on Apply. Input retains
           -- constant-time lookup and never enumerates inactive menus.
-          local scope=states[state] or {panels={}}
+          local scope=states[state] or {panels={},modals={}}
           states[state]=scope
-          if action.panels then
-            assert(not scope.any,'binding.conflict')
-            for panel in pairs(action.panels) do
-              assert(not scope.panels[panel],'binding.conflict')
-              scope.panels[panel]=action
+          if action.panels or action.modals then
+            local slots=action.panels and scope.panels or scope.modals
+            for value in pairs(action.panels or action.modals) do
+              assert(not slots[value],'binding.conflict')
+              slots[value]=action
             end
           else
-            assert(not scope.any and next(scope.panels)==nil,'binding.conflict')
+            assert(not scope.any,'binding.conflict')
             scope.any=action
           end
         end
@@ -145,13 +145,14 @@ function M:handle(event)
     return event.kind == 'down' or event.kind == 'up' or event.kind == 'char'
   end
   if event.kind == 'barrier' then self:barrier(); return false end
-  if (event.button and not Binding.buttons[event.button]) or (not event.button and
+  if (event.wheel and not Binding.wheels[event.wheel])
+      or (event.button and not Binding.buttons[event.button]) or (not event.button and not event.wheel and
       (type(event.scan) ~= 'number' or event.scan < 1 or event.scan > 127
       or event.scan ~= math.floor(event.scan) or type(event.extended) ~= 'boolean'
   )) then
     self:barrier(); return false
   end
-  local physical = Binding.physical(event.scan, event.extended,event.button)
+  local physical = Binding.physical(event.scan,event.extended,event.button,event.wheel)
   local context = self:refresh()
   local held = self.held[physical]
   if event.kind == 'up' then
@@ -178,8 +179,10 @@ function M:handle(event)
     return held.consumed or held.blocked
   end
   held = {consumed=false, blocked=false}
-  self.held[physical] = held
-  self.charBlocked[physical] = nil
+  if not event.wheel then
+    self.held[physical] = held
+    self.charBlocked[physical] = nil
+  end
   -- Unknown held keys on focus regain must never become a new activation.
   if event.repeated ~= false then held.blocked = true; return false end
   if event.win ~= false or event.altgr ~= false or event.composing ~= false then return false end
@@ -201,7 +204,8 @@ function M:handle(event)
     -- A modifier starts a chord; wait for its main key without flashing an
     -- invalid-binding error or allowing the modifier to activate a native menu.
     if Binding.modifier(event.scan) then held.consumed=true;return true end
-    local candidate=event.button and {button=event.button,mods=event.mods}
+    local candidate=event.wheel and {wheel=event.wheel,mods=event.mods}
+      or event.button and {button=event.button,mods=event.mods}
       or {scan=event.scan,extended=event.extended,mods=event.mods}
     local binding, err = Binding.validate(candidate)
     held.consumed = true
@@ -231,8 +235,9 @@ function M:handle(event)
   local owners = self.index[Binding.key(event)]
   local states = owners and owners[context.owner]
   local scope = states and states[context.state]
-  local chosen = scope and (scope.any or scope.panels[Context.panel(context)])
-  if chosen and not Context.allows(chosen,context) then chosen=nil end
+  local chosen = scope and (scope.modals[context.modal] or scope.panels[Context.panel(context)])
+  if not Context.allows(chosen,context) then chosen=scope and scope.any end
+  if not Context.allows(chosen,context) then chosen=nil end
   if not chosen then
     for _, action in ipairs(self.nativeMasks[Binding.key(event)] or empty) do
       if Context.allows(action, context) then

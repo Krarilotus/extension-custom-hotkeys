@@ -25,11 +25,22 @@ local function group(id)
   error('editor.group-missing: '..id)
 end
 function M.attach(catalog)
-  local buckets={}
+  local buckets,extensions={},{}
   for _,id in ipairs(M.order) do buckets[id]={} end
   for _,action in ipairs(catalog.ordered) do
-    action.group=group(action.id)
-    local bucket=buckets[action.group]
+    local bucket
+    if action.extension then
+      -- Categories are presentation data. Use the module namespace plus the
+      -- English category as the grouping key and keep labels separate.
+      action.group=action.id:match('^(ext%.[^.]+)')..':'..action.category.en
+      catalog.extensionLabels=catalog.extensionLabels or {}
+      catalog.extensionLabels[action.id]=action.labels
+      catalog.extensionLabels['group.'..action.group]=action.category
+      bucket=extensions
+    else
+      action.group=group(action.id)
+      bucket=buckets[action.group]
+    end
     bucket[#bucket+1]=action
   end
   catalog.editorOrdered={}
@@ -38,5 +49,10 @@ function M.attach(catalog)
       catalog.editorOrdered[#catalog.editorOrdered+1]=action
     end
   end
+  table.sort(extensions,function(a,b)
+    if a.group==b.group then return a.id<b.id end
+    return a.group<b.group
+  end)
+  for _,action in ipairs(extensions) do catalog.editorOrdered[#catalog.editorOrdered+1]=action end
 end
 return M

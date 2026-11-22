@@ -2,6 +2,11 @@ local Binding = require('code/binding')
 local Context = require('code/context')
 local M = {}
 
+function M.extensionId(id)
+  return type(id)=='string' and #id<=120
+    and id:match('^ext%.[a-z][a-z0-9_-]*%.[a-z][a-z0-9_-]*$')~=nil
+end
+
 local function set(values, valid)
   if type(values) ~= 'table' or #values == 0 then return nil end
   local result = {}
@@ -31,7 +36,9 @@ function M.new(entries, nativeBindings)
     local panels=entry.panels and assert(set(entry.panels),'action.panels') or nil
     local a = {id=entry.id, contexts=contexts, states=states, panels=panels,
       command=entry.command, behavior=behavior, default=default, label=entry.label or entry.id,
-      introduced=entry.introduced or 1}
+      introduced=entry.introduced or 1,extension=entry.extension,
+      labels=entry.labels,category=entry.category,clickSound=entry.clickSound,
+      modals=entry.modals and assert(set(entry.modals),'action.modals') or nil}
     actions[a.id], ordered[#ordered+1] = a, a
   end
   local originals = {}
@@ -71,6 +78,7 @@ function M.validate(catalog, bindings)
     else
       local binding, err = Binding.validate(value)
       if not binding then return nil, err, action.id end
+      if binding.wheel and action.behavior=='hold-local' then return nil,'binding.unsupported',action.id end
       normalized[action.id] = binding
     end
   end
@@ -84,7 +92,7 @@ function M.validate(catalog, bindings)
       end
       for _, original in ipairs(catalog.originals) do
         if original.action ~= action.id and Binding.same(binding, original.binding)
-            and Context.overlap(action, original.definition) then
+            and Context.overlap(action, original.definition, true) then
           -- A native binding may only be displaced after its replacement is assigned.
           local replacement = normalized[original.action]
           if original.unavailable or replacement == nil or replacement == false or Binding.same(replacement, original.binding) then
@@ -100,9 +108,38 @@ end
 
 -- Both the framework and private LuaJIT state construct this same definition.
 -- Mutable profile/router instances remain private to their owning state.
-function M.production()
-  local catalog=M.new(require('code/entries'),require('code/originals'))
+function M.production(extensions, suggestions)
+  local entries={}
+  for _,entry in ipairs(require('code/entries')) do entries[#entries+1]=entry end
+  for _,entry in ipairs(extensions or {}) do entries[#entries+1]=entry end
+  local catalog=M.new(entries,require('code/originals'))
+  local defaults={}
+  for _,action in ipairs(catalog.ordered) do
+    if action.extension then
+      local provider,name=action.id:match('^ext%.([^.]+)%.([^.]+)$')
+      local configured=suggestions and suggestions[provider]
+      local proposed
+      if type(configured)=='table' then proposed=configured[name] end
+      if proposed==nil then proposed=action.default end
+      defaults[action.id]=proposed
+      action.default=nil
+    end
+  end
   require('code/presets').attach(catalog)
+  local custom=M.defaults(catalog)
+  for _,action in ipairs(catalog.ordered) do
+    local binding=defaults[action.id]
+    if binding then
+      custom[action.id]=binding
+      local valid=M.validate(catalog,custom)
+      if valid then action.default=valid[action.id] else custom[action.id]=false end
+      for _,preset in ipairs(catalog.presetOrder) do
+        preset.bindings[action.id]=binding
+        valid=M.validate(catalog,preset.bindings)
+        preset.bindings[action.id]=valid and valid[action.id] or false
+      end
+    end
+  end
   require('code/editor_groups').attach(catalog)
   return catalog
 end

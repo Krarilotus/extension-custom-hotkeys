@@ -1,6 +1,16 @@
 -- Resolved once during module preparation, before enable-time patches.
 -- UCP owns scanning, caching and operand extraction. No image allowlist.
 local M={}
+-- Ordinary toolbar confirmation. The native caller loads the SFX owner into
+-- ECX, pushes the sound index and calls the game's thiscall sound function.
+function M.resolveClick(core)
+  local pattern='E8 ? ? ? ? 68 87 00 00 00 B9 ? ? ? ? 89 35 ? ? ? ? 89 3D ? ? ? ? E8 ? ? ? ? 81 FE BE 00 00 00 0F 84 ? ? ? ?'
+  local site=core.AOBScan(pattern)
+  assert(not core.scanForAOB(pattern,site+1),'action.click-ambiguous')
+  local call=site+27
+  return {owner=core.readInteger(site+11),id=core.readInteger(site+6),
+    play=call+5+core.readInteger(call+1)}
+end
 function M.resolve(core,utils,game,ffi)
   local function pointer(value) return ffi.tonumber(ffi.cast('unsigned long',value)) end
   -- These bindings already belong to the UI dependency; consume its exports.

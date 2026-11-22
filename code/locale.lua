@@ -122,6 +122,20 @@ for key,names in pairs({up={'up','oben'},down={'down','unten'},left={'left','lin
   en['target.fine.'..key]='Move target '..names[1]..' precisely'
   de['target.fine.'..key]='Zielcursor fein nach '..names[2]
 end
+-- Wheel and capture strings carried over from PR #14. Machine translations need native review.
+local wheelLabels={
+  english={'Wheel up','Wheel down','Press a key, mouse button or scroll. Escape cancels.'},
+  german={'Mausrad hoch','Mausrad runter','Taste drücken, Maus klicken oder scrollen. Escape bricht ab.'},
+  french={'Molette vers le haut','Molette vers le bas','Appuyez sur une touche, cliquez ou faites défiler. Échap annule.'},
+  italian={'Rotella su','Rotella giù','Premi un tasto, un pulsante del mouse o scorri. Esc annulla.'},
+  spanish={'Rueda hacia arriba','Rueda hacia abajo','Pulsa una tecla, un botón del ratón o desplaza la rueda. Escape cancela.'},
+  polish={'Kółko w górę','Kółko w dół','Naciśnij klawisz, przycisk myszy lub przewiń. Escape anuluje.'},
+  russian={'Колесо вверх','Колесо вниз','Нажмите клавишу, кнопку мыши или прокрутите. Escape отменяет.'},
+  hungarian={'Görgő fel','Görgő le','Nyomj billentyűt, egérgombot vagy görgess. Escape: mégse.'},
+  turkish={'Tekerlek yukarı','Tekerlek aşağı','Bir tuşa, fare düğmesine basın veya kaydırın. Escape iptal eder.'},
+  chinese={'滚轮向上','滚轮向下','按键、点击鼠标按钮或滚动。Escape 取消。'},
+  persian={'چرخ به بالا','چرخ به پایین','کلید یا دکمه ماوس را بزنید یا چرخ را بچرخانید. Escape لغو می‌کند.'},
+}
 local aliases={en='english',american='english',de='german',fr='french',it='italian',
   es='spanish',pl='polish',ru='russian',hu='hungarian',tr='turkish',zh='chinese',
   ch='chinese',fa='persian',farsi='persian'}
@@ -133,7 +147,7 @@ local function normalize(value)
   value=aliases[value] or value
   return supported[value] and value or nil
 end
-function M.new(language,nativeText)
+function M.new(language,nativeText,extensionLabels)
   -- CR.TEX's language marker reflects loaded translations even when the EXE
   -- retains its original enum. The UCP provider remains the fallback.
   local marker=nativeText and nativeText(6,0)
@@ -147,6 +161,8 @@ function M.new(language,nativeText)
       chosen['target.fine.'..direction]=chosen.fine..chosen.directions[i]
     end
   end
+  local wheel=wheelLabels[language]
+  chosen['wheel.up'],chosen['wheel.down'],chosen.press=wheel[1],wheel[2],wheel[3]
   local controls,buildings,cache={},{},{}
   for slot=1,12 do chosen['grid.slot.'..slot]=(chosen.gridSlot or en.gridSlot)..slot end
   for group=0,9 do
@@ -163,7 +179,11 @@ function M.new(language,nativeText)
       buildings[verb..building.name]={text=building.text,verb=verb,name=building.name}
     end
   end
+  local codes={english='en',german='de',french='fr',russian='ru',hungarian='hu',
+    turkish='tr',chinese='ch',spanish='es',persian='fa'}
   return function(key)
+    local labels=extensionLabels and extensionLabels[key]
+    if labels then return labels[codes[language]] or labels.en end
     if cache[key] then return cache[key] end
     local control=controls[key]
     local building=buildings[key]

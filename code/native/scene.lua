@@ -11,9 +11,10 @@ local function read(address) return tonumber(ffi.cast('int32_t *',address)[0]) e
 -- positive native eligibility records before entering this table.
 local menus={}
 for _,screen in ipairs(require('code/menu_screens')) do menus[screen[1]]=screen[2] end
-function M.new(platform,recorderInputGeneration)
+function M.new(platform,recorderInputGeneration,extensionModals)
   assert(type(recorderInputGeneration)=='function','recorder.input-reader')
-  return setmetatable({platform=platform,generation=0,recorderInputGeneration=recorderInputGeneration},M)
+  return setmetatable({platform=platform,generation=0,
+    recorderInputGeneration=recorderInputGeneration,extensionModals=extensionModals or {}},M)
 end
 function M:snapshot()
   local s={screen=read(A.screen),tab=read(A.tab),subtab=read(A.subtab),
@@ -57,11 +58,14 @@ function M:resolve(editor)
   local options,load=Dialog.owns(s),Load.owns(s)
   if not s.focused or self.platform.composing or s.delay~=-1 or s.newPlayer~=0
       or (s.textModal~=0 and not options and not load) or s.textEditor~=0 or not Modal.background(s) then return nil end
+  local extensionModal=not options and not load and Modal.extensionOwns(s,self.extensionModals)
   local ownedModal=editor and editor.opened and editor.parentScreen==s.screen and editor.modalID or nil
   if not ownedModal and options then ownedModal=s.modal end
   if not ownedModal and load then ownedModal=9 end
+  if not ownedModal and extensionModal then ownedModal=s.modal end
   -- Only the two map viewports in GameMode2::GM_EDITOR own camera keys.
-  local mapEditor=s.mode==1 and (s.screen==12 or s.screen==14) and s.modal==-1 and s.sliding==0
+  local mapEditor=s.mode==1 and (s.screen==12 or s.screen==14)
+    and (s.modal==-1 or extensionModal) and s.sliding==0
   local world=s.mode~=1 and require('code/native/gameplay').resolve(s,ownedModal) or nil
   if not world and not menus[s.screen] and not mapEditor then return nil end
   local owner,focus=world and world.owner or mapEditor and 'editor.map' or 'menu.'..menus[s.screen],''
@@ -71,6 +75,7 @@ function M:resolve(editor)
     owner=editor.controller.capturing and 'hotkeys.capture' or 'hotkeys.editor'
     focus=tostring(editor.focus)
     if editor.text then return nil end
+  elseif extensionModal then owner='extension.modal'
   elseif s.modal~=-1 and not options and not load then return nil end
   return {verified=true,focused=true,text=false,composing=false,transition=false,
     owner=owner,screen=tostring(s.screen),panel=tostring(s.tab)..':'..s.subtab,

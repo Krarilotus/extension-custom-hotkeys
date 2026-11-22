@@ -19,8 +19,29 @@ function M.start(language)
     remote.interface.logWarning('Profiles are read-only in this process ('..tostring(lockProblem)..')')
   end
   local platform=Platform.new(tonumber(ffi.cast('int32_t *',A.gameWindow)[0]))
-  local scene=Scene.new(platform,function() return remote.interface.recorderInputGeneration() end)
-  local catalog=Catalog.production()
+  local definitions,suggestions,click=remote.interface.extensionActions()
+  local catalog=Catalog.production(definitions,suggestions)
+  local extensionModals={}
+  for _,action in ipairs(catalog.ordered) do
+    for id in pairs(action.modals or {}) do
+      local number=tonumber(id)
+      if number>=1000 then
+        extensionModals[number]=function() return remote.interface.modalMenuAddress(number) end
+      end
+    end
+  end
+  local scene=Scene.new(platform,function() return remote.interface.recorderInputGeneration() end,extensionModals)
+  local playClick=click and ffi.cast('void (__thiscall *)(void *,int)',click.play)
+  local clickOwner=click and ffi.cast('void *',click.owner)
+  local function extensionAction(id,phase,context,event)
+    local info=context and {owner=context.owner,panel=context.panel,modal=context.modal,
+      screen=context.screen,state=context.state,authority=context.authority}
+    local accepted,problem=remote.interface.dispatchExtension(id,phase,info,event)
+    if problem then remote.interface.logWarning(id..': '..problem) end
+    if accepted and phase=='press' and playClick and catalog.actions[id].clickSound then
+      playClick(clickOwner,click.id)
+    end
+  end
   local selectors=require('code/controls')
   local controls={}
   for _,control in ipairs(selectors) do controls[control.id]=control end
@@ -35,6 +56,7 @@ function M.start(language)
       return scene:resolve(view)
     end,
     dispatch=function(id,context,nativeBinding,event)
+      if catalog.actions[id].extension then return extensionAction(id,'press',context,event) end
       if (id=='game.quicksave' or id=='game.quickload') then router:barrier();return quickslot:start(context,id) end
       if id=='hotkeys.open' then return view:open() end
       if id=='menu.next' then return navigation:move(1,context) end
@@ -56,7 +78,8 @@ function M.start(language)
     canRecover=function(c) return c and (c.owner:sub(1,5)=='menu.' or c.owner=='game.build' or c.owner=='game.status') end,
     recover=function() return view:open() end,
     cancelLocalHold=function(id)
-      if id=='view.lower-buildings' and lowering then lowering:release()
+      if catalog.actions[id].extension then extensionAction(id,'release')
+      elseif id=='view.lower-buildings' and lowering then lowering:release()
       elseif camera then camera:release(id) end
     end,
     cancelPending=function()
@@ -84,7 +107,7 @@ function M.start(language)
     function(document)
       if not lock then return nil,lockProblem end
       return remote.interface.saveExchange(document)
-    end))
+    end,catalog.extensionLabels))
   camera=require('code/native/camera').new(platform,router)
   lowering=require('code/native/lowering').new(scene,view,platform,router)
   local pointer=require('code/native/pointer').new(platform,scene)

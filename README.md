@@ -77,3 +77,84 @@ keyboard-only acceptance pass.
 Additional evidence covers [world actions](https://github.com/Krarilotus/extension-custom-hotkeys/blob/feat/binding-core/docs/native-world-actions-evidence.md),
 [building placement](https://github.com/Krarilotus/extension-custom-hotkeys/blob/feat/binding-core/docs/native-building-evidence.md) and the
 [language/encoding contract](https://github.com/Krarilotus/extension-custom-hotkeys/blob/feat/binding-core/docs/localization.md), with their remaining gates.
+
+## Register actions from another module
+
+In your module's `enable`, detect the optional action API. Register your
+actions there, before Custom Hotkeys starts its `afterInit` callback. Use your
+module name in the stable ID. The player can find the action by its label or
+category, rebind it, clear it or reset it under **Options > Custom Hotkeys**.
+
+```lua
+local hotkeys=modules['custom-hotkeys']
+if hotkeys and type(hotkeys.registerAction)=='function' then
+  hotkeys:registerAction{
+    id='ext.my-overlay.toggle',
+    label=translatedActionName,
+    category=translatedCategoryName,
+    context={kind='world'},
+    default=false,
+    callback=toggleOverlay,
+    sound='click',
+  }
+else
+  -- Keep the original input path available when the shared API is absent.
+  installOriginalInput()
+end
+```
+
+Use a lowercase ID such as `ext.my-overlay.toggle`. Label and category tables
+use `en, de, fr, ru, hu, tr, ch, es, fa` with UTF-8 values. Machine
+translations need human review. `registerAction` returns true and raises on
+invalid, duplicate or late registration. Registration lasts for the process.
+
+- `context={kind='world'}` selects the live game map. Use
+  `{kind='panel',tab=number}` for a narrower native toolbar tab or
+  `{kind='editor'}` for the map editor canvas. `{kind='modal',id=number}`
+  matches a verified Options or Load modal or a registered, foreground
+  UI-manager modal with an extended ID (1000 or higher). The modal owner
+  checks its own controls. Native text entry and editor tools keep their own input.
+- `default` can be omitted or false. Suggest a physical keyboard chord
+  `{scan=number,extended=false,mods=0}`, mouse button
+  `{button='x1',mods=0}` or vertical wheel direction `{wheel='up',mods=1}`.
+  Modifier flags are Ctrl=1, Shift=2 and Alt=4. Windows shortcuts and the
+  recovery chord remain reserved.
+- `callback(context,event)` is for local actions. Return true for a successful
+  action. Optional `release()` pairs with a keyboard or mouse-button hold and
+  runs after key-up, focus loss, a context transition or a profile change.
+  Bare modifiers and wheel holds are outside this API.
+- For a simulation action use `submit(context,event)` in place of `callback`.
+  Call the owning module's validated native command path so its normal
+  multiplayer and replay processing sees the command. The owner validates
+  the target and authority. Custom Hotkeys gates the call to live gameplay
+  with authority and honors Recorder's input gate when Recorder is enabled.
+  Use an impulse for native commands.
+- `sound='click'` plays the game's toolbar confirmation after an action
+  returns true. A module may supply its own verified game-sound function.
+  Leave it empty when the native action already plays feedback.
+- One context receives the gesture. Specific panels take priority over
+  general map actions. Recognized modals and the editor have their own
+  checked input ownership. Same-scope conflicts and retained native
+  bindings use the existing editor checks. Suggested bindings that conflict
+  with the active preset's built-in bindings start unbound.
+
+Family presets and plugins can suggest a key in their ordinary `config.yml`.
+Saved player choices take precedence. The example leaves an already-bound Zoom
+action alone and keeps a new instance of the action unbound.
+
+```yaml
+config-sparse:
+  modules:
+    custom-hotkeys:
+      config:
+        bindings:
+          resolution-based-zoom:
+            in:
+              contents:
+                suggested-value: false
+  plugins: {}
+```
+
+A missing provider's bindings are kept with the profile for its return. The
+other installed modules continue to use that profile. Restart the game after
+changing the active modules or launcher config.

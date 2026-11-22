@@ -1,4 +1,5 @@
 local Catalog = require('code/catalog')
+local Binding = require('code/binding')
 local M = {}
 M.__index = M
 
@@ -29,23 +30,40 @@ function M.validate(catalog, document)
   for key, profile in pairs(document.profiles) do
     count = count + 1
     if count > (document.schema==1 and 32 or 64) or not name(key)
-        or not fields(profile, {bindings=true,preset=document.schema>=2}) then
+        or not fields(profile, {bindings=true,preset=document.schema>=2,unavailable=document.schema>=3}) then
       return nil, 'profiles.name'
     end
     if profile.preset~=nil and (type(profile.preset)~='string' or not catalog.presets
         or not catalog.presets[profile.preset]) then return nil,'profiles.preset' end
     local candidate=copy(profile.bindings)
-    if document.schema<3 and type(candidate)=='table' then
+    if profile.unavailable~=nil and type(profile.unavailable)~='table' then
+      return nil,'profile.bindings'
+    end
+    local unavailable=copy(profile.unavailable or {})
+    if type(candidate)=='table' then
+      for id,value in pairs(candidate) do
+        if not catalog.actions[id] and Catalog.extensionId(id) then
+          unavailable[id],candidate[id]=value,nil
+        end
+      end
+      for id,value in pairs(unavailable) do
+        if not Catalog.extensionId(id) then return nil,'profile.unknown-action',id end
+        if value~=false then
+          local binding,err=Binding.validate(value)
+          if not binding then return nil,err,id end
+          unavailable[id]=binding
+        end
+      end
       local missing={}
       for _,action in ipairs(catalog.ordered) do
-        if action.introduced>document.schema and candidate[action.id]==nil then
+        if (action.introduced>document.schema or action.extension) and candidate[action.id]==nil then
           candidate[action.id]=false
-          missing[#missing+1]=action.id
+          if unavailable[action.id]==nil then missing[#missing+1]=action.id end
         end
         -- These numbers previously always passed to SHC, even when the editor
         -- displayed an unbound custom recall. Preserve that existing behavior
         -- as an explicit, now-rebindable default; keep actual custom choices.
-        if action.id:match('^unit%.group%.recall%.%d$') and candidate[action.id]==false then
+        if document.schema<3 and action.id:match('^unit%.group%.recall%.%d$') and candidate[action.id]==false then
           candidate[action.id]=copy(action.default)
         end
       end
@@ -75,7 +93,19 @@ function M.validate(catalog, document)
     end
     local bindings, err, detail = Catalog.validate(catalog, candidate)
     if not bindings then return nil, err, detail end
-    result.profiles[key] = {bindings=bindings,preset=profile.preset}
+    -- Returning providers regain an old chord only if it still fits. Keep
+    -- the saved preference for later if the player assigned its chord away.
+    for _,action in ipairs(catalog.ordered) do
+      local id=action.id
+      local preferred=unavailable[id]
+      if preferred~=nil and bindings[id]==false then
+        bindings[id]=preferred
+        local valid=Catalog.validate(catalog,bindings)
+        if valid then unavailable[id]=nil else bindings[id]=false end
+      end
+    end
+    result.profiles[key] = {bindings=bindings,preset=profile.preset,
+      unavailable=next(unavailable) and unavailable or nil}
   end
   if not result.profiles[result.active] then return nil, 'profiles.active' end
   if document.schema==1 and catalog.presetOrder then
@@ -157,10 +187,15 @@ function M:create(profileName)
   end)
 end
 
+local function setBinding(profile,id,binding)
+  profile.bindings[id]=copy(binding)
+  if profile.unavailable then profile.unavailable[id]=nil end
+end
+
 function M:bind(action, binding)
   return self:edit(function(d)
     if not self.catalog.actions[action] then return nil, 'profile.unknown-action' end
-    d.profiles[d.active].bindings[action] = copy(binding)
+    setBinding(d.profiles[d.active],action,binding)
     return true
   end)
 end
@@ -170,8 +205,9 @@ function M:reassign(action, binding, displaced, replacement)
   return self:edit(function(d)
     if not self.catalog.actions[action] or not self.catalog.actions[displaced]
         or action == displaced then return nil, 'profile.unknown-action' end
-    d.profiles[d.active].bindings[action] = copy(binding)
-    d.profiles[d.active].bindings[displaced] = copy(replacement)
+    local profile=d.profiles[d.active]
+    setBinding(profile,action,binding)
+    setBinding(profile,displaced,replacement)
     return true
   end)
 end
@@ -183,8 +219,10 @@ function M:reset(action)
       or Catalog.defaults(self.catalog)
     if action then
       if not self.catalog.actions[action] then return nil,'profile.unknown-action' end
-      profile.bindings[action]=copy(defaults[action])
-    else profile.bindings=copy(defaults) end
+      setBinding(profile,action,defaults[action])
+    else
+      for id,value in pairs(defaults) do setBinding(profile,id,value) end
+    end
     return true
   end)
 end
