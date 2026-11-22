@@ -1,4 +1,4 @@
-# Custom Hotkeys 0.2.18
+# Custom Hotkeys 0.2.19
 
 Make Crusader's controls feel like your own. Start with Game Default, Modern RTS or Grid, then rebind keys and mouse buttons and save layouts for the way you play. Grid follows the active building or unit panel, so the same keys can serve different actions.
 

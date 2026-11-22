@@ -1,4 +1,4 @@
-# Custom Hotkeys 0.2.18
+# Custom Hotkeys 0.2.19
 
 Gestalte die Steuerung von Crusader so, wie du spielst. Wähle Spielstandard, Moderne RTS-Steuerung oder Raster, belege Tasten und Maustasten neu und speichere deine Belegungen als Profile. Raster folgt dem geöffneten Bau- oder Einheitenmenü, sodass dieselben Tasten dort unterschiedliche Aktionen auslösen können.
 

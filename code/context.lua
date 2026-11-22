@@ -1,7 +1,7 @@
 local M = {}
 local states = {menu=true, ['live-sp']=true, ['live-mp']=true, editor=true, replay=true}
 local identityFields = {'owner','screen','panel','modal','focus','selection',
-  'targeting','state','authority','generation'}
+  'targeting','state','authority','generation','modalReady'}
 
 ---@class HotkeyContext
 ---@field owner string
@@ -52,7 +52,7 @@ function M.allows(action, context)
   if not action or not context or not action.contexts[context.owner] then return false end
   if not action.states[context.state] then return false end
   if action.panels and not action.panels[M.panel(context)] then return false end
-  if action.modals and not action.modals[context.modal] then return false end
+  if action.modals and (not action.modals[context.modal] or context.modalReady~=true) then return false end
   if action.command and (not context.authority
       or (context.state ~= 'live-sp' and context.state ~= 'live-mp')) then return false end
   return true

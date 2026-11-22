@@ -65,7 +65,7 @@ def test_panel_and_modal_priority_editor_and_conflicts(actions):
       local router=routed(c,bindings,r)
       local function input(owner,panel,modal,state)
         current=facts(owner,state)
-        current.panel,current.modal=panel,modal
+        current.panel,current.modal,current.modalReady=panel,modal,true
         local e={kind='down',button='x2',mods=2,repeated=false,win=false,altgr=false,composing=false}
         router:handle(e);e.kind='up';router:handle(e)
       end
@@ -218,4 +218,108 @@ def test_custom_modal_requires_live_ui_registry_and_foreground_composition(lua):
       assert(not Modal.extensionOwns(s,{}))
       s.modal=10;s.activeModalID=10
       assert(not Modal.extensionOwns(s,{[10]=function() return 123 end}))
+    """)
+
+
+def test_wheel_preview_provider_and_profiles_keep_assignments(actions):
+    actions.execute("""
+      local preview=require('code/wheel_preview')
+      local core=Catalog.production()
+      local old=Profiles.initial(core)
+      old.schema=4
+      local saved=old.profiles[old.active]
+      saved.bindings['view.resolution-zoom-in']=key(66,4)
+      saved.bindings['view.resolution-zoom-out']=false
+      saved.bindings['game.quicksave']={button='x1',mods=0}
+      local r=Registry.new()
+      assert(preview.register(r,'view.resolution-zoom-in',function() end))
+      assert(preview.register(r,'view.resolution-zoom-out',function() end))
+      local migrated=assert(Profiles.validate(Catalog.production(r.freeze()),old))
+      local bindings=migrated.profiles[migrated.active].bindings
+      assert(bindings['ext.resolution-based-zoom.in'].scan==66)
+      assert(bindings['ext.resolution-based-zoom.out']==false)
+      assert(bindings['game.quicksave'].button=='x1')
+      assert(bindings['view.resolution-zoom-in']==nil)
+      local noZoom=assert(Profiles.validate(core,old)).profiles[old.active]
+      assert(noZoom.unavailable['ext.resolution-based-zoom.in'].scan==66)
+      assert(noZoom.unavailable['ext.resolution-based-zoom.out']==false)
+    """)
+
+
+def test_fractional_wheel_preserves_direction_and_two_notches(actions):
+    actions.execute("""
+      local r=Registry.new()
+      local hits=0
+      r.register(spec(id,{kind='world'},{wheel='up',mods=1},function(_,input)
+        assert(not input.position)
+        hits=hits+1;return true
+      end))
+      local catalog=Catalog.production(r.freeze())
+      local router=routed(catalog,Catalog.defaults(catalog),r)
+      current=facts('game.status')
+      local messages=require('code/messages').new(router,function() return 42 end,
+        function() return {mods=0,composing=false,win=false,altgr=false} end,function() return true end)
+      local function wheel(delta) return messages(1,1,0x20a,(delta%65536)*65536+8,1001) end
+      for i=1,3 do assert(wheel(30)==0 and hits==0) end
+      assert(wheel(30)==0 and hits==1)
+      assert(wheel(240)==0 and hits==3)
+      assert(wheel(60)==0 and wheel(-60)==42 and wheel(60)==0 and hits==3)
+      current.generation=current.generation+1
+      assert(wheel(60)==0 and hits==3)
+      assert(wheel(60)==0 and hits==4)
+      local bindings=Catalog.defaults(catalog)
+      bindings['pointer.primary']={wheel='down',mods=0}
+      local _,problem=Catalog.validate(catalog,bindings)
+      assert(problem=='binding.unsupported')
+    """)
+
+
+def test_hold_cancelled_during_start_and_without_input(actions):
+    actions.execute("""
+      local r=Registry.new()
+      local router
+      local held,cancels=false,0
+      local cancelDuringStart=true
+      local provider=spec(id,{kind='world'},key(66,4),function()
+        if cancelDuringStart then router:barrier() end
+        held=true
+        return true
+      end)
+      provider.release=function() held=false;cancels=cancels+1 end
+      r.register(provider)
+      local catalog=Catalog.production(r.freeze())
+      router=routed(catalog,Catalog.defaults(catalog),r)
+      current=facts('game.status')
+      router:handle(event(66,'down',4))
+      assert(not held and cancels==1 and router.localHolds==0)
+      router:handle(event(66,'up',4))
+      cancelDuringStart=false
+      router:handle(event(66,'down',4))
+      assert(held and router.localHolds==1)
+      current.generation=current.generation+1
+      router:refresh() -- the existing input frame path does this for live holds
+      assert(not held and cancels==2 and router.localHolds==0)
+    """)
+
+
+def test_generic_native_dialog_binding_requires_stable_composition(actions):
+    actions.execute("""
+      local r=Registry.new()
+      local hits=0
+      for _,modal in ipairs({5,9}) do
+        r.register(spec('ext.example.dialog-'..modal,{kind='modal',id=modal},key(66,4),
+          function() hits=hits+1;return true end))
+      end
+      local catalog=Catalog.production(r.freeze())
+      local router=routed(catalog,Catalog.defaults(catalog),r)
+      for _,item in ipairs({{'game.options','5'},{'game.load','9'}}) do
+        current=facts(item[1]);current.modal=item[2]
+        current.modalReady=false
+        assert(not router:handle(event(66,'down',4)))
+        router:handle(event(66,'up',4))
+        current.modalReady=true
+        assert(router:handle(event(66,'down',4)))
+        router:handle(event(66,'up',4))
+      end
+      assert(hits==2)
     """)

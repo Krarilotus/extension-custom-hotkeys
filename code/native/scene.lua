@@ -82,6 +82,8 @@ function M:resolve(editor)
     modal=s.modal==-1 and '' or tostring(s.modal),focus=focus,
     selection=world and world.selection or '',targeting=world and world.targeting or '',
     state=world and world.state or (mapEditor and 'editor') or 'menu',authority=world and world.authority or false,
-    generation=self.generation}
+    generation=self.generation,
+    modalReady=extensionModal or (options and Dialog.origin(s)~=nil)
+      or (load and Load.origin(s)~=nil)}
 end
 return M

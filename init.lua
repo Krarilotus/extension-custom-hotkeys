@@ -12,6 +12,9 @@ local M={}
 function M:registerAction(spec)
   return registry.register(spec)
 end
+function M:registerActionHandler(id,callback)
+  return require('code/wheel_preview').register(registry,id,callback)
+end
 function M:enable(config)
   assert(not self.started,'Custom Hotkeys is already enabled; restart required')
   self.started=true

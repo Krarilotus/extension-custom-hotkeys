@@ -1,5 +1,6 @@
 local Catalog = require('code/catalog')
 local Binding = require('code/binding')
+local Preview = require('code/wheel_preview')
 local M = {}
 M.__index = M
 
@@ -24,7 +25,7 @@ end
 
 function M.validate(catalog, document)
   if not fields(document, {schema=true, active=true, profiles=true})
-      or (document.schema ~= 1 and document.schema ~= 2 and document.schema ~= 3) or not name(document.active)
+      or (document.schema ~= 1 and document.schema ~= 2 and document.schema ~= 3 and document.schema ~= 4) or not name(document.active)
       or type(document.profiles) ~= 'table' then return nil, 'profiles.format' end
   local result, count = {schema=3, active=document.active, profiles={}}, 0
   for key, profile in pairs(document.profiles) do
@@ -41,6 +42,12 @@ function M.validate(catalog, document)
     end
     local unavailable=copy(profile.unavailable or {})
     if type(candidate)=='table' then
+      if document.schema==4 then
+        for old,current in pairs(Preview.ids) do
+          if candidate[current]==nil and unavailable[current]==nil then unavailable[current]=candidate[old] end
+          candidate[old]=nil
+        end
+      end
       for id,value in pairs(candidate) do
         if not catalog.actions[id] and Catalog.extensionId(id) then
           unavailable[id],candidate[id]=value,nil

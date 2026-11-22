@@ -17,7 +17,7 @@ local function localized(values)
   for _,language in ipairs(languages) do
     local value=values[language]
     assert(type(value)=='string' and #value<=120 and value:find('%S')
-      and Text.valid(value) and not value:find('[%c]'),'action.locale: '..language)
+      and Text.valid(value) and not value:find('[%z\1-\31\127]'),'action.locale: '..language)
     result[language]=value
   end
   return result
@@ -70,11 +70,25 @@ function M.new()
     dispatch=function(id,phase,context,event,canSubmit)
       local handler=handlers[id]
       if not handler or handler.failed or (handler.command and not canSubmit()) then return false end
+      if phase=='release' and handler.starting then
+        handler.cancelled=true
+        return true
+      end
       if phase=='release' and not handler.held then return false end
       local fn=phase=='release' and handler.release or handler.press
       if phase=='release' then handler.held=false end
+      handler.starting=phase=='press' and handler.release~=nil
       local ok,result=pcall(fn,context,event)
-      if phase=='press' and handler.release then handler.held=not ok or result==true end
+      if handler.starting then
+        handler.starting=false
+        handler.held=not ok or result==true
+        if handler.cancelled and handler.held then
+          handler.held=false
+          local released,problem=pcall(handler.release)
+          if not released then ok,result=false,problem end
+        end
+        handler.cancelled=false
+      end
       local accepted=ok and result==true
       if accepted and phase=='press' and handler.sound then ok,result=pcall(handler.sound) end
       if not ok then

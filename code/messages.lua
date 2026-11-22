@@ -71,7 +71,7 @@ function M.new(router, nextProc, modifierState, ownsWindow, exclusiveInput)
         if delta==0 then return false end
         entered=true
         return router:handle({kind='down',wheel=delta>0 and 'up' or 'down',repeated=false,
-          mods=mods,win=modifiers.win,altgr=modifiers.altgr,composing=modifiers.composing,position=lparam})
+          mods=mods,win=modifiers.win,altgr=modifiers.altgr,composing=modifiers.composing,delta=delta})
       end)
       if not ok then stop();if entered then return 0 end
       elseif consumed then return 0 end

@@ -80,6 +80,8 @@ Additional evidence covers [world actions](https://github.com/Krarilotus/extensi
 
 ## Register actions from another module
 
+Version 0.2.19 adds the registration API and retains the earlier wheel preview's actions and profiles.
+
 In your module's `enable`, detect the optional action API. Register your
 actions there, before Custom Hotkeys starts its `afterInit` callback. Use your
 module name in the stable ID. The player can find the action by its label or

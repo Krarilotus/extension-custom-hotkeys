@@ -11,7 +11,7 @@ function M.new(catalog, bindings, adapter)
   assert(type(adapter.resolve) == 'function' and type(adapter.dispatch) == 'function'
     and type(adapter.recover) == 'function' and type(adapter.canRecover) == 'function'
     and type(adapter.cancelLocalHold) == 'function', 'adapter.required')
-  local self = setmetatable({catalog=catalog, adapter=adapter, held={}, charBlocked={}, blocked=false}, M)
+  local self = setmetatable({catalog=catalog, adapter=adapter, held={}, charBlocked={}, blocked=false, localHolds=0}, M)
   assert(self:apply(bindings))
   return self
 end
@@ -24,6 +24,7 @@ end
 
 function M:cancelGestures()
   self.pointerHolds=0
+  self.wheelPending=nil
   -- Native cancellation may inspect another key's ownership. Revoke every
   -- gesture first so table traversal order cannot preserve an old native hold.
   for _, held in pairs(self.held) do held.blocked = true end
@@ -56,6 +57,7 @@ function M:cancelHold(held)
   if not held.localHold then return end
   local action = held.localHold
   held.localHold = nil
+  self.localHolds=self.localHolds-1
   -- Cancellation only releases local input ownership, including when the old
   -- screen is already gone. It must never submit a simulation command.
   local wasDispatching = self.dispatching
@@ -145,7 +147,7 @@ function M:handle(event)
     return event.kind == 'down' or event.kind == 'up' or event.kind == 'char'
   end
   if event.kind == 'barrier' then self:barrier(); return false end
-  if (event.wheel and not Binding.wheels[event.wheel])
+  if (event.wheel and (not Binding.wheels[event.wheel] or type(event.delta)~='number' or event.delta==0))
       or (event.button and not Binding.buttons[event.button]) or (not event.button and not event.wheel and
       (type(event.scan) ~= 'number' or event.scan < 1 or event.scan > 127
       or event.scan ~= math.floor(event.scan) or type(event.extended) ~= 'boolean'
@@ -185,7 +187,10 @@ function M:handle(event)
   end
   -- Unknown held keys on focus regain must never become a new activation.
   if event.repeated ~= false then held.blocked = true; return false end
-  if event.win ~= false or event.altgr ~= false or event.composing ~= false then return false end
+  if event.win ~= false or event.altgr ~= false or event.composing ~= false then
+    if event.wheel then self.wheelPending=nil end
+    return false
+  end
   if type(event.mods) ~= 'number' or event.mods ~= math.floor(event.mods)
       or event.mods < 0 or event.mods > 7 then return false end
   if Binding.system(event) then
@@ -239,6 +244,7 @@ function M:handle(event)
   if not Context.allows(chosen,context) then chosen=scope and scope.any end
   if not Context.allows(chosen,context) then chosen=nil end
   if not chosen then
+    if event.wheel then self.wheelPending=nil end
     for _, action in ipairs(self.nativeMasks[Binding.key(event)] or empty) do
       if Context.allows(action, context) then
         if not Context.same(context, self:readContext()) then self:barrier(); return false end
@@ -255,12 +261,27 @@ function M:handle(event)
   -- Consume even a rejected native action: forwarding its original key would
   -- invoke a second, unrelated native shortcut. Never retry an uncertain call.
   held.consumed = true
-  if chosen.behavior == 'hold-local' then held.localHold = chosen.id end
-  self.dispatching = true
-  local nativeBinding=self.nativeDispatch[Binding.key(event)]==chosen.id
-  local ok,result = pcall(self.adapter.dispatch, chosen.id, now,nativeBinding,event)
-  self.dispatching = false
-  if not ok then self:block(chosen.id,result); self:barrier() end
+  if chosen.behavior == 'hold-local' then
+    held.localHold=chosen.id
+    self.localHolds=self.localHolds+1
+  end
+  local key=Binding.key(event)
+  local steps=1
+  if event.wheel then
+    local pending=self.wheelPending
+    local units=math.abs(event.delta)+(pending and pending.key==key and pending.units or 0)
+    steps=math.floor(units/120)
+    self.wheelPending={key=key,units=units%120}
+  end
+  local nativeBinding=self.nativeDispatch[key]==chosen.id
+  local ok,result
+  for step=1,steps do
+    if step>1 and not Context.same(now,self:readContext()) then self:barrier();break end
+    self.dispatching = true
+    ok,result = pcall(self.adapter.dispatch,chosen.id,now,nativeBinding,event)
+    self.dispatching = false
+    if not ok then self:block(chosen.id,result);self:barrier();break end
+  end
   if ok and result=='native' and nativeBinding then held.consumed=false;return false end
   if ok and result=='pointer-native' and event.button and chosen.id:sub(1,8)=='pointer.' then
     held.consumed=false;return false

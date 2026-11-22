@@ -1,4 +1,4 @@
-# Custom Hotkeys 0.2.18
+# Custom Hotkeys 0.2.19
 
 Crusader kontrollerini oyun tarzınıza göre düzenleyin. Oyunun varsayılanı, Modern RTS veya Izgara ile başlayın; ardından klavye kısayollarını ve fare tuşlarını yeniden atayıp düzenlerinizi profil olarak kaydedin. Izgara, açık olan inşaat veya birim panelini izler; böylece aynı tuşlar farklı eylemler için kullanılabilir.
 
