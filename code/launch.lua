@@ -15,7 +15,7 @@ function M.prepare(modulePath,registry)
     decode=function(value) return json:decode(value) end}
   local function profileStore(namespace)
     return require('code/store').new(require('code/ucp_storage').new(io,namespace),
-      codec,sha.sha256,function(value) return profiles.validate(catalog,value,{stored=true}) end)
+      codec,sha.sha256,function(value) return profiles.validateStored(catalog,value) end)
   end
   local store,exchange=profileStore(),profileStore('exchange')
   local chain,library=require('code/native/interface').open(core)

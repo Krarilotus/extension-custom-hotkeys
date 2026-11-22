@@ -161,10 +161,11 @@ config-sparse:
   plugins: {}
 ```
 
-A missing provider's bindings are kept with the profile for its return. The
-same applies when a provider's new version changes an action so that a stored
-chord no longer fits (for example the action became a hold, which cannot use the
-wheel, or two of its actions now share a chord): that chord is set aside and the
-action starts unbound. Edits in the editor are still checked strictly. The
-other installed modules continue to use that profile. Restart the game after
+A missing provider's bindings are kept with the profile for its return, and
+the other installed modules continue to use that profile. The same applies when
+a provider's new version changes an action so that a stored or imported chord no
+longer fits, for example because the action became a hold, which cannot use the
+wheel, or now applies where another action already uses that chord: the chord is
+set aside, the action starts unbound, and the chord returns once it fits again.
+Edits in the editor are still checked strictly. Restart the game after
 changing the active modules or launcher config.

@@ -144,6 +144,12 @@ function M.validate(catalog, document, options)
   return result
 end
 
+-- Documents read from storage or an exchange file: a changed provider action
+-- sets its chord aside instead of rejecting the whole document.
+function M.validateStored(catalog, document)
+  return M.validate(catalog, document, {stored=true})
+end
+
 function M.initial(catalog, launcherBindings)
   local bindings = assert(Catalog.validate(catalog, launcherBindings or Catalog.defaults(catalog)))
   if not catalog.presetOrder then
@@ -164,7 +170,7 @@ function M.new(catalog, store, router, launcherBindings)
     if err ~= 'store.missing' then return nil, err end
     document = M.initial(catalog, launcherBindings)
   end
-  local valid, problem = M.validate(catalog, document, {stored=true})
+  local valid, problem = M.validateStored(catalog, document)
   if not valid then return nil, problem end
   self.committed = valid
   local active=valid.profiles[valid.active]
@@ -252,7 +258,7 @@ function M:reset(action)
 end
 
 function M:import(profileName, document)
-  local valid, err = M.validate(self.catalog, document, {stored=true})
+  local valid, err = M.validateStored(self.catalog, document)
   if not valid then return nil, err end
   return self:edit(function(d)
     if not name(profileName) or d.profiles[profileName] then return nil, 'profiles.name' end

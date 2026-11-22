@@ -22,8 +22,8 @@ cancel the workflow. A consumed trigger's release remains suppressed. When the
 trigger is a wheel binding, the remaining notches of the same spin (same direction
 and chord) also belong to the workflow until the save or load starts and never reach
 the dialog; another direction or chord is a real pointer gesture and cancels it. A
-notch handled after the game is back in the live world starts a new quicksave, like
-pressing the key again. Cancellation
+notch handled after the game is back in the live world starts the quick action
+again, like pressing the key twice. Cancellation
 clears only the Return flag introduced by this workflow and any owned cursor edges;
 it never manufactures a release on a new screen. Uncertain commits are not retried.
 

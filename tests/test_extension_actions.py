@@ -409,3 +409,33 @@ def test_editor_conflict_with_extension_action_still_asks_the_player(actions):
       local draft=profiles.draft.profiles[profiles.draft.active]
       assert(draft.bindings[id].wheel=='up' and draft.bindings['game.quicksave'].scan==31)
     """)
+
+
+def test_stored_profiles_load_and_import_after_a_provider_change(actions):
+    actions.execute("""
+      local r=Registry.new()
+      r.register(spec(id,{kind='world'},{wheel='up',mods=1}))
+      local doc=Profiles.initial(Catalog.production(r.freeze()))
+      local after=Registry.new()
+      local hold=spec(id,{kind='world'},false)
+      hold.release=function() end
+      after.register(hold)
+      local catalog=Catalog.production(after.freeze())
+      local router=routed(catalog,Catalog.defaults(catalog),after)
+      local saved
+      local profiles=assert(Profiles.new(catalog,{load=function() return doc end,
+        save=function(_,document) saved=document;return true end},router))
+      local active=profiles.committed.profiles[profiles.committed.active]
+      assert(active.bindings[id]==false and active.unavailable[id].wheel=='up')
+      assert(profiles:begin())
+      assert(profiles:import('Imported',doc))
+      local imported=profiles.draft.profiles.Imported
+      assert(imported.bindings[id]==false and imported.unavailable[id].wheel=='up')
+      assert(profiles:apply() and saved.profiles.Imported.unavailable[id].wheel=='up')
+    """)
+
+
+def test_launcher_store_validates_stored_documents():
+    from pathlib import Path
+    source = (Path(__file__).resolve().parents[1] / 'code/launch.lua').read_text(encoding='utf-8')
+    assert 'profiles.validateStored(catalog,value)' in source
