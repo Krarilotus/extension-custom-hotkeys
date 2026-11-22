@@ -39,11 +39,14 @@ function M:cancelGestures()
   for _, held in pairs(self.held) do self:cancelHold(held) end
 end
 
--- A notch continuing the consumed wheel gesture is router input, like a
--- consumed button release, and not native pointer takeover.
+-- While the exclusive workflow a wheel gesture started is active, its further
+-- notches are router input, like a consumed button release, and not native
+-- pointer takeover. Once the workflow ends, wheel input is native again.
 function M:ownsWheel(wheel,mods)
-  return wheel ~= nil and self.wheelGesture ~= nil
-    and self.wheelGesture == Binding.key({wheel=wheel,mods=mods})
+  if wheel == nil or self.wheelGesture == nil
+      or self.wheelGesture ~= Binding.key({wheel=wheel,mods=mods}) then return false end
+  local ok,active = pcall(self.adapter.exclusive or function() return false end)
+  return ok and active == true
 end
 
 function M:barrier()
@@ -210,7 +213,7 @@ function M:handle(event)
   if not context then
     -- A workflow started by this wheel gesture owns input until it ends.
     -- Its further notches must not reach the dialog it opened.
-    return event.wheel ~= nil and self.wheelGesture == Binding.key(event)
+    return event.wheel ~= nil and self:ownsWheel(event.wheel,event.mods)
   end
   if self.capture and Binding.recovery(event) then
     held.consumed=true
@@ -291,7 +294,10 @@ function M:handle(event)
   local nativeBinding=self.nativeDispatch[key]==chosen.id
   local ok,result
   for step=1,steps do
-    if step>1 and (not Context.same(now,self:readContext()) or self.wheelPending~=wheelBatch) then
+    -- The action's own barrier already ended the burst; a second barrier
+    -- would cancel the workflow it has just started.
+    if step>1 and self.wheelPending~=wheelBatch then break end
+    if step>1 and not Context.same(now,self:readContext()) then
       self:barrier()
       break
     end

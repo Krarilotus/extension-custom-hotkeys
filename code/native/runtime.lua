@@ -89,6 +89,7 @@ function M.start(language)
       if cursor then cursor:cancel() end
     end,
     cancelPointerHold=function() if cursor then cursor.adapter.cancel() end end,
+    exclusive=function() return quickslot~=nil and quickslot.active==true end,
   })
   local store={load=function() return remote.interface.loadProfiles() end,
     save=function(_,document)

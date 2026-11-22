@@ -357,3 +357,34 @@ def test_barrier_stops_same_context_wheel_burst(actions):
       assert(messages(1,1,0x20a,240*65536+8,0)==0)
       assert(hits==1)
     """)
+
+
+def test_changed_provider_action_keeps_profile_and_sets_its_chord_aside(actions):
+    actions.execute("""
+      local r=Registry.new()
+      r.register(spec(id,{kind='world'},{wheel='up',mods=1}))
+      r.register(spec('ext.example.other',{kind='world'},key(66,4)))
+      local before=Catalog.production(r.freeze())
+      local doc=Profiles.initial(before)
+      local saved=doc.profiles[doc.active].bindings
+      saved['game.quicksave']=key(65,0)
+      -- The provider's next version makes the same action a hold, which
+      -- cannot use the wheel, and moves another action onto the same chord.
+      local after=Registry.new()
+      local hold=spec(id,{kind='world'},false)
+      hold.release=function() end
+      after.register(hold)
+      after.register(spec('ext.example.other',{kind='world'},key(66,4)))
+      after.register(spec('ext.example.third',{kind='world'},false))
+      saved['ext.example.third']=key(66,4)
+      local loaded=assert(Profiles.validate(Catalog.production(after.freeze()),doc))
+      local profile=loaded.profiles[doc.active]
+      assert(profile.bindings['game.quicksave'].scan==65)
+      assert(profile.bindings[id]==false and profile.unavailable[id].wheel=='up')
+      local kept=profile.bindings['ext.example.other'] or profile.bindings['ext.example.third']
+      assert(kept and kept.scan==66)
+      assert(profile.bindings['ext.example.other']==false or profile.bindings['ext.example.third']==false)
+      -- A broken built-in binding still rejects the document as before.
+      saved['game.quicksave']={scan=999,extended=false,mods=0}
+      assert(not Profiles.validate(Catalog.production(after.freeze()),doc))
+    """)

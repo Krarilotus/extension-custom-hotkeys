@@ -76,6 +76,22 @@ function M.validate(catalog, document)
       end
     end
     local bindings, err, detail = Catalog.validate(catalog, candidate)
+    -- A provider may change an action between its versions (behavior or
+    -- context). Keep that saved chord aside instead of rejecting the profile.
+    for _=1,#catalog.ordered do
+      if bindings or type(candidate)~='table' then break end
+      local moved=false
+      for _,id in ipairs(type(detail)=='table' and detail or {detail}) do
+        local action=catalog.actions[id]
+        if action and action.extension and candidate[id] then
+          if unavailable[id]==nil then unavailable[id]=Binding.validate(candidate[id]) or nil end
+          candidate[id],moved=false,true
+          break
+        end
+      end
+      if not moved then break end
+      bindings,err,detail=Catalog.validate(catalog,candidate)
+    end
     if not bindings then return nil, err, detail end
     -- Returning providers regain an old chord only if it still fits. Keep
     -- the saved preference for later if the player assigned its chord away.

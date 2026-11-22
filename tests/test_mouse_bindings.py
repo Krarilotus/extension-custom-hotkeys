@@ -170,7 +170,8 @@ def test_native_chain_keeps_wheel_quicksave_through_its_remaining_notches(lua):
         end,
         canRecover=function() return false end,recover=function() end,
         cancelLocalHold=function() end,
-        cancelPending=function() if quickslot then cancels=cancels+1 end;quickslot=false end})
+        cancelPending=function() if quickslot then cancels=cancels+1 end;quickslot=false end,
+        exclusive=function() return quickslot==true end})
       require('code/native/chain').install({RegisterProc=123,CallNextProc=456},r,platform,nil,
         function(message)
           observed=message
@@ -198,4 +199,13 @@ def test_native_chain_keeps_wheel_quicksave_through_its_remaining_notches(lua):
       assert(callback(-110000,9,0x100,65,30*65536)==42 and quickslot)
       assert(callback(-110000,9,0x101,65,30*65536+3221225472)==42 and quickslot)
       assert(wheel(-120)==0 and observed==0x20a and cancels==3 and opens==4 and quickslot)
+      -- One high-resolution message worth two notches starts one workflow and
+      -- its own barrier must not cancel it on the second step.
+      quickslot=false
+      assert(wheel(-240)==0 and quickslot and opens==5 and cancels==3)
+      -- After the workflow ends while its dialog stays open (no context), the
+      -- same notch is native scrolling again, not swallowed by the old gesture.
+      quickslot=false;current=nil
+      assert(wheel(-120)==42 and observed==0x20a and opens==5)
+      current=facts()
     ''')
