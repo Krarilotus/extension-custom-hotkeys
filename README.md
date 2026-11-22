@@ -1,10 +1,15 @@
 # Custom Hotkeys for Stronghold Crusader
 
+Bindings live in the active UCP config, one dictionary per config: Apply in
+the in-game editor writes the explicit choices there, and every launch derives
+the rest from the layout, plugin suggestions and other modules' defaults. See
+[bindings in the UCP config](docs/bindings-config.md), including the one-time
+migration of 0.2 profiles.
+
 Version 0.2.18 enables camera and view bindings in the scenario editor, keeps
 gameplay bindings available after a closed ally dialog or during an AI lord
 video, and supports quicksave/quickload with compatible Save and Load menu
-extensions such as Autosave. Startup failures are logged. A second game can
-use saved profiles while the first game retains write access.
+extensions such as Autosave. Startup failures are logged.
 
 Version 0.2.1 shortens native build-category and placement-return menu switches for hotkeys, so the next panel accepts its keys on the next game frame.
 The editor remains in the game's main and in-game Options menus.
@@ -17,7 +22,7 @@ receive the key, and held keys must be released before a new panel can use them.
 Uses the existing UCP 3.0.7 `core.AOBScan`, shared cache and `utils.AOBExtract`.
 No replacement framework files or new scanner API are required.
 
-Development of one UCP3 extension for in-game rebinding, persistent local profiles
+Development of one UCP3 extension for in-game rebinding, saved in the UCP config,
 and keyboard access to native menus, building placement and unit targeting.
 
 This is an incomplete test version, not an accepted release.
@@ -80,12 +85,6 @@ Additional evidence covers [world actions](https://github.com/Krarilotus/extensi
 
 ## Register actions from another module
 
-Version 0.2.19 adds the registration API and retains the earlier wheel preview's actions and profiles.
-The preview's `registerActionHandler` entry point and its schema-4 profile conversion
-(`code/wheel_preview.lua`) are a temporary compatibility layer. Remove them in the first
-release after every published Resolution Based Zoom version that Custom Hotkeys still
-accepts calls `registerAction`, keeping the conversion one more release for saved profiles.
-
 In your module's `enable`, detect the optional action API. Register your
 actions there, before Custom Hotkeys starts its `afterInit` callback. Use your
 module name in the stable ID. The player can find the action by its label or
@@ -101,7 +100,6 @@ if hotkeys and type(hotkeys.registerAction)=='function' then
     context={kind='world'},
     default=false,
     callback=toggleOverlay,
-    sound='click',
   }
 else
   -- Keep the original input path available when the shared API is absent.
@@ -117,36 +115,27 @@ invalid, duplicate or late registration. Registration lasts for the process.
 - `context={kind='world'}` selects the live game map. Use
   `{kind='panel',tab=number}` for a narrower native toolbar tab or
   `{kind='editor'}` for the map editor canvas. `{kind='modal',id=number}`
-  matches a verified Options or Load modal or a registered, foreground
-  UI-manager modal with an extended ID (1000 or higher). The modal owner
-  checks its own controls. Native text entry and editor tools keep their own input.
+  matches a verified native Options or Load modal. The modal owner checks its
+  own controls. Native text entry and editor tools keep their own input.
 - `default` can be omitted or false. Suggest a physical keyboard chord
   `{scan=number,extended=false,mods=0}`, mouse button
   `{button='x1',mods=0}` or vertical wheel direction `{wheel='up',mods=1}`.
   Modifier flags are Ctrl=1, Shift=2 and Alt=4. Windows shortcuts and the
   recovery chord remain reserved.
-- `callback(context,event)` is for local actions. Return true for a successful
-  action. Optional `release()` pairs with a keyboard or mouse-button hold and
-  runs after key-up, focus loss, a context transition or a profile change.
+- `callback(context,event)` runs the action. Return true for a successful
+  action. The callback owns any feedback, such as a sound. Optional
+  `release()` pairs with a keyboard or mouse-button hold and runs after
+  key-up, focus loss, a context transition or a binding change.
   Bare modifiers and wheel holds are outside this API.
-- For a simulation action use `submit(context,event)` in place of `callback`.
-  Call the owning module's validated native command path so its normal
-  multiplayer and replay processing sees the command. The owner validates
-  the target and authority. Custom Hotkeys gates the call to live gameplay
-  with authority and honors Recorder's input gate when Recorder is enabled.
-  Use an impulse for native commands.
-- `sound='click'` plays the game's toolbar confirmation after an action
-  returns true. A module may supply its own verified game-sound function.
-  Leave it empty when the native action already plays feedback.
 - One context receives the gesture. Specific panels take priority over
   general map actions. Recognized modals and the editor have their own
   checked input ownership. Same-scope conflicts and retained native
   bindings use the existing editor checks. Suggested bindings that conflict
-  with the active preset's built-in bindings start unbound.
+  with the active layout's built-in bindings start unbound.
 
 Family presets and plugins can suggest a key in their ordinary `config.yml`.
-Saved player choices take precedence. The example leaves an already-bound Zoom
-action alone and keeps a new instance of the action unbound.
+Explicit player choices in the UCP config take precedence. The example
+suggests leaving Zoom In unbound.
 
 ```yaml
 config-sparse:
@@ -161,11 +150,9 @@ config-sparse:
   plugins: {}
 ```
 
-A missing provider's bindings are kept with the profile for its return, and
-the other installed modules continue to use that profile. The same applies when
-a provider's new version changes an action so that a stored or imported chord no
-longer fits, for example because the action became a hold, which cannot use the
-wheel, or now applies where another action already uses that chord: the chord is
-set aside, the action starts unbound, and the chord returns once it fits again.
+A missing provider's entries stay in the UCP config for its return. When a
+provider's new version changes an action so that a saved chord no longer fits,
+for example because the action became a hold, which cannot use the wheel, the
+chord stays in the config but the action starts unbound for that launch.
 Edits in the editor are still checked strictly. Restart the game after
 changing the active modules or launcher config.

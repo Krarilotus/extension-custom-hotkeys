@@ -1,5 +1,4 @@
--- Native integration catalog grows here before the first public profile schema
--- is released. These are implemented actions, never synthetic fixture commands.
+-- Built-in actions. Each one is implemented by a native action owner.
 local parents,all={},{}
 for _,screen in ipairs(require('code/menu_screens')) do
   local owner='menu.'..screen[2];parents[#parents+1]=owner;all[#all+1]=owner

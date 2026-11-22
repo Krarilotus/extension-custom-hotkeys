@@ -12,14 +12,11 @@ local M={}
 function M:registerAction(spec)
   return registry.register(spec)
 end
-function M:registerActionHandler(id,callback)
-  return require('code/wheel_preview').register(registry,id,callback)
-end
 function M:enable(config)
   assert(not self.started,'Custom Hotkeys is already enabled; restart required')
   self.started=true
   hooks.registerHookCallback('afterInit',function()
-    self.runtime=launch.start(prepared,config and config.bindings)
+    self.runtime=launch.start(prepared,config or {},USER_CONFIG)
     if self.runtime.receipt.installed then
       log(INFO,'Custom Hotkeys initialized: '..json:encode(self.runtime.receipt))
     end

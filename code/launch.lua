@@ -3,21 +3,15 @@ local M={}
 -- Pin their state before initialization, including a partially failed startup.
 local live={}
 function M.prepare(modulePath,registry)
-  local recorder,catalog,definitions,suggestions
+  local recorder,catalog,definitions,source
   local access=modules.ui:access()
   local cffi=modules.cffi:cffi()
   local addresses=require('code/addresses')
   local bindings=require('code/address_bindings')
   for name,value in pairs(bindings.resolve(core,utils,access.game,cffi)) do addresses[name]=value end
-  local clickBound,click=pcall(bindings.resolveClick,core)
-  local profiles=require('code/profiles')
-  local codec={encode=function(value) return json:encode(value) end,
-    decode=function(value) return json:decode(value) end}
-  local function profileStore(namespace)
-    return require('code/store').new(require('code/ucp_storage').new(io,namespace),
-      codec,sha.sha256,function(value) return profiles.validateStored(catalog,value) end)
-  end
-  local store,exchange=profileStore(),profileStore('exchange')
+  local legacy=require('code/ucp_storage').new(io,os)
+  local ConfigFile=require('code/config_file')
+  local files=ConfigFile.files(io,os)
   local chain,library=require('code/native/interface').open(core)
   local state=modules.luajit:createState({name='custom-hotkeys',
     requireHandler=function(_,path)
@@ -32,10 +26,8 @@ function M.prepare(modulePath,registry)
     end,
     interface={env=_ENV,extra={manager=access.manager,chain=function() return chain end,
       nativeAddresses=function() return addresses end,
-      extensionActions=function() return definitions,suggestions,clickBound and click or nil end,
-      dispatchExtension=function(id,phase,context,event)
-        return registry.dispatch(id,phase,context,event,recorder.canSubmit)
-      end,
+      extensionActions=function() return definitions end,
+      dispatchExtension=function(id,phase,context,event) return registry.dispatch(id,phase,context,event) end,
       recorderInputGeneration=function() return recorder and recorder.read() or 0 end,
       installInputFrame=function(callback) return require('code/input_patch').install(core,callback) end,
       menuAddress=function(id)
@@ -54,30 +46,30 @@ function M.prepare(modulePath,registry)
         return {x=cffi.tonumber(p.x),y=cffi.tonumber(p.y),
           width=cffi.tonumber(p.width),height=cffi.tonumber(p.height)}
       end,
-      loadProfiles=function() return store:load() end,
-      saveProfiles=function(document) return store:save(document) end,
-      loadExchange=function() return exchange:load() end,
-      saveExchange=function(document)
-        local previous,err=exchange:load()
-        if not previous and err~='store.missing' then return nil,err end
-        return exchange:save(document)
-      end,
+      bindingSource=function() return source end,
+      saveBindings=function(changes) return ConfigFile.save(files,yaml.parse,CONFIG_FILE,changes) end,
+      retireLegacyProfiles=function() return legacy.retire() end,
       gameLanguage=function() return data.version.getGameLanguage() end,
       logWarning=function(message) log(WARNING,'Custom Hotkeys: '..message) end}}
   })
-  local prepared={state=state,library=library,store=store,
+  local prepared={state=state,library=library,
     connectRecorder=function(value) recorder=value end,
-    configureActions=function(bindings)
+    configureActions=function(settings,userConfig)
+      local Bindings=require('code/bindings')
       definitions=registry.freeze()
-      suggestions=type(bindings)=='table' and bindings or {}
-      catalog=require('code/catalog').production(definitions,suggestions)
-      if not clickBound then
-        for _,entry in ipairs(definitions) do
-          if entry.clickSound then
-            log(WARNING,'Custom Hotkeys: native action click sound unavailable: '..tostring(click))
-            break
-          end
-        end
+      catalog=require('code/catalog').production(definitions)
+      source=Bindings.source(catalog,Bindings.explicitTree(userConfig,
+        config.ConfigHandler.normalizeContentsValues),settings)
+      for _,id in ipairs(source.ignored) do
+        log(WARNING,'Custom Hotkeys: ignoring invalid binding for '..id..' in the UCP config')
+      end
+      local document,problem=require('code/legacy_profiles').load(legacy,
+        {decode=function(value) return json:decode(value) end},sha.sha256)
+      if document then
+        source.legacy,problem=require('code/legacy_profiles').explicit(catalog,document)
+      end
+      if problem and problem~='store.missing' then
+        log(WARNING,'Custom Hotkeys: saved 0.2 profiles not migrated ('..tostring(problem)..')')
       end
     end}
   live[#live+1]=prepared
@@ -92,18 +84,18 @@ function M.prepare(modulePath,registry)
   return prepared
 end
 
-function M.start(prepared,bindings)
-  prepared.configureActions(bindings)
+function M.start(prepared,settings,userConfig)
+  prepared.configureActions(settings,userConfig)
   local recorder=require('code/recorder').connect(modules,allActiveExtensions)
   prepared.connectRecorder(recorder)
   local state=prepared.state
-  -- Local change (0.2.9): an error while starting is caught inside the LuaJIT state (an error
-  -- leaving it takes the game down) and logged; the hotkeys then stay off for this session.
+  -- An error leaving the LuaJIT state takes the game down, so startup failures
+  -- are caught inside it and leave the hotkeys off for this session.
   local receipt=state:executeString([[
     local ok,result=pcall(function()
       _G.customHotkeys=require('code/native/runtime').start(remote.interface.gameLanguage())
       return {installed=true,modal=customHotkeys.view.modalID,priority=customHotkeys.chain.priority,
-        profile=customHotkeys.profiles.committed.active}
+        layout=customHotkeys.bindings.committed.active}
     end)
     if not ok then return {failed=tostring(result)} end
     return result

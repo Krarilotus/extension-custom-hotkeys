@@ -56,7 +56,8 @@ def test_bootstrap_uses_ucp_game_language_only_after_init(lua):
       package.loaded['code/native/runtime']={start=function(language)
         assert(language=='german')
         return {view={modalID=2041},chain={priority=-110000},
-          profiles={committed={active='Game Default'}}} end}
+          bindings={committed={active='game-default'}}} end}
+      config={ConfigHandler={normalizeContentsValues=function() end}}
       modules={ui={access=function() return {manager={}} end},
         cffi={cffi=function() return {} end},luajit={createState=function(_,options)
           remote={interface=options.interface.extra}

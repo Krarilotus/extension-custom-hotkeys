@@ -37,7 +37,7 @@ function M.new(entries, nativeBindings)
     local a = {id=entry.id, contexts=contexts, states=states, panels=panels,
       command=entry.command, behavior=behavior, default=default, label=entry.label or entry.id,
       introduced=entry.introduced or 1,extension=entry.extension,
-      labels=entry.labels,category=entry.category,clickSound=entry.clickSound,
+      labels=entry.labels,category=entry.category,
       modals=entry.modals and assert(set(entry.modals),'action.modals') or nil}
     actions[a.id], ordered[#ordered+1] = a, a
   end
@@ -109,23 +109,16 @@ function M.validate(catalog, bindings)
 end
 
 -- Both the framework and private LuaJIT state construct this same definition.
--- Mutable profile/router instances remain private to their owning state.
-function M.production(extensions, suggestions)
+-- Mutable binding/router instances remain private to their owning state.
+-- A provider default joins each layout only where its chord is still free.
+function M.production(extensions)
   local entries={}
   for _,entry in ipairs(require('code/entries')) do entries[#entries+1]=entry end
   for _,entry in ipairs(extensions or {}) do entries[#entries+1]=entry end
   local catalog=M.new(entries,require('code/originals'))
   local defaults={}
   for _,action in ipairs(catalog.ordered) do
-    if action.extension then
-      local provider,name=action.id:match('^ext%.([^.]+)%.([^.]+)$')
-      local configured=suggestions and suggestions[provider]
-      local proposed
-      if type(configured)=='table' then proposed=configured[name] end
-      if proposed==nil then proposed=action.default end
-      defaults[action.id]=proposed
-      action.default=nil
-    end
+    if action.extension then defaults[action.id],action.default=action.default,nil end
   end
   require('code/presets').attach(catalog)
   local custom=M.defaults(catalog)

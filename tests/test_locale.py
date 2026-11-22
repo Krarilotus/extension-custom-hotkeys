@@ -15,10 +15,10 @@ def test_actual_framework_languages_cover_actions_controls_and_native_font_bytes
         label = labels(action['id'])
         assert label != action['id']
         (label.replace('\u06cc', '\u064a') if encoding == 'cp1256' else label).encode(encoding)
-    for key in ['title', 'profile', 'new', 'search', 'groups', 'all', 'capture', 'swap',
+    for key in ['title', 'profile', 'search', 'groups', 'all', 'capture', 'swap',
                 'clear', 'reset', 'resetProfile', 'apply', 'cancel', 'unbound', 'press',
                 'editing', 'invalid', 'conflict', 'group.hotkeys', 'group.camera', 'group.build',
-                'import', 'export', 'exported', 'importName', 'fileError']:
+                'fileError']:
         label = labels(key)
         assert label != key, (language, key)
         (label.replace('\u06cc', '\u064a') if encoding == 'cp1256' else label).encode(encoding)
@@ -29,18 +29,6 @@ def test_actual_framework_languages_cover_actions_controls_and_native_font_bytes
     for key in ['nativeKey', 'nativeAgain']:
         assert labels(key) != key
         (labels(key).replace('\u06cc', '\u064a') if encoding == 'cp1256' else labels(key)).encode(encoding)
-
-
-def test_profile_import_rejects_malformed_utf8_names(lua):
-    lua.execute('''
-      local document=Profiles.initial(catalog)
-      for _,bad in ipairs({string.char(192,175),string.char(237,160,128),
-        string.char(244,144,128,128),string.char(195)}) do
-        document.active=bad
-        document.profiles={[bad]={bindings=Catalog.defaults(catalog)}}
-        assert(not Profiles.validate(catalog,document))
-      end
-    ''')
 
 
 def test_every_game_catalog_defines_all_keys_without_english_fallback(lua):

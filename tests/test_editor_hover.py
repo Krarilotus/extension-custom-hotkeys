@@ -14,7 +14,7 @@ def prepare(lua, visible=1):
       visibility=initial_visibility;displayCalls={}
       game={Input={mouseState=0},UI={MenuModalComposition1=0,
         activateModalMenu=function(_,id) snapshot.modal=id end}}
-      view=setmetatable({profiles=profiles,catalog=catalog,router=router,labels=function(id) return id end,
+      view=setmetatable({bindings=profiles,catalog=catalog,router=router,labels=function(id) return id end,
         scene={current=snapshot,resolve=function() return {owner='game.build'} end,
           snapshot=function() return snapshot end},
         modalID=2041,resetMouse=function() end,setPage=function() end,

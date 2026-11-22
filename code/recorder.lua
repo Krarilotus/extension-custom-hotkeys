@@ -1,4 +1,4 @@
--- Optional lifecycle notifications, not a tester-build compatibility gate.
+-- Optional Recorder input generation and transition notifications.
 local M={}
 function M.connect(modules,extensions)
   local active=false
@@ -6,7 +6,7 @@ function M.connect(modules,extensions)
     if extension.name=='recorder' then active=true end
   end
   local recorder=active and modules.recorder
-  local adapter={read=function() return 0 end,canSubmit=function() return not active end}
+  local adapter={read=function() return 0 end}
   if not recorder or recorder.inputStateVersion~=1 then return adapter end
   if type(recorder.getInputState)=='function' then
     function adapter.read()
@@ -15,12 +15,6 @@ function M.connect(modules,extensions)
       if type(generation)=='number' and generation>=0 and generation<=9007199254740991
           and generation==math.floor(generation) then return generation end
       return 0
-    end
-    -- This gate only applies to new provider commands. Existing actions keep
-    -- their established tester/playback behavior.
-    function adapter.canSubmit()
-      local ok,state=pcall(recorder.getInputState,recorder)
-      return ok and type(state)=='table' and state.version==1 and state.blocked==false
     end
   end
   if type(recorder.observeInputTransitions)=='function' then

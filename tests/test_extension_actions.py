@@ -12,12 +12,12 @@ def actions(lua):
         return {id=id,context=context,label=labels,category=labels,default=binding,
           callback=callback or function() return true end}
       end
-      function routed(catalog, bindings, registry, canSubmit)
+      function routed(catalog, bindings, registry)
         local adapter={resolve=function() return current end, recover=function() end,
           canRecover=function() return false end,
           cancelLocalHold=function(id) registry.dispatch(id,'release') end,
           dispatch=function(id,context,native,event)
-            registry.dispatch(id,'press',context,event,canSubmit)
+            registry.dispatch(id,'press',context,event)
           end}
         return Router.new(catalog,bindings,adapter)
       end
@@ -34,6 +34,16 @@ def test_registration_lifecycle_and_all_translations(actions):
       local incomplete=spec('ext.example.missing',{kind='world'})
       incomplete.label={en='Only English'}
       assert(not pcall(r.register,incomplete))
+      for _,bad in ipairs({string.char(192,175),string.char(237,160,128),string.char(195)}) do
+        local broken=spec('ext.example.broken',{kind='world'})
+        broken.label=setmetatable({en=bad},{__index=labels})
+        assert(not pcall(r.register,broken))
+      end
+      for _,field in ipairs({'submit','sound'}) do
+        local extra=spec('ext.example.'..field,{kind='world'})
+        extra[field]=function() return true end
+        assert(not pcall(r.register,extra))
+      end
       assert(not pcall(r.register,spec('view.toggle-zoom',{kind='world'})))
       base.label.en='Edited by the caller'
       local defs=r.freeze()
@@ -97,10 +107,9 @@ def test_native_capture_and_wheel_default_can_be_rebound(actions):
       end))
       local c=Catalog.production(r.freeze())
       current=facts('game.status')
-      local saved
       local router=routed(c,Catalog.defaults(c),r)
-      local profiles=assert(Profiles.new(c,{load=function() return nil,'store.missing' end,
-        save=function(_,d) saved=d;return true end},router))
+      local config=memoryConfig()
+      local profiles=config:open(c,router)
       local messages=require('code/messages').new(router,function() return 42 end,
         function() return {mods=0,composing=false,win=false,altgr=false} end,function() return true end)
       assert(messages(1,1,0x20a,120*65536+8,0)==0 and calls==1)
@@ -111,7 +120,7 @@ def test_native_capture_and_wheel_default_can_be_rebound(actions):
       assert(editor:capture())
       current=facts('hotkeys.capture')
       assert(router:handle(event(66,'down',4)))
-      assert(editor:apply() and saved)
+      assert(editor:apply() and config.tree.bindings.example.zoom.scan==66)
       current=facts('game.status')
       assert(messages(1,1,0x20a,120*65536+8,0)==42)
       assert(router:handle(event(66,'up',4)))
@@ -123,126 +132,61 @@ def test_native_capture_and_wheel_default_can_be_rebound(actions):
     """)
 
 
-def test_profile_migration_config_and_missing_provider_roundtrip(actions):
+def test_inactive_provider_entries_stay_in_the_dictionary_and_return(actions):
     actions.execute("""
       local r=Registry.new()
       r.register(spec(id,{kind='world'},{wheel='up',mods=1}))
-      local core=Catalog.production()
-      local legacy=Profiles.initial(core)
-      local config={example={zoom={button='x2',mods=0}}}
-      local combined=Catalog.production(r.freeze(),config)
-      local migrated=assert(Profiles.validate(combined,legacy))
-      assert(migrated.profiles[migrated.active].bindings[id].button=='x2')
-      assert(legacy.profiles[legacy.active].bindings[id]==nil)
-      local dormant=assert(Profiles.validate(core,migrated))
-      local prior=dormant.profiles[dormant.active]
-      assert(prior.unavailable[id].button=='x2' and prior.bindings[id]==nil)
-      prior.bindings['game.quicksave']={button='x2',mods=0}
-      local occupied=assert(Profiles.validate(combined,dormant))
-      local after=occupied.profiles[occupied.active]
-      assert(after.unavailable[id].button=='x2' and after.bindings[id]==false)
-      after.bindings['game.quicksave']=core.presets['game-default'].bindings['game.quicksave']
-      after=assert(Profiles.validate(combined,occupied)).profiles[occupied.active]
-      assert(after.unavailable==nil and after.bindings[id].button=='x2')
-      local optout=Catalog.production(r.freeze(),{example={zoom=false}})
-      assert(Profiles.initial(optout).profiles['Game Default'].bindings[id]==false)
-      assert(Profiles.validate(optout,migrated).profiles[migrated.active].bindings[id].button=='x2')
+      local with=Catalog.production(r.freeze())
+      local without=Catalog.production()
+      local config=memoryConfig()
+      local router=routed(with,Catalog.defaults(with),r)
+      local profiles=config:open(with,router)
+      assert(profiles.committed.bindings[id].wheel=='up' and next(config.tree)==nil)
+      profiles:begin();assert(profiles:bind(id,{button='x2',mods=0}));assert(profiles:apply())
+      -- Without the provider the entry is not routed, and later edits leave it alone.
+      profiles=config:open(without,Router.new(without,Catalog.defaults(without),adapter))
+      assert(profiles.committed.bindings[id]==nil)
+      profiles:begin();assert(profiles:bind('game.quicksave',{button='x2',mods=0}));assert(profiles:apply())
+      assert(config.tree.bindings.example.zoom.button=='x2')
+      -- Back with the provider: its saved chord is taken now, so it is set aside, not lost.
+      profiles=config:open(with,router)
+      assert(profiles.committed.bindings[id]==false and profiles.committed.aside[1]==id)
+      profiles:begin();assert(profiles:reset('game.quicksave'));assert(profiles:apply())
+      profiles=config:open(with,router)
+      assert(profiles.committed.bindings[id].button=='x2')
+      -- An explicit clear returns the same way.
+      profiles:begin();assert(profiles:bind(id,false));assert(profiles:apply())
+      config:open(without,Router.new(without,Catalog.defaults(without),adapter))
+      assert(config:open(with,router).committed.bindings[id]==false)
     """)
 
 
-def test_release_focus_failed_actions_and_native_submission(actions):
+def test_release_focus_and_failed_actions(actions):
     actions.execute("""
       local r=Registry.new()
-      local hits,releases,sounds,submitted=0,0,0,0
+      local hits,releases=0,0
       local accepted=true
       local localAction=spec(id,{kind='world'},key(66,4),function()
         hits=hits+1;return accepted
       end)
       localAction.release=function() releases=releases+1 end
-      localAction.sound=function() sounds=sounds+1 end
       r.register(localAction)
-      local command=spec('ext.example.command',{kind='world'},key(67,4))
-      command.callback=nil
-      command.submit=function() submitted=submitted+1;return true end
-      r.register(command)
+      local failing=spec('ext.example.failing',{kind='world'},key(67,4),function() error('broken') end)
+      r.register(failing)
       local c=Catalog.production(r.freeze())
       current=facts('game.status')
-      local canSubmit=false
-      local router=routed(c,Catalog.defaults(c),r,function() return canSubmit end)
+      local router=routed(c,Catalog.defaults(c),r)
       router:handle(event(66,'down',4))
       current.focused=false
       router:refresh()
-      assert(hits==1 and releases==1 and sounds==1)
+      assert(hits==1 and releases==1)
       router:handle(event(66,'up',4))
       current.focused=true;accepted=false
       router:handle(event(66,'down',4));router:handle(event(66,'up',4))
-      assert(hits==2 and releases==1 and sounds==1)
-      router:handle(event(67,'down',4));router:handle(event(67,'up',4))
-      assert(submitted==0)
-      canSubmit=true
-      router:handle(event(67,'down',4));router:handle(event(67,'up',4))
-      assert(submitted==1)
-      current.state='replay'
-      router:handle(event(67,'down',4))
-      assert(submitted==1)
-    """)
-
-
-def test_click_binding_requires_unique_anchor_and_derives_signed_relative_call(lua):
-    lua.execute("""
-      local resolve=require('code/address_bindings').resolveClick
-      local seen
-      local mock={AOBScan=function(pattern) seen=pattern;return 1000 end,
-        scanForAOB=function(pattern,start) assert(pattern==seen and start==1001) end,
-        readInteger=function(site) return ({[1011]=9000,[1006]=135,[1028]=-32})[site] end}
-      local result=resolve(mock)
-      assert(result.owner==9000 and result.id==135 and result.play==1000)
-      mock.scanForAOB=function() return 2000 end
-      assert(not pcall(resolve,mock))
-      mock.AOBScan=function() error('no match') end
-      assert(not pcall(resolve,mock))
-    """)
-
-def test_custom_modal_requires_live_ui_registry_and_foreground_composition(lua):
-    lua.execute("""
-      local Modal=require('code/modal_context')
-      local s={modal=2044,modal2=-1,modal3=-1,activeModalID=2044,activeModalMenu=123,
-        textModal=0,textEditor=0,modalX=10,modalY=10,modalWidth=400,modalHeight=400,
-        modalAnimation=32,modalClosing=0,modalBorder=0x200,width=800,height=600}
-      local registered={[2044]=function() return 123 end}
-      assert(Modal.extensionOwns(s,registered))
-      s.textEditor=1;assert(not Modal.extensionOwns(s,registered));s.textEditor=0
-      s.activeModalMenu=456;assert(not Modal.extensionOwns(s,registered));s.activeModalMenu=123
-      s.modalClosing=1;assert(not Modal.extensionOwns(s,registered));s.modalClosing=0
-      s.modal2=4;assert(not Modal.extensionOwns(s,registered));s.modal2=-1
-      assert(not Modal.extensionOwns(s,{}))
-      s.modal=10;s.activeModalID=10
-      assert(not Modal.extensionOwns(s,{[10]=function() return 123 end}))
-    """)
-
-
-def test_wheel_preview_provider_and_profiles_keep_assignments(actions):
-    actions.execute("""
-      local preview=require('code/wheel_preview')
-      local core=Catalog.production()
-      local old=Profiles.initial(core)
-      old.schema=4
-      local saved=old.profiles[old.active]
-      saved.bindings['view.resolution-zoom-in']=key(66,4)
-      saved.bindings['view.resolution-zoom-out']=false
-      saved.bindings['game.quicksave']={button='x1',mods=0}
-      local r=Registry.new()
-      assert(preview.register(r,'view.resolution-zoom-in',function() end))
-      assert(preview.register(r,'view.resolution-zoom-out',function() end))
-      local migrated=assert(Profiles.validate(Catalog.production(r.freeze()),old))
-      local bindings=migrated.profiles[migrated.active].bindings
-      assert(bindings['ext.resolution-based-zoom.in'].scan==66)
-      assert(bindings['ext.resolution-based-zoom.out']==false)
-      assert(bindings['game.quicksave'].button=='x1')
-      assert(bindings['view.resolution-zoom-in']==nil)
-      local noZoom=assert(Profiles.validate(core,old)).profiles[old.active]
-      assert(noZoom.unavailable['ext.resolution-based-zoom.in'].scan==66)
-      assert(noZoom.unavailable['ext.resolution-based-zoom.out']==false)
+      assert(hits==2 and releases==1)
+      local ok,problem=r.dispatch('ext.example.failing','press')
+      assert(not ok and problem:find('broken',1,true))
+      assert(r.dispatch('ext.example.failing','press')==false)
     """)
 
 
@@ -325,20 +269,6 @@ def test_generic_native_dialog_binding_requires_stable_composition(actions):
     """)
 
 
-def test_preview_assignments_take_precedence_over_new_presets(actions):
-    actions.execute("""
-      local old=Profiles.initial(Catalog.production())
-      old.schema=4
-      old.profiles[old.active].bindings['view.resolution-zoom-in']=key(66,4)
-      local r=Registry.new()
-      require('code/wheel_preview').register(r,'view.resolution-zoom-in',function() end)
-      r.register(spec('ext.example.new',{kind='world'},key(66,4)))
-      local saved=assert(Profiles.validate(Catalog.production(r.freeze()),old)).profiles[old.active]
-      assert(saved.bindings['ext.resolution-based-zoom.in'].scan==66)
-      assert(saved.bindings['ext.example.new']==false and saved.unavailable==nil)
-    """)
-
-
 def test_barrier_stops_same_context_wheel_burst(actions):
     actions.execute("""
       local r=Registry.new()
@@ -359,15 +289,10 @@ def test_barrier_stops_same_context_wheel_burst(actions):
     """)
 
 
-def test_changed_provider_action_keeps_profile_and_sets_its_chord_aside(actions):
+def test_changed_provider_action_sets_its_saved_chord_aside(actions):
     actions.execute("""
-      local r=Registry.new()
-      r.register(spec(id,{kind='world'},{wheel='up',mods=1}))
-      r.register(spec('ext.example.other',{kind='world'},key(66,4)))
-      local before=Catalog.production(r.freeze())
-      local doc=Profiles.initial(before)
-      local saved=doc.profiles[doc.active].bindings
-      saved['game.quicksave']=key(65,0)
+      local tree={bindings={example={zoom={wheel='up',mods=1},third=key(66,4)},
+        ['custom-hotkeys']={game={quicksave=key(65,0)}}}}
       -- The provider's next version makes the same action a hold, which
       -- cannot use the wheel, and moves another action onto the same chord.
       local after=Registry.new()
@@ -376,22 +301,14 @@ def test_changed_provider_action_keeps_profile_and_sets_its_chord_aside(actions)
       after.register(hold)
       after.register(spec('ext.example.other',{kind='world'},key(66,4)))
       after.register(spec('ext.example.third',{kind='world'},false))
-      saved['ext.example.third']=key(66,4)
       local changed=Catalog.production(after.freeze())
-      local loaded=assert(Profiles.validate(changed,doc,{stored=true}))
-      local profile=loaded.profiles[doc.active]
-      assert(profile.bindings['game.quicksave'].scan==65)
-      assert(profile.bindings[id]==false and profile.unavailable[id].wheel=='up')
-      local kept=profile.bindings['ext.example.other'] or profile.bindings['ext.example.third']
-      assert(kept and kept.scan==66)
-      assert(profile.bindings['ext.example.other']==false or profile.bindings['ext.example.third']==false)
-      -- A broken built-in binding still rejects the document as before.
-      saved['game.quicksave']={scan=999,extended=false,mods=0}
-      assert(not Profiles.validate(changed,doc,{stored=true}))
-      -- Editor checks stay strict: no silent parking without the stored option.
-      saved['game.quicksave']=key(65,0)
-      local _,problem=Profiles.validate(changed,doc)
-      assert(problem=='binding.unsupported' or problem=='binding.conflict')
+      local loaded=Bindings.new(changed,Bindings.source(changed,tree,tree),memoryConfig(),
+        Router.new(changed,Catalog.defaults(changed),adapter))
+      local b=loaded.committed.bindings
+      assert(b['game.quicksave'].scan==65 and b[id]==false)
+      assert(b['ext.example.third'].scan==66 and b['ext.example.other']==false)
+      assert(#loaded.committed.aside==1 and loaded.committed.aside[1]==id)
+      assert(loaded.committed.explicit[id].wheel=='up')
     """)
 
 
@@ -401,41 +318,11 @@ def test_editor_conflict_with_extension_action_still_asks_the_player(actions):
       r.register(spec(id,{kind='world'},{wheel='up',mods=1}))
       local catalog=Catalog.production(r.freeze())
       local router=routed(catalog,Catalog.defaults(catalog),r)
-      local profiles=assert(Profiles.new(catalog,{load=function() return nil,'store.missing' end,
-        save=function() return true end},router))
+      local profiles=memoryConfig():open(catalog,router)
       assert(profiles:begin())
       local ok,problem=profiles:bind('game.quicksave',{wheel='up',mods=1})
       assert(not ok and problem=='binding.conflict')
-      local draft=profiles.draft.profiles[profiles.draft.active]
-      assert(draft.bindings[id].wheel=='up' and draft.bindings['game.quicksave'].scan==31)
+      assert(profiles.draft.bindings[id].wheel=='up' and profiles.draft.bindings['game.quicksave'].scan==31)
+      ok,problem=profiles:bind(id,profiles.draft.bindings['game.quicksave'])
+      assert(not ok and problem=='binding.conflict')
     """)
-
-
-def test_stored_profiles_load_and_import_after_a_provider_change(actions):
-    actions.execute("""
-      local r=Registry.new()
-      r.register(spec(id,{kind='world'},{wheel='up',mods=1}))
-      local doc=Profiles.initial(Catalog.production(r.freeze()))
-      local after=Registry.new()
-      local hold=spec(id,{kind='world'},false)
-      hold.release=function() end
-      after.register(hold)
-      local catalog=Catalog.production(after.freeze())
-      local router=routed(catalog,Catalog.defaults(catalog),after)
-      local saved
-      local profiles=assert(Profiles.new(catalog,{load=function() return doc end,
-        save=function(_,document) saved=document;return true end},router))
-      local active=profiles.committed.profiles[profiles.committed.active]
-      assert(active.bindings[id]==false and active.unavailable[id].wheel=='up')
-      assert(profiles:begin())
-      assert(profiles:import('Imported',doc))
-      local imported=profiles.draft.profiles.Imported
-      assert(imported.bindings[id]==false and imported.unavailable[id].wheel=='up')
-      assert(profiles:apply() and saved.profiles.Imported.unavailable[id].wheel=='up')
-    """)
-
-
-def test_launcher_store_validates_stored_documents():
-    from pathlib import Path
-    source = (Path(__file__).resolve().parents[1] / 'code/launch.lua').read_text(encoding='utf-8')
-    assert 'profiles.validateStored(catalog,value)' in source

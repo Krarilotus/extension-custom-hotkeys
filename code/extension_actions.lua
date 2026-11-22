@@ -5,11 +5,10 @@ local M={}
 
 local languages={'en','de','fr','ru','hu','tr','ch','es','fa'}
 local owners={world={'game.build','game.status'}, panel={'game.build','game.status'},
-  editor={'editor.map'}, modal={'game.options','game.load','menu.options','menu.load','extension.modal'}}
+  editor={'editor.map'}, modal={'game.options','game.load','menu.options','menu.load'}}
 local states={world={'live-sp','live-mp'},panel={'live-sp','live-mp'},
   editor={'editor'},modal={'menu','live-sp','live-mp','editor'}}
-local fields={id=true,label=true,category=true,context=true,default=true,callback=true,
-  submit=true,release=true,sound=true}
+local fields={id=true,label=true,category=true,context=true,default=true,callback=true,release=true}
 
 local function localized(values)
   assert(type(values)=='table','action.locale')
@@ -42,12 +41,8 @@ function M.new()
       if kind=='panel' or kind=='modal' then
         assert(type(scope)=='number' and scope>=0 and scope%1==0 and scope<=2147483647,'action.context-id')
       end
-      local command=spec.submit~=nil
-      assert(command and type(spec.submit)=='function' and spec.callback==nil
-        or not command and type(spec.callback)=='function','action.callback')
-      assert(not command or kind=='world' or kind=='panel','action.command-context')
-      assert(spec.release==nil or not command and type(spec.release)=='function','action.release')
-      assert(spec.sound==nil or spec.sound=='click' or type(spec.sound)=='function','action.sound')
+      assert(type(spec.callback)=='function','action.callback')
+      assert(spec.release==nil or type(spec.release)=='function','action.release')
       local binding=spec.default
       if binding~=nil and binding~=false then
         binding=assert(Binding.validate(binding))
@@ -56,10 +51,9 @@ function M.new()
       definitions[#definitions+1]={id=spec.id,contexts=owners[kind],states=states[kind],
         panels=kind=='panel' and {tostring(scope)} or nil,
         modals=kind=='modal' and {tostring(scope)} or nil,
-        command=command,behavior=spec.release and 'hold-local' or 'press',
-        default=binding,extension=true,labels=localized(spec.label),category=localized(spec.category),clickSound=spec.sound=='click'}
-      handlers[spec.id]={press=spec.submit or spec.callback,release=spec.release,
-        command=command,sound=type(spec.sound)=='function' and spec.sound or nil}
+        command=false,behavior=spec.release and 'hold-local' or 'press',
+        default=binding,extension=true,labels=localized(spec.label),category=localized(spec.category)}
+      handlers[spec.id]={press=spec.callback,release=spec.release}
       return true
     end,
     freeze=function()
@@ -67,9 +61,9 @@ function M.new()
       table.sort(definitions,function(a,b) return a.id<b.id end)
       return definitions
     end,
-    dispatch=function(id,phase,context,event,canSubmit)
+    dispatch=function(id,phase,context,event)
       local handler=handlers[id]
-      if not handler or handler.failed or (handler.command and not canSubmit()) then return false end
+      if not handler or handler.failed then return false end
       if phase=='release' and handler.starting then
         handler.cancelled=true
         return true
@@ -89,14 +83,12 @@ function M.new()
         end
         handler.cancelled=false
       end
-      local accepted=ok and result==true
-      if accepted and phase=='press' and handler.sound then ok,result=pcall(handler.sound) end
       if not ok then
         if handler.held then pcall(handler.release);handler.held=false end
         handler.failed=true
         return false,tostring(result)
       end
-      return accepted
+      return ok and result==true
     end,
   }
 end
