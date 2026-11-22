@@ -20,6 +20,17 @@ function M.decode(message,wparam)
   end
   return button,definition[2],definition[3] or false
 end
+-- WM_MOUSEWHEEL carries Ctrl/Shift at the time of the gesture, unlike a later
+-- keyboard snapshot. Alt comes from the input owner's modifier snapshot.
+function M.wheel(wparam,snapshotMods)
+  local delta=math.floor(wparam/65536)%65536
+  if delta>=32768 then delta=delta-65536 end
+  local flags=wparam%65536
+  local mods=(math.floor(flags/8)%2)+(math.floor(flags/4)%2)*2
+  if type(snapshotMods)=='number' and snapshotMods>=4 then mods=mods+4 end
+  if delta==0 then return nil,mods,0 end
+  return delta>0 and 'up' or 'down',mods,delta
+end
 function M.flags(wparam,from,to,down)
   local value=wparam%65536
   if has(value,bits[from]) then value=value-bits[from] end

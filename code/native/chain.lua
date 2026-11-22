@@ -38,9 +38,11 @@ function M.install(interface, router, platform, exclusiveInput, mouseInput, isRe
     if mouseInput and message>=0x200 and message<=0x20e then
       local button,kind=Mouse.decode(message,wparam)
       local held=kind=='up' and router.held[Binding.buttons[button]]
-      -- A consumed shortcut release belongs to the router. Treating it as
-      -- native pointer takeover aborts the quickslot gesture it just started.
-      if not (held and held.consumed and not held.forwarded) then
+      -- A consumed shortcut release, or a further notch of a consumed wheel
+      -- gesture, belongs to the router. Treating it as native pointer
+      -- takeover aborts the quickslot gesture it just started.
+      local continues=message==0x20a and router:ownsWheel(Mouse.wheel(wparam,platform:modifiers().mods))
+      if not (held and held.consumed and not held.forwarded) and not continues then
         mouseInput(message,wparam,lparam)
       end
     end

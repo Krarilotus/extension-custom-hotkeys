@@ -25,6 +25,7 @@ end
 function M:cancelGestures()
   self.pointerHolds=0
   self.wheelPending=nil
+  self.wheelGesture=nil
   -- Native cancellation may inspect another key's ownership. Revoke every
   -- gesture first so table traversal order cannot preserve an old native hold.
   for _, held in pairs(self.held) do held.blocked = true end
@@ -36,6 +37,13 @@ function M:cancelGestures()
   end
   if self.adapter.cancelPending then self.adapter.cancelPending() end
   for _, held in pairs(self.held) do self:cancelHold(held) end
+end
+
+-- A notch continuing the consumed wheel gesture is router input, like a
+-- consumed button release, and not native pointer takeover.
+function M:ownsWheel(wheel,mods)
+  return wheel ~= nil and self.wheelGesture ~= nil
+    and self.wheelGesture == Binding.key({wheel=wheel,mods=mods})
 end
 
 function M:barrier()
@@ -184,6 +192,7 @@ function M:handle(event)
   if not event.wheel then
     self.held[physical] = held
     self.charBlocked[physical] = nil
+    self.wheelGesture = nil
   end
   -- Unknown held keys on focus regain must never become a new activation.
   if event.repeated ~= false then held.blocked = true; return false end
@@ -198,7 +207,11 @@ function M:handle(event)
     if self.capture then self.capture(nil, 'binding.reserved') end
     return false
   end
-  if not context then return false end
+  if not context then
+    -- A workflow started by this wheel gesture owns input until it ends.
+    -- Its further notches must not reach the dialog it opened.
+    return event.wheel ~= nil and self.wheelGesture == Binding.key(event)
+  end
   if self.capture and Binding.recovery(event) then
     held.consumed=true
     self:barrier()
@@ -287,6 +300,8 @@ function M:handle(event)
     self.dispatching = false
     if not ok then self:block(chosen.id,result);self:barrier();break end
   end
+  -- Set after dispatch: an action's own barrier must not end its gesture.
+  if event.wheel and ok then self.wheelGesture=key end
   if ok and result=='native' and nativeBinding then held.consumed=false;return false end
   if ok and result=='pointer-native' and event.button and chosen.id:sub(1,8)=='pointer.' then
     held.consumed=false;return false
