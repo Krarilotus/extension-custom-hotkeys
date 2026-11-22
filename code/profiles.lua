@@ -23,7 +23,9 @@ local function fields(value, allowed)
   return true
 end
 
-function M.validate(catalog, document)
+-- options.stored: a document read from storage or an exchange file. Editor
+-- edits and Apply stay strict so the player resolves conflicts themselves.
+function M.validate(catalog, document, options)
   if not fields(document, {schema=true, active=true, profiles=true})
       or (document.schema ~= 1 and document.schema ~= 2 and document.schema ~= 3 and document.schema ~= 4) or not name(document.active)
       or type(document.profiles) ~= 'table' then return nil, 'profiles.format' end
@@ -77,9 +79,9 @@ function M.validate(catalog, document)
     end
     local bindings, err, detail = Catalog.validate(catalog, candidate)
     -- A provider may change an action between its versions (behavior or
-    -- context). Keep that saved chord aside instead of rejecting the profile.
+    -- context). Keep that stored chord aside instead of rejecting the profile.
     for _=1,#catalog.ordered do
-      if bindings or type(candidate)~='table' then break end
+      if bindings or type(candidate)~='table' or not (options and options.stored) then break end
       local moved=false
       for _,id in ipairs(type(detail)=='table' and detail or {detail}) do
         local action=catalog.actions[id]
@@ -162,7 +164,7 @@ function M.new(catalog, store, router, launcherBindings)
     if err ~= 'store.missing' then return nil, err end
     document = M.initial(catalog, launcherBindings)
   end
-  local valid, problem = M.validate(catalog, document)
+  local valid, problem = M.validate(catalog, document, {stored=true})
   if not valid then return nil, problem end
   self.committed = valid
   local active=valid.profiles[valid.active]
@@ -250,7 +252,7 @@ function M:reset(action)
 end
 
 function M:import(profileName, document)
-  local valid, err = M.validate(self.catalog, document)
+  local valid, err = M.validate(self.catalog, document, {stored=true})
   if not valid then return nil, err end
   return self:edit(function(d)
     if not name(profileName) or d.profiles[profileName] then return nil, 'profiles.name' end

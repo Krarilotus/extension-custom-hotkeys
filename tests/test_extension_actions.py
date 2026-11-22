@@ -377,7 +377,8 @@ def test_changed_provider_action_keeps_profile_and_sets_its_chord_aside(actions)
       after.register(spec('ext.example.other',{kind='world'},key(66,4)))
       after.register(spec('ext.example.third',{kind='world'},false))
       saved['ext.example.third']=key(66,4)
-      local loaded=assert(Profiles.validate(Catalog.production(after.freeze()),doc))
+      local changed=Catalog.production(after.freeze())
+      local loaded=assert(Profiles.validate(changed,doc,{stored=true}))
       local profile=loaded.profiles[doc.active]
       assert(profile.bindings['game.quicksave'].scan==65)
       assert(profile.bindings[id]==false and profile.unavailable[id].wheel=='up')
@@ -386,5 +387,25 @@ def test_changed_provider_action_keeps_profile_and_sets_its_chord_aside(actions)
       assert(profile.bindings['ext.example.other']==false or profile.bindings['ext.example.third']==false)
       -- A broken built-in binding still rejects the document as before.
       saved['game.quicksave']={scan=999,extended=false,mods=0}
-      assert(not Profiles.validate(Catalog.production(after.freeze()),doc))
+      assert(not Profiles.validate(changed,doc,{stored=true}))
+      -- Editor checks stay strict: no silent parking without the stored option.
+      saved['game.quicksave']=key(65,0)
+      local _,problem=Profiles.validate(changed,doc)
+      assert(problem=='binding.unsupported' or problem=='binding.conflict')
+    """)
+
+
+def test_editor_conflict_with_extension_action_still_asks_the_player(actions):
+    actions.execute("""
+      local r=Registry.new()
+      r.register(spec(id,{kind='world'},{wheel='up',mods=1}))
+      local catalog=Catalog.production(r.freeze())
+      local router=routed(catalog,Catalog.defaults(catalog),r)
+      local profiles=assert(Profiles.new(catalog,{load=function() return nil,'store.missing' end,
+        save=function() return true end},router))
+      assert(profiles:begin())
+      local ok,problem=profiles:bind('game.quicksave',{wheel='up',mods=1})
+      assert(not ok and problem=='binding.conflict')
+      local draft=profiles.draft.profiles[profiles.draft.active]
+      assert(draft.bindings[id].wheel=='up' and draft.bindings['game.quicksave'].scan==31)
     """)

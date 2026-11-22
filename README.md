@@ -81,6 +81,10 @@ Additional evidence covers [world actions](https://github.com/Krarilotus/extensi
 ## Register actions from another module
 
 Version 0.2.19 adds the registration API and retains the earlier wheel preview's actions and profiles.
+The preview's `registerActionHandler` entry point and its schema-4 profile conversion
+(`code/wheel_preview.lua`) are a temporary compatibility layer. Remove them in the first
+release after every published Resolution Based Zoom version that Custom Hotkeys still
+accepts calls `registerAction`, keeping the conversion one more release for saved profiles.
 
 In your module's `enable`, detect the optional action API. Register your
 actions there, before Custom Hotkeys starts its `afterInit` callback. Use your
@@ -158,5 +162,9 @@ config-sparse:
 ```
 
 A missing provider's bindings are kept with the profile for its return. The
+same applies when a provider's new version changes an action so that a stored
+chord no longer fits (for example the action became a hold, which cannot use the
+wheel, or two of its actions now share a chord): that chord is set aside and the
+action starts unbound. Edits in the editor are still checked strictly. The
 other installed modules continue to use that profile. Restart the game after
 changing the active modules or launcher config.
