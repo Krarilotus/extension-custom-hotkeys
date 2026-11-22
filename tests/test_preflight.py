@@ -32,6 +32,24 @@ def test_sparse_or_malformed_extension_list_cannot_hide_legacy(lua):
     ''')
 
 
+def test_legacy_defaults_plugin_does_not_supply_the_legacy_hotkey_setting(lua):
+    lua.execute('''
+      local P=require('code/preflight')
+      local legacy={o_keys={enabled=false}}
+      local cfg={['ucp2-legacy-2.15.1']=legacy,['ucp2-legacy-defaults-2.15.1']={}}
+      local active={{name='ucp2-legacy',version='2.15.1'},
+        {name='ucp2-legacy-defaults',version='2.15.1'}}
+      assert(P.check(cfg,active))
+      legacy.o_keys.enabled=true
+      local ok,err=P.check(cfg,active)
+      assert(not ok and err=='activation.legacy-hotkeys')
+      legacy.o_keys.enabled=false
+      cfg['ucp2-legacy-2.15.0']={o_keys={enabled=true}}
+      ok,err=P.check(cfg,active)
+      assert(not ok and err=='activation.legacy-hotkeys')
+    ''')
+
+
 def test_recorder_contract_is_checked_after_module_initialization(lua):
     lua.execute('''
       local P=require('code/preflight')
