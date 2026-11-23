@@ -6,12 +6,12 @@ the rest from the layout, plugin suggestions and other modules' defaults. See
 [bindings in the UCP config](docs/bindings-config.md), including the one-time
 migration of 0.2 profiles.
 
-Version 0.2.18 enables camera and view bindings in the scenario editor, keeps
+Version 0.3.0 enables camera and view bindings in the scenario editor, keeps
 gameplay bindings available after a closed ally dialog or during an AI lord
 video, and supports quicksave/quickload with compatible Save and Load menu
 extensions such as Autosave. Startup failures are logged.
 
-Version 0.2.1 shortens native build-category and placement-return menu switches for hotkeys, so the next panel accepts its keys on the next game frame.
+It shortens native build-category and placement-return menu switches for hotkeys, so the next panel accepts its keys on the next game frame.
 The editor remains in the game's main and in-game Options menus.
 It also allows the same binding in different native construction/unit
 panels. Woodcutter, Wheat Farm and Catapult can share a key; Woodcutter and
@@ -25,7 +25,6 @@ No replacement framework files or new scanner API are required.
 Development of one UCP3 extension for in-game rebinding, saved in the UCP config,
 and keyboard access to native menus, building placement and unit targeting.
 
-This is an incomplete test version, not an accepted release.
 The [0.1.9 feature candidate](docs/features-0.1.9.md) includes keyboard/mouse rebinding,
 building groups, camera bookmarks, keyboard targeting and native panel controls.
 UCP byte-pattern resolution and original button callbacks preserve the construction cursor.
