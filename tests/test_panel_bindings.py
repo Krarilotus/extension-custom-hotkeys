@@ -3,10 +3,8 @@ def setup(lua):
       catalog=Catalog.production()
       current=facts('game.build');current.screen='14';current.panel='20:0'
       router=Router.new(catalog,Catalog.defaults(catalog),adapter)
-      saved=nil
-      store={load=function() return saved,'store.missing' end,
-        save=function(_,document) saved=document;return true end}
-      profiles=assert(Profiles.new(catalog,store,router))
+      config=memoryConfig()
+      profiles=config:open(catalog,router)
     ''')
 
 
@@ -22,7 +20,7 @@ def test_editor_capture_shares_key_across_construction_tabs_and_persists(lua):
         assert(not editor.capturing and not editor.error and not editor.reassignment)
       end
       assert(editor:apply())
-      profiles=assert(Profiles.new(catalog,store,router))
+      profiles=config:open(catalog,router)
       for _,id in ipairs({'build.select.woodsman','build.select.wheatfarm','unit.control.catapult'}) do
         assert(router.bindings[id].scan==87)
       end

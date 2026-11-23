@@ -1,13 +1,13 @@
 # Local development module
 
-Version **0.2.1** includes mouse bindings, building groups, camera bookmarks,
+Version **0.2.18** includes mouse bindings, building groups, camera bookmarks,
 native recruitment/economy controls and eleven game-language catalogs.
 The Store3.0.7 release is available for live testing. Two-PC
 testing is manual; development and tester access remain available. See the
 [binding review](native-bindings.md) and [current native evidence](features-0.1.7.md).
 
 Commit the intended source, then run `python tools/build.py`. It builds that
-exact commit into `dist/custom-hotkeys-0.2.1.zip` and a SHA256 manifest. The
+exact commit into `dist/custom-hotkeys-0.2.18.zip` and a SHA256 manifest. The
 same `files.xml` controls local and official Store packaging. Game binaries,
 dependencies, profiles, diagnostics, test fixtures and screenshots are excluded.
 
@@ -32,7 +32,7 @@ Optional lifecycle notifications cancel old held gestures across world changes.
 Recorder0.50.4 and Automarket1.1.0 were loaded during the bounded native checks;
 this does not establish complete replay or multiplayer correctness.
 
-Profiles and portable exchange files follow [the profile contract](profiles.md).
+Bindings are stored in the UCP config as described in [bindings in the UCP config](bindings-config.md).
 The next launcher run does not replace in-game bindings. Development profiles
 receive new preset bindings when they do not conflict with existing assignments. Preserve the
 test installation's existing profiles instead of replacing them to pass a test.

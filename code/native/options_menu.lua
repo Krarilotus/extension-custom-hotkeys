@@ -3,13 +3,14 @@
 local ffi=require('ffi')
 local Skin=require('code/native/editor_skin')
 local M={}
+local installed
 local layouts={
   [12]={parameters={25,4,5,17},positions={[25]=100,[4]=135,[5]=170,[17]=250},buttonY=205},
   [44]={parameters={25,4,5,45,17,2,9},
     positions={[25]=120,[4]=152,[5]=184,[45]=216,[17]=280,[2]=88,[9]=312},buttonY=248},
 }
 
-local function extend(id,scene,view)
+local function extend(id,scene,view,isReady)
   local layout=layouts[id]
   local pointer=assert(remote.interface.modalMenuAddress(id),'hotkeys.options-menu-missing')
   local menu=api.ui.Menu:fromPointer(pointer,id)
@@ -43,6 +44,7 @@ local function extend(id,scene,view)
     end
   end
   local action=ffi.cast('void (__cdecl *)(int)',function()
+    if not isReady() then return end
     local ok,problem=pcall(view.open,view)
     if not ok then log(ERROR,tostring(problem)) end
   end)
@@ -65,11 +67,12 @@ local function extend(id,scene,view)
   -- Restore the original Options group for Back and its following controls.
   items[back+2]=original[0]
   items[count+3].menuItemType=0x66
-  game.UI.Menu(menu.pMenu,items)
   return {menu,items,action,render}
 end
 
-function M.install(scene,view)
-  return {extend(12,scene,view),extend(44,scene,view)}
+function M.install(scene,view,isReady)
+  installed={extend(12,scene,view,isReady),extend(44,scene,view,isReady)}
+  for _,entry in ipairs(installed) do game.UI.Menu(entry[1].pMenu,entry[2]) end
+  return installed
 end
 return M

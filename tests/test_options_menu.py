@@ -27,7 +27,7 @@ def test_options_roots_keep_native_order_and_leave_recorder_pause_alone(lua):
       local opened=0
       local view={open=function() opened=opened+1 end,labels=function() return 'Custom Hotkeys' end,
         layout=function() return {text='Custom Hotkeys'} end}
-      local pins=require('code/native/options_menu').install(scene,view)
+      local pins=require('code/native/options_menu').install(scene,view,function() return true end)
       assert(#pins==2 and menus[5]==nil)
       local p=menus[12].pMenu.items
       assert(p[4].menuItemType==0x01000000 and p[5].position.position.y==205)

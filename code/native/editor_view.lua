@@ -11,8 +11,8 @@ local Scrollbar=require('code/editor_scrollbar')
 local M={}
 M.__index=M
 local rows=Geometry.rows
-function M.new(profiles,catalog,router,scene,platform,labels)
-  local self=setmetatable({profiles=profiles,catalog=catalog,router=router,scene=scene,
+function M.new(bindings,catalog,router,scene,platform,labels)
+  local self=setmetatable({bindings=bindings,catalog=catalog,router=router,scene=scene,
     platform=platform,labels=labels,opened=false,focus=1,pins={},textCache={},keyNames={},
     codepage=NativeText.codepage()},M)
   local manager=remote.interface.manager
@@ -90,7 +90,7 @@ function M:open()
   if self.opened or not c or (c.owner:sub(1,5)~='menu.' and c.owner~='game.build'
       and c.owner~='game.status' and not (c.owner=='game.options'
         and self.scene.current.modal==12)) then return false end
-  self.controller=Controller.new(self.profiles,self.catalog,self.router,self.labels,string.lower,rows)
+  self.controller=Controller.new(self.bindings,self.catalog,self.router,self.labels,string.lower,rows)
   self:setPage('bindings')
   self.focus,self.text,self.error,self.opened=4,nil,nil,true
   self.parentScreen=self.scene.current.screen
@@ -158,36 +158,25 @@ function M:activate(id)
   end
   if self.text then self:finishText(self.text.kind=='search') end
   for i,c in ipairs(self.controls) do if c.id==id then self.focus=i;break end end
-  self.error,self.notice=nil,nil
+  self.error=nil
   local e=self.controller
   if id<=rows then e:choose(e.first+id-1);e:capture()
   elseif id==118 then self:setPage(self.page=='bindings' and 'profiles' or 'bindings')
   elseif id==101 or id==102 or id==103 then
     local v=e:view();local current=1
-    for i,name in ipairs(v.profiles) do if name==v.active then current=i end end
-    e:selectProfile(v.profiles[(current+(id==102 and -2 or 0))%#v.profiles+1])
-  elseif id==104 or id==105 then
-    self.router:barrier();self.text={kind=id==104 and 'profile' or 'search',
-      previous=e.query,edit=Text.new(id==105 and e.query or '')};self.text.edit:selectAll()
+    for i,name in ipairs(v.layouts) do if name==v.active then current=i end end
+    if #v.layouts>0 then e:selectLayout(v.layouts[(current+(id==102 and -2 or 0))%#v.layouts+1]) end
+  elseif id==105 then
+    self.router:barrier();self.text={kind='search',previous=e.query,edit=Text.new(e.query)}
+    self.text.edit:selectAll()
   elseif id==106 then
     local groups={false}
     for _,group in ipairs(e.groups) do groups[#groups+1]=group end
     local current=1;for i,g in ipairs(groups) do if g==e.group then current=i end end
     e:filter(e.query,groups[current%#groups+1] or nil)
   elseif id==115 then e:reassign()
-  elseif id==116 then
-    local document,err=remote.interface.loadExchange()
-    if not document then self.error=err
-    else
-      self.router:barrier()
-      self.text={kind='import',document=document,edit=Text.new(document.active)}
-      self.text.edit:selectAll()
-    end
-  elseif id==117 then
-    local ok,err=remote.interface.saveExchange(e:exportProfile())
-    if ok then self.notice='exported' else self.error=err end
   elseif id==109 then e:resetAction()
-  elseif id==110 then e:resetProfile()
+  elseif id==110 then e:resetLayout()
   elseif id==113 then self:close(true)
   elseif id==114 then self:close(false) end
   return true
@@ -197,11 +186,8 @@ function M:finishText(accept)
   if not text then return end
   self.text=nil;self.router:barrier()
   if accept then
-    if text.kind=='profile' then self.controller:createProfile(text.edit:value())
-    elseif text.kind=='import' then self.controller:importProfile(text.edit:value(),text.document)
-    else self.controller:filter(text.edit:value(),self.controller.group);self.focus=4 end
-  elseif text.kind=='search' then self.controller:filter(text.previous,self.controller.group)
-  end
+    self.controller:filter(text.edit:value(),self.controller.group);self.focus=4
+  else self.controller:filter(text.previous,self.controller.group) end
 end
 function M:filterSearch()
   if self.text and self.text.kind=='search' then
@@ -263,7 +249,8 @@ function M:bindingName(binding)
   if self.nameLayout~=self.platform.layout then self.nameLayout=self.platform.layout;self.keyNames={} end
   local key=Binding.key(binding)
   if self.keyNames[key] then return self.keyNames[key] end
-  local name=binding.button and self.labels('mouse.'..binding.button) or self.platform:keyName(binding) or '?'
+  local name=binding.wheel and self.labels('wheel.'..binding.wheel)
+    or binding.button and self.labels('mouse.'..binding.button) or self.platform:keyName(binding) or '?'
   if binding.mods%2==1 then name='Ctrl+'..name end
   if math.floor(binding.mods/2)%2==1 then name='Shift+'..name end
   if binding.mods>=4 then name='Alt+'..name end
@@ -315,13 +302,9 @@ function M:renderButton(id)
     if id==101 or (id==118 and self.page=='bindings') then label=self.labels('profile')..': '..v.activeLabel end
     if id==105 then label=e.query end
     if id==106 then label=self.labels('groups')..': '..(e.group and self.labels('group.'..e.group) or self.labels('all')) end
-    if self.text and ((id==104 and self.text.kind=='profile') or (id==105 and self.text.kind=='search')
-        or (id==116 and self.text.kind=='import')) then
-      label=self.text.edit:value();selected=true
-    end
+    if self.text and id==105 then label=self.text.edit:value();selected=true end
   end
-  local editing=self.text and ((id==104 and self.text.kind=='profile')
-    or (id==105 and self.text.kind=='search') or (id==116 and self.text.kind=='import')) and self.text.edit or nil
+  local editing=self.text and id==105 and self.text.edit or nil
   if label=='' and not editing and id~=105 then return end
   local s=game.Rendering.ButtonState
   -- Inherit the native menu renderer's surface. Forcing texture surface0 hides
@@ -377,11 +360,11 @@ function M:render(x,y,width,height)
     self:draw(self.labels('binding'),x+530,y+88,0xCCFAFF,Geometry.bodyFont,170,'column-binding')
     self:draw(tostring(#e.rows>0 and e.selected or 0)..' / '..tostring(#e.rows),x+20,y+511,nil,Geometry.bodyFont,100,'count')
   end
-  local message=(e.capturing and self.labels('press')) or (self.notice and self.labels(self.notice))
+  local message=e.capturing and self.labels('press')
   local err=self.error or e.error
   if err then
     message=self.labels(err:find('conflict',1,true) and 'conflict'
-      or (err:sub(1,6)=='store.' and 'fileError' or 'invalid'))
+      or ((err:sub(1,6)=='store.' or err:sub(1,7)=='config.') and 'fileError' or 'invalid'))
     if e.reassignment then message=message..' '..self.labels(e.reassignment.other) end
   end
   if message then self:draw(message,x+20,y+482,0xCCFAFF,Geometry.bodyFont,width-40,'message') end

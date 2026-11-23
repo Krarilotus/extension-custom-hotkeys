@@ -14,8 +14,7 @@ def test_semantic_groups_are_complete_contiguous_and_independent_of_labels(lua):
       assert(c.actions['camera.group.1'].group=='selection')
       assert(c.actions['camera.return.armory'].group=='buildings')
       assert(c.actions['menu.open.armory'].group=='buildings')
-      local store={load=function() return nil,'store.missing' end,save=function() return true end}
-      local p=assert(Profiles.new(c,store,Router.new(c,source,adapter)))
+      local p=memoryConfig():open(c,Router.new(c,source,adapter))
       local e=require('code/editor').new(p,c,router,function(id) return 'ZZ '..id end,string.lower,16)
       e:filter('','selection');assert(e:view().total==32)
       local v=e:view();assert(v.rows[1].sectionStart and not v.rows[2].sectionStart)
@@ -30,8 +29,7 @@ def test_semantic_groups_are_complete_contiguous_and_independent_of_labels(lua):
 def test_native_number_defaults_are_visible_and_forwarded_once_in_every_preset(lua):
     lua.execute('''
       local c=Catalog.production()
-      local store={load=function() return nil,'store.missing' end,save=function() return true end}
-      local p=assert(Profiles.new(c,store,Router.new(c,Catalog.defaults(c),adapter)))
+      local p=memoryConfig():open(c,Router.new(c,Catalog.defaults(c),adapter))
       local e=require('code/editor').new(p,c,router,function(id) return id end,string.lower,16)
       local nativeRequests=0
       adapter.dispatch=function(id,_,native)
@@ -39,8 +37,8 @@ def test_native_number_defaults_are_visible_and_forwarded_once_in_every_preset(l
         nativeRequests=nativeRequests+1;return 'native'
       end
       for _,preset in ipairs(c.presetOrder) do
-        assert(e:selectProfile(preset.name))
-        local r=Router.new(c,p.draft.profiles[p.draft.active].bindings,adapter)
+        assert(e:selectLayout(preset.id))
+        local r=Router.new(c,p.draft.bindings,adapter)
         current=facts('game.build')
         for n=0,9 do
           local scan=n==0 and 11 or n+1
@@ -53,6 +51,8 @@ def test_native_number_defaults_are_visible_and_forwarded_once_in_every_preset(l
           assert(e:view().rows[1].binding.mods==4)
           assert(e:clear())
           assert(not e:view().rows[1].binding and not e:view().rows[1].nativeFallback)
+          -- An explicit clear belongs to the config, not to one layout.
+          assert(e:resetAction() and e:view().rows[1].binding.mods==4)
         end
       end
       assert(#calls==0 and nativeRequests==60)

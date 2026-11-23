@@ -2,6 +2,16 @@ local Binding = require('code/binding')
 local Context = require('code/context')
 local M = {}
 
+-- Provider IDs map to config paths bindings.<module>.<action>. `contents` marks
+-- a launcher value wrapper, custom-hotkeys holds the built-in actions, and the
+-- launcher's JavaScript objects cannot hold a `constructor` key.
+local reserved={contents=true,constructor=true}
+function M.extensionId(id)
+  if type(id)~='string' or #id>120 then return false end
+  local provider,action=id:match('^ext%.([a-z][a-z0-9_-]*)%.([a-z][a-z0-9_-]*)$')
+  return provider~=nil and provider~='custom-hotkeys' and not reserved[provider] and not reserved[action]
+end
+
 local function set(values, valid)
   if type(values) ~= 'table' or #values == 0 then return nil end
   local result = {}
@@ -20,9 +30,9 @@ function M.new(entries, nativeBindings)
     assert(type(entry.id) == 'string' and entry.id:match('^[a-z][a-z0-9._-]+$'), 'action.id')
     assert(not actions[entry.id], 'action.duplicate')
     local contexts = set(entry.contexts)
-    local states = set(entry.states, {menu=true, ['live-sp']=true, ['live-mp']=true, replay=true})
+    local states = set(entry.states, {menu=true, ['live-sp']=true, ['live-mp']=true, editor=true, replay=true})
     assert(contexts and states and type(entry.command) == 'boolean', 'action.context')
-    assert(not entry.command or not (states.menu or states.replay), 'action.command-state')
+    assert(not entry.command or not (states.menu or states.editor or states.replay), 'action.command-state')
     local behavior = entry.behavior or 'press'
     assert(behavior == 'press' or behavior == 'hold-local', 'action.behavior')
     assert(not entry.command or behavior == 'press', 'action.command-repeat')
@@ -31,7 +41,9 @@ function M.new(entries, nativeBindings)
     local panels=entry.panels and assert(set(entry.panels),'action.panels') or nil
     local a = {id=entry.id, contexts=contexts, states=states, panels=panels,
       command=entry.command, behavior=behavior, default=default, label=entry.label or entry.id,
-      introduced=entry.introduced or 1}
+      extension=entry.extension,
+      labels=entry.labels,category=entry.category,
+      modals=entry.modals and assert(set(entry.modals),'action.modals') or nil}
     actions[a.id], ordered[#ordered+1] = a, a
   end
   local originals = {}
@@ -71,6 +83,9 @@ function M.validate(catalog, bindings)
     else
       local binding, err = Binding.validate(value)
       if not binding then return nil, err, action.id end
+      if binding.wheel and (action.behavior=='hold-local' or action.id:sub(1,8)=='pointer.') then
+        return nil,'binding.unsupported',action.id
+      end
       normalized[action.id] = binding
     end
   end
@@ -84,7 +99,7 @@ function M.validate(catalog, bindings)
       end
       for _, original in ipairs(catalog.originals) do
         if original.action ~= action.id and Binding.same(binding, original.binding)
-            and Context.overlap(action, original.definition) then
+            and Context.overlap(action, original.definition, true) then
           -- A native binding may only be displaced after its replacement is assigned.
           local replacement = normalized[original.action]
           if original.unavailable or replacement == nil or replacement == false or Binding.same(replacement, original.binding) then
@@ -99,10 +114,32 @@ function M.validate(catalog, bindings)
 end
 
 -- Both the framework and private LuaJIT state construct this same definition.
--- Mutable profile/router instances remain private to their owning state.
-function M.production()
-  local catalog=M.new(require('code/entries'),require('code/originals'))
+-- Mutable binding/router instances remain private to their owning state.
+-- A provider default joins each layout only where its chord is still free.
+function M.production(extensions)
+  local entries={}
+  for _,entry in ipairs(require('code/entries')) do entries[#entries+1]=entry end
+  for _,entry in ipairs(extensions or {}) do entries[#entries+1]=entry end
+  local catalog=M.new(entries,require('code/originals'))
+  local defaults={}
+  for _,action in ipairs(catalog.ordered) do
+    if action.extension then defaults[action.id],action.default=action.default,nil end
+  end
   require('code/presets').attach(catalog)
+  local custom=M.defaults(catalog)
+  for _,action in ipairs(catalog.ordered) do
+    local binding=defaults[action.id]
+    if binding then
+      custom[action.id]=binding
+      local valid=M.validate(catalog,custom)
+      if valid then action.default=valid[action.id] else custom[action.id]=false end
+      for _,preset in ipairs(catalog.presetOrder) do
+        preset.bindings[action.id]=binding
+        valid=M.validate(catalog,preset.bindings)
+        preset.bindings[action.id]=valid and valid[action.id] or false
+      end
+    end
+  end
   require('code/editor_groups').attach(catalog)
   return catalog
 end

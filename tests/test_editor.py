@@ -1,8 +1,7 @@
 def setup(lua):
     lua.execute('''
-      local store={load=function() return nil,'store.missing' end,
-        save=function() return true end}
-      profiles=assert(Profiles.new(catalog,store,router))
+      config=memoryConfig()
+      profiles=config:open(catalog,router)
       editor=require('code/editor').new(profiles,catalog,router,function(id)
         return ({['camera.left']='Camera left',['unit.move']='Move unit',
           ['market.buy']='Buy goods',['menu.back']='Go back'})[id]
@@ -34,13 +33,13 @@ def test_change_key_records_physical_chord_and_drains_trigger_and_capture_messag
         assert(editor.capturing and editor.error==nil)
         send(chord[1],chord[2],256,false)
         assert(not editor.capturing and not editor.error)
-        local binding=profiles.draft.profiles.Default.bindings['camera.left']
+        local binding=profiles.draft.bindings['camera.left']
         assert(binding.scan==chord[1] and binding.extended==chord[2] and binding.mods==mods)
         send(chord[1],chord[2],256,true);send(chord[1],chord[2],257,true)
         send(chord[1],chord[2],258,false);send(chord[4],false,257,true)
       end
       assert(#calls==0 and #native==0)
-      assert(profiles.committed.profiles.Default.bindings['camera.left'].scan==30)
+      assert(profiles.committed.bindings['camera.left'].scan==30)
       editor:cancel()
     ''')
 
@@ -56,10 +55,9 @@ def test_mouse_capture_survives_editor_view_apply_and_profile_reload(lua):
       assert(row.binding.button=='middle' and row.binding.mods==2)
       assert(require('code/binding').key(row.binding)==-515)
       row.binding.button='left'
-      assert(profiles.draft.profiles.Default.bindings['camera.left'].button=='middle')
+      assert(profiles.draft.bindings['camera.left'].button=='middle')
       assert(editor:apply())
-      local document=profiles.committed
-      local reloaded=assert(Profiles.new(catalog,{load=function() return document end},router))
+      local reloaded=config:open(catalog,router)
       local view=require('code/editor').new(reloaded,catalog,router,tostring,string.lower,30):view()
       assert(view.rows[1].binding.button=='middle' and view.rows[1].binding.mods==2)
     ''')
@@ -85,7 +83,7 @@ def test_capture_conflict_keeps_existing_binding(lua):
       assert(editor:capture()); assert(not editor:navigate(1))
       router:handle(event(30))
       assert(editor.error=='binding.conflict')
-      assert(profiles.draft.profiles.Default.bindings['unit.move'].scan==50)
+      assert(profiles.draft.bindings['unit.move'].scan==50)
       assert(not editor.capturing and #calls==0)
       assert(editor:capture() and editor.error==nil and editor.reassignment==nil)
       editor:cancelCapture()
@@ -100,9 +98,9 @@ def test_explicit_conflict_swap_is_draft_only_and_invalidated_by_other_edits(lua
       assert(editor:capture());router:handle(event(30))
       assert(editor.reassignment.other=='camera.left')
       assert(editor:reassign())
-      local draft=profiles.draft.profiles.Default.bindings
+      local draft=profiles.draft.bindings
       assert(draft['unit.move'].scan==30 and draft['camera.left'].scan==50)
-      assert(profiles.committed.profiles.Default.bindings['unit.move'].scan==50)
+      assert(profiles.committed.bindings['unit.move'].scan==50)
       assert(#calls==0 and not editor.reassignment)
       editor:cancel()
     ''')
@@ -112,18 +110,18 @@ def test_explicit_conflict_swap_is_draft_only_and_invalidated_by_other_edits(lua
       assert(editor:capture());router:handle(event(30,'up'));router:handle(event(30))
       assert(editor.reassignment)
       assert(editor:clear());assert(not editor:reassign())
-      assert(profiles.draft.profiles.Default.bindings['camera.left'].scan==30)
+      assert(profiles.draft.bindings['camera.left'].scan==30)
     ''')
 
 
 def test_mouse_row_choice_clear_reset_and_apply_use_same_transaction(lua):
     setup(lua)
     lua.execute('''
-      assert(editor:createProfile('Keyboard'))
       assert(editor:choose(2)); assert(editor:clear())
       assert(editor:view().rows[2].binding==false)
       assert(editor:resetAction()); assert(editor:apply())
-      assert(editor.closed and profiles.committed.active=='Keyboard')
+      -- Reset returned the action to inheritance, so nothing is written.
+      assert(editor.closed and #config.saves==0)
       assert(not editor:clear())
     ''')
 
@@ -151,7 +149,7 @@ def test_replaced_native_modal_discards_draft_without_touching_replacement(lua):
       local ownership=require('code/editor_ownership')
       local view={opened=true,parentScreen=41,modalID=2041,controller=editor,
         router=router,text={}}
-      assert(editor:createProfile('Unapplied'))
+      assert(editor:clear())
       assert(ownership.reconcile(view,{screen=41,modal=2041,focused=false}))
       assert(profiles.draft and view.text)
       current.owner='hotkeys.capture'; assert(editor:capture())
@@ -160,5 +158,5 @@ def test_replaced_native_modal_discards_draft_without_touching_replacement(lua):
       assert(replacement.screen==42 and replacement.modal==12)
       assert(not view.opened and not view.text and not router.capture)
       assert(editor.closed and not profiles.draft)
-      assert(not profiles.committed.profiles.Unapplied and #calls==0)
+      assert(profiles.committed.bindings['camera.left'].scan==30 and #config.saves==0 and #calls==0)
     ''')

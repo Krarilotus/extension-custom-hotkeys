@@ -1,11 +1,12 @@
--- Native integration catalog grows here before the first public profile schema
--- is released. These are implemented actions, never synthetic fixture commands.
+-- Built-in actions. Each one is implemented by a native action owner.
 local parents,all={},{}
 for _,screen in ipairs(require('code/menu_screens')) do
   local owner='menu.'..screen[2];parents[#parents+1]=owner;all[#all+1]=owner
 end
 all[#all+1]='game.build';all[#all+1]='game.status'
 local world={'game.build','game.status'}
+local cameraContexts={'game.build','game.status','editor.map'}
+local cameraStates={'live-sp','live-mp','editor'}
 parents[#parents+1]='menu.options';parents[#parents+1]='menu.load'
 local navigation={'game.build','game.status','game.options','game.load'}
 for _,owner in ipairs(parents) do navigation[#navigation+1]=owner end
@@ -15,7 +16,7 @@ local entries={{id='view.lower-buildings',contexts=world,states={'live-sp','live
   default={scan=38,extended=false,mods=1}},
   {id='game.quicksave',contexts=world,states={'live-sp'},command=false,
   default={scan=31,extended=false,mods=1}},
-  {id='view.toggle-interface',contexts={'game.build'},states={'live-sp','live-mp'},command=false,
+  {id='view.toggle-interface',contexts={'game.build','editor.map'},states=cameraStates,command=false,
   default={scan=15,extended=false,mods=1}},
   {id='hotkeys.open',contexts=all,
   states={'menu','live-sp','live-mp'},command=false,default={scan=88,extended=false,mods=0}},
@@ -29,12 +30,12 @@ local entries={{id='view.lower-buildings',contexts=world,states={'live-sp','live
     default={scan=28,extended=false,mods=0}}}
 for _,adjust in ipairs({{'decrease',75},{'increase',77}}) do
   entries[#entries+1]={id='menu.'..adjust[1],contexts={'menu.options','game.options'},
-    states={'menu','live-sp','live-mp'},command=false,introduced=3,
+    states={'menu','live-sp','live-mp'},command=false,
     default={scan=adjust[2],extended=true,mods=0}}
 end
 for _,id in ipairs({'primary','secondary','select','order','select-add','order-queued'}) do
   entries[#entries+1]={id='pointer.'..id,contexts=world,states={'live-sp','live-mp'},
-    command=true,introduced=3,default=(id=='primary' or id=='secondary')
+    command=true,default=(id=='primary' or id=='secondary')
       and {button=id=='primary' and 'left' or 'right',mods=0} or false}
 end
 for group=0,9 do
@@ -48,7 +49,7 @@ end
 for slot=0,9 do
   for _,verb in ipairs({'assign','recall'}) do
     entries[#entries+1]={id='camera.bookmark.'..verb..'.'..slot,contexts=world,
-      states={'live-sp','live-mp'},command=false,introduced=3,
+      states={'live-sp','live-mp'},command=false,
       default={scan=slot==0 and 11 or slot+1,extended=false,mods=verb=='assign' and 6 or 5}}
   end
 end
@@ -61,7 +62,7 @@ for _,dialog in ipairs({{'save',59},{'load',60}}) do
     command=false,default={scan=dialog[2],extended=false,mods=2}}
 end
 for _,view in ipairs({{'rotate-left',45},{'rotate-right',46},{'toggle-zoom',44}}) do
-  entries[#entries+1]={id='view.'..view[1],contexts=world,states={'live-sp','live-mp'},
+  entries[#entries+1]={id='view.'..view[1],contexts=cameraContexts,states=cameraStates,
     command=false,default={scan=view[2],extended=false,mods=0}}
 end
 for _,id in ipairs({'target.up','target.down','target.left','target.right',
@@ -71,7 +72,7 @@ for _,id in ipairs({'target.up','target.down','target.left','target.right',
     command=id=='target.confirm',default=false}
 end
 for _,pan in ipairs({{'up',17},{'left',30},{'down',31},{'right',32}}) do
-  entries[#entries+1]={id='camera.pan.'..pan[1],contexts=world,states={'live-sp','live-mp'},
+  entries[#entries+1]={id='camera.pan.'..pan[1],contexts=cameraContexts,states=cameraStates,
     command=false,behavior='hold-local',default={scan=pan[2],extended=false,mods=0}}
 end
 for _,action in ipairs({{'camera.cycle.signposts',31,4},
@@ -94,6 +95,6 @@ for _,control in ipairs(require('code/controls')) do
 end
 for slot=1,12 do
   entries[#entries+1]={id='grid.slot.'..slot,contexts={'game.build','game.build.slide','game.status'},states={'live-sp','live-mp'},
-    command=true,default=false,introduced=2}
+    command=true,default=false}
 end
 return entries

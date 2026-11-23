@@ -4,12 +4,12 @@ local M = {}
 local Binding=require('code/binding')
 M.__index = M
 
-function M.new(profiles, catalog, router, labels, fold, pageSize)
+function M.new(bindings, catalog, router, labels, fold, pageSize)
   assert(type(labels) == 'function' and type(fold) == 'function', 'editor.locale')
   assert(type(pageSize) == 'number' and pageSize >= 1 and pageSize <= 30
     and pageSize == math.floor(pageSize), 'editor.page-size')
-  profiles:begin()
-  local self=setmetatable({profiles=profiles,catalog=catalog,router=router,
+  bindings:begin()
+  local self=setmetatable({bindings=bindings,catalog=catalog,router=router,
     labels=labels,fold=fold,pageSize=pageSize,query='',group=nil,
     selected=1,first=1,closed=false,capturing=false},M)
   self.groups={};local seen={}
@@ -70,16 +70,13 @@ end
 function M:perform(operation,...)
   if self.closed or self.capturing then return nil,'editor.busy' end
   self.reassignment=nil
-  local ok,err,detail=operation(self.profiles,...)
+  local ok,err,detail=operation(self.bindings,...)
   self.error,self.detail=err,detail
   self.cachedView=nil
   return ok,err,detail
 end
 
-function M:selectProfile(name) return self:perform(self.profiles.select,name) end
-function M:createProfile(name) return self:perform(self.profiles.create,name) end
-function M:importProfile(name,document) return self:perform(self.profiles.import,name,document) end
-function M:exportProfile() return self:perform(self.profiles.export) end
+function M:selectLayout(id) return self:perform(self.bindings.select,id) end
 
 function M:capture()
   if self.closed or self.capturing or not self.rows[self.selected] then return false end
@@ -92,9 +89,9 @@ function M:capture()
     self.cachedView=nil
     if binding then
       self.capturing=false
-      local draft=self.profiles.draft
-      local previous=draft.profiles[draft.active].bindings[action]
-      local ok,problem,detail=self:perform(self.profiles.bind,action,binding)
+      local draft=self.bindings.draft
+      local previous=draft.bindings[action]
+      local ok,problem,detail=self:perform(self.bindings.bind,action,binding)
       if not ok and (problem=='binding.conflict' or problem=='binding.native-conflict')
           and type(detail)=='table' then
         local other=detail[1]==action and detail[2] or (detail[2]==action and detail[1])
@@ -121,55 +118,52 @@ end
 -- require a usable replacement, and any third collision rejects both edits.
 function M:reassign()
   local candidate=self.reassignment
-  if not candidate or candidate.draft~=self.profiles.draft then return false end
-  return self:perform(self.profiles.reassign,candidate.action,candidate.binding,
+  if not candidate or candidate.draft~=self.bindings.draft then return false end
+  return self:perform(self.bindings.reassign,candidate.action,candidate.binding,
     candidate.other,candidate.replacement)
 end
 
 function M:clear()
   local row=self.rows[self.selected]
   if not row then return false end
-  return self:perform(self.profiles.bind,row.id,false)
+  return self:perform(self.bindings.bind,row.id,false)
 end
 
 function M:resetAction()
   local row=self.rows[self.selected]
   if not row then return false end
-  return self:perform(self.profiles.reset,row.id)
+  return self:perform(self.bindings.reset,row.id)
 end
 
-function M:resetProfile() return self:perform(self.profiles.reset) end
+function M:resetLayout() return self:perform(self.bindings.reset) end
 
 function M:apply()
-  local ok,err=self:perform(self.profiles.apply)
+  local ok,err=self:perform(self.bindings.apply)
   if ok then self.closed=true end
   self.cachedView=nil
   return ok,err
 end
 
 function M:cancel()
-  self.profiles:cancel()
+  self.bindings:cancel()
   self.closed,self.capturing=true,false
   self.cachedView=nil
 end
 
 function M:view()
   if self.cachedView then return self.cachedView end
-  local document=self.profiles.draft or self.profiles.committed
-  local profile=document.profiles[document.active]
-  local rows,names={},{}
-  for name in pairs(document.profiles) do names[#names+1]=name end
-  table.sort(names)
+  local document=self.bindings.draft or self.bindings.committed
+  local rows,layouts={},{}
+  for _,preset in ipairs(self.catalog.presetOrder or {}) do layouts[#layouts+1]=preset.id end
   for i=self.first,math.min(#self.rows,self.first+self.pageSize-1) do
     local row=self.rows[i]
-    local b=profile.bindings[row.id]
+    local b=document.bindings[row.id]
     rows[#rows+1]={index=i,id=row.id,label=row.label,group=row.group,
       sectionStart=i==self.first or self.rows[i-1].group~=row.group,
       selected=i==self.selected,binding=b and assert(Binding.validate(b)) or false}
   end
-  local preset=profile.preset and self.catalog.presets and self.catalog.presets[profile.preset]
-  local activeLabel=preset and document.active==preset.name and self.labels('preset.'..preset.id) or document.active
-  self.cachedView={rows=rows,profiles=names,active=document.active,activeLabel=activeLabel,first=self.first,
+  local activeLabel=document.active and self.labels('preset.'..document.active) or ''
+  self.cachedView={rows=rows,layouts=layouts,active=document.active,activeLabel=activeLabel,first=self.first,
     total=#self.rows,capturing=self.capturing,error=self.error,detail=self.detail,
     closed=self.closed}
   return self.cachedView

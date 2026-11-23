@@ -7,6 +7,7 @@ function M.check(config, activeExtensions)
     return nil, 'activation.config-unavailable'
   end
   local found = false
+  local activeConfigKeys = {}
   local count = 0
   for key in pairs(activeExtensions) do
     if type(key) ~= 'number' or key < 1 or key ~= math.floor(key) then
@@ -20,19 +21,21 @@ function M.check(config, activeExtensions)
   for _, extension in ipairs(activeExtensions) do
     if type(extension) ~= 'table' or type(extension.name) ~= 'string'
         or type(extension.version) ~= 'string' then return nil, 'activation.config-unavailable' end
+    local configKey = extension.name .. '-' .. extension.version
+    activeConfigKeys[configKey] = true
     -- Recorder's public lifecycle is checked after all modules initialize.
     -- Its presence alone does not distinguish ordinary recording from playback.
     if extension.name == 'ucp2-legacy' then
       found = true
-      local effective = config[extension.name .. '-' .. extension.version]
+      local effective = config[configKey]
       if type(effective) ~= 'table' or type(effective.o_keys) ~= 'table'
           or effective.o_keys.enabled ~= false then return nil, 'activation.legacy-hotkeys' end
     end
   end
-  -- Reject a stale/imported extra Legacy version too, even when it is absent
-  -- from the extension list. Never guess which contradictory input wins.
+  -- Check stale Legacy entries too. Active entries have an exact owner,
+  -- including companion plugins whose names start with ucp2-legacy-.
   for key, effective in pairs(config) do
-    if type(key) == 'string' and key:match('^ucp2%-legacy%-') then
+    if type(key) == 'string' and not activeConfigKeys[key] and key:match('^ucp2%-legacy%-') then
       if not found or type(effective) ~= 'table' or type(effective.o_keys) ~= 'table'
           or effective.o_keys.enabled ~= false then return nil, 'activation.legacy-hotkeys' end
     end

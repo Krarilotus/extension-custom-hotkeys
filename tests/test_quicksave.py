@@ -93,7 +93,8 @@ def native_setup(lua):
       end}
       package.loaded['code/native/quickslot']=nil
       q=require('code/native/quickslot').new(scene,{},world,cursor,
-        {read=function(_,address,state,origin) assert(address==0xb97ad8 and origin.x==280);return {} end})
+        {matchesPrefix=function(...) return require('code/native/menu_reader').matchesPrefix(...) end,
+         read=function(_,address,state,origin) assert(address==0xb97ad8 and origin.x==280);return {} end})
       function start() assert(q:start(Context.resolve(facts('game.build')))) end
       function overwrite()
         memory[0x1652748]=0;s.modal=11;s.textModal=11;s.activeModalID=11
@@ -143,6 +144,33 @@ def test_native_quicksave_rejects_other_modals_text_and_focus_generation(lua):
     lua.execute("""
       start();q:beforeFrame();overwrite();memory[0x1126600]=7;q:beforeFrame()
       assert(not q.active and confirmations==0)
+    """)
+    native_setup(lua)
+    lua.execute("""
       start();q:beforeFrame();overwrite();buffer='Other save';q:beforeFrame()
       assert(not q.active and confirmations==0)
+    """)
+
+
+def test_quickslot_waits_for_the_dialog_to_open_without_input(lua):
+    lua.execute("""
+      local kinds,steps,cancels={},0,0
+      local frame=0
+      local q=require('code/quickslot').new({open=function() return {} end,
+        observe=function() frame=frame+1;return kinds[frame] or 'opening' end,
+        loadStep=function() steps=steps+1;return true end,
+        pending=function() return false end,cancel=function() cancels=cancels+1 end})
+      kinds={'opening','opening','load','progress'}
+      assert(q:start({},'game.quickload'))
+      q:beforeFrame();q:beforeFrame();assert(q.active and steps==0)
+      q:beforeFrame();assert(steps==1)
+      q:beforeFrame();assert(not q.active and cancels==1)
+      kinds,frame={'load','opening'},0
+      assert(q:start({},'game.quickload'));q:beforeFrame();q:beforeFrame()
+      assert(not q.active and steps==2 and cancels==2)
+      kinds,frame={},0
+      assert(q:start({},'game.quickload'))
+      for i=1,30 do q:beforeFrame() end
+      assert(q.active and steps==2)
+      q:beforeFrame();assert(not q.active and cancels==3)
     """)

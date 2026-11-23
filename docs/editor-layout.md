@@ -36,8 +36,8 @@ draft text controller and filters on text edits only. Enter accepts and focuses
 the first row, Tab accepts and moves focus, Escape restores the prior query.
 The shared exclusive text ownership continues to block game shortcuts.
 
-Profile selection, creation, import/export and profile reset live on a separate
-page reached through the Profile button. Switching pages preserves the draft
+Layout selection and reset live on a separate page reached through the
+Profile button. Switching pages preserves the draft
 and uses the original Menu constructor with two preallocated/pinned item tables;
 the existing modal/menu identity is unchanged. Hidden-page controls and empty
 rows reject activation. Apply/Cancel retain their existing persistence semantics.

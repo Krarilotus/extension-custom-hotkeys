@@ -1,7 +1,7 @@
 local M = {}
-local states = {menu=true, ['live-sp']=true, ['live-mp']=true, replay=true}
+local states = {menu=true, ['live-sp']=true, ['live-mp']=true, editor=true, replay=true}
 local identityFields = {'owner','screen','panel','modal','focus','selection',
-  'targeting','state','authority','generation'}
+  'targeting','state','authority','generation','modalReady'}
 
 ---@class HotkeyContext
 ---@field owner string
@@ -11,7 +11,7 @@ local identityFields = {'owner','screen','panel','modal','focus','selection',
 ---@field focus string
 ---@field selection string
 ---@field targeting string
----@field state 'menu'|'live-sp'|'live-mp'|'replay'
+---@field state 'menu'|'live-sp'|'live-mp'|'editor'|'replay'
 ---@field authority boolean
 ---@field generation integer
 
@@ -49,19 +49,26 @@ function M.panel(context)
 end
 
 function M.allows(action, context)
-  if not context or not action.contexts[context.owner] then return false end
+  if not action or not context or not action.contexts[context.owner] then return false end
   if not action.states[context.state] then return false end
   if action.panels and not action.panels[M.panel(context)] then return false end
+  if action.modals and (not action.modals[context.modal] or context.modalReady~=true) then return false end
   if action.command and (not context.authority
       or (context.state ~= 'live-sp' and context.state ~= 'live-mp')) then return false end
   return true
 end
 
-function M.overlap(a, b)
-  if a.panels and b.panels then
-    local shared=false
-    for panel in pairs(a.panels) do if b.panels[panel] then shared=true;break end end
-    if not shared then return false end
+function M.overlap(a, b, includeFallback)
+  for _,field in ipairs({'panels','modals'}) do
+    local left,right=a[field],b[field]
+    if left and right then
+      local shared=false
+      for value in pairs(left) do if right[value] then shared=true;break end end
+      if not shared then return false end
+    elseif not includeFallback and ((left and a.extension) or (right and b.extension)) then
+      -- A provider's verified narrower context can shadow a generic action.
+      return false
+    end
   end
   for owner in pairs(a.contexts) do
     if b.contexts[owner] then

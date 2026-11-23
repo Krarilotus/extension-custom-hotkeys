@@ -6,7 +6,7 @@ require('jit').off()
 require('ui')
 assert(ffi.sizeof('MenuItem')==80 and ffi.sizeof('Menu')==68,'ui.abi')
 local Catalog=require('code/catalog')
-local Profiles=require('code/profiles')
+local Bindings=require('code/bindings')
 local Router=require('code/router')
 local Platform=require('code/native/win32')
 local Scene=require('code/native/scene')
@@ -14,18 +14,34 @@ local View=require('code/native/editor_view')
 local M={}
 function M.start(language)
   require('code/dialog_context').bind(remote.interface.modalMenuAddress)
-  local lock=assert(require('code/native/profile_lock').acquire())
+  local lock,lockProblem=require('code/native/profile_lock').acquire()
+  if not lock then
+    remote.interface.logWarning('Profiles are read-only in this process ('..tostring(lockProblem)..')')
+  end
   local platform=Platform.new(tonumber(ffi.cast('int32_t *',A.gameWindow)[0]))
+  local catalog=Catalog.production(remote.interface.extensionActions())
   local scene=Scene.new(platform,function() return remote.interface.recorderInputGeneration() end)
-  local catalog=Catalog.production()
+  local function extensionAction(id,phase,context,event)
+    local info=context and {owner=context.owner,panel=context.panel,modal=context.modal,
+      screen=context.screen,state=context.state,authority=context.authority}
+    local _,problem=remote.interface.dispatchExtension(id,phase,info,event)
+    if problem then remote.interface.logWarning(id..': '..problem) end
+  end
   local selectors=require('code/controls')
   local controls={}
   for _,control in ipairs(selectors) do controls[control.id]=control end
   local view,cursor,navigation,targeting,camera,worldActions,quickslot,lowering
-  local router
+  local router,ready
   router=Router.new(catalog,Catalog.defaults(catalog),{
-    resolve=function() if quickslot and quickslot.active then return nil end;return scene:resolve(view) end,
+    report=function(where,problem)
+      remote.interface.logWarning('Hotkeys switched off at '..where..': '..tostring(problem))
+    end,
+    resolve=function()
+      if quickslot and quickslot.active then return nil end
+      return scene:resolve(view)
+    end,
     dispatch=function(id,context,nativeBinding,event)
+      if catalog.actions[id].extension then return extensionAction(id,'press',context,event) end
       if (id=='game.quicksave' or id=='game.quickload') then router:barrier();return quickslot:start(context,id) end
       if id=='hotkeys.open' then return view:open() end
       if id=='menu.next' then return navigation:move(1,context) end
@@ -47,7 +63,8 @@ function M.start(language)
     canRecover=function(c) return c and (c.owner:sub(1,5)=='menu.' or c.owner=='game.build' or c.owner=='game.status') end,
     recover=function() return view:open() end,
     cancelLocalHold=function(id)
-      if id=='view.lower-buildings' and lowering then lowering:release()
+      if catalog.actions[id].extension then extensionAction(id,'release')
+      elseif id=='view.lower-buildings' and lowering then lowering:release()
       elseif camera then camera:release(id) end
     end,
     cancelPending=function()
@@ -57,13 +74,44 @@ function M.start(language)
       if cursor then cursor:cancel() end
     end,
     cancelPointerHold=function() if cursor then cursor.adapter.cancel() end end,
+    exclusive=function() return quickslot~=nil and quickslot.active==true end,
   })
-  local store={load=function() return remote.interface.loadProfiles() end,
-    save=function(_,document) return remote.interface.saveProfiles(document) end}
-  local profiles,err=Profiles.new(catalog,store,router)
-  assert(profiles,err)
-  view=View.new(profiles,catalog,router,scene,platform,require('code/locale').new(language,
-    require('code/native/text').label))
+  local replace=require('code/native/replace_file')
+  local source=remote.interface.bindingSource()
+  -- The 0.2 profile is imported once per installation, by the process that
+  -- holds the writer lock, and recorded with the first config write after it.
+  if source.fresh and lock and not remote.interface.legacyImported() then
+    source.legacy=remote.interface.legacyProfile()
+  end
+  local importPending=source.legacy~=nil
+  local store={save=function(_,changes)
+    if not lock then return nil,lockProblem end
+    local staged,problem=remote.interface.stageBindings(changes)
+    if not staged then return nil,problem end
+    local ok,err=replace(staged.staged,staged.target)
+    remote.interface.bindingsReplaced(ok==true)
+    if ok and importPending then
+      local marked,markProblem=remote.interface.markLegacyImported()
+      importPending=not marked
+      if not marked then remote.interface.logWarning('0.2 import not recorded yet ('..tostring(markProblem)..')') end
+    end
+    return ok,err
+  end}
+  local built,bindings=pcall(Bindings.new,catalog,source,store,router)
+  if not built then
+    remote.interface.logWarning('Using layout defaults without saving ('..tostring(bindings)..')')
+    source={}
+    bindings=Bindings.new(catalog,source,{save=function() return nil,'config.unavailable' end},router)
+  end
+  for _,id in ipairs(bindings.committed.aside) do
+    remote.interface.logWarning('Saved binding for '..id..' set aside: its chord is taken')
+  end
+  if bindings.migration and not bindings.migration.saved then
+    remote.interface.logWarning('0.2 profile not written to the UCP config yet ('..tostring(bindings.migration.problem)
+      ..'); a successful Apply writes it, and the 0.2 files are unchanged')
+  end
+  view=View.new(bindings,catalog,router,scene,platform,require('code/locale').new(language,
+    require('code/native/text').label,catalog.extensionLabels))
   camera=require('code/native/camera').new(platform,router)
   lowering=require('code/native/lowering').new(scene,view,platform,router)
   local pointer=require('code/native/pointer').new(platform,scene)
@@ -88,18 +136,19 @@ function M.start(language)
     return targeting:dispatch(button=='left' and 'target.confirm' or 'target.cancel',context)
   end)
   quickslot=require('code/native/quickslot').new(scene,view,worldActions,cursor,reader)
+  local inputFrame=require('code/native/input_frame').install(cursor,router,camera,quickslot,lowering,navigation,worldActions)
   local chain=require('code/native/chain').install(remote.interface.chain(),router,platform,
     function(event)
       if quickslot.active and (event.kind=='down' or event.kind=='char') then quickslot:cancel() end
       return view:input(event)
     end,function(message,_,lparam)
       if pointer:observe(message,lparam) then quickslot:cancel();navigation:cancel() end
-    end)
-  local inputFrame=require('code/native/input_frame').install(cursor,router,camera,quickslot,lowering,navigation,worldActions)
+    end,function() return ready end)
   local runtime={lock=lock,platform=platform,scene=scene,catalog=catalog,router=router,
-    profiles=profiles,view=view,chain=chain,cursor=cursor,navigation=navigation,
+    bindings=bindings,view=view,chain=chain,cursor=cursor,navigation=navigation,
     inputFrame=inputFrame,lowering=lowering,quickslot=quickslot,pointer=pointer,targeting=targeting,camera=camera,worldActions=worldActions,pins={}}
-  runtime.pins=require('code/native/options_menu').install(scene,view)
+  runtime.pins=require('code/native/options_menu').install(scene,view,function() return ready end)
+  ready=true
   return runtime
 end
 return M

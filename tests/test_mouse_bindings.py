@@ -90,3 +90,122 @@ def test_editor_mouse_controls_remain_native_except_during_capture(lua):
       assert(h(4,9,0x207,16,123)==0 and h(4,9,0x208,0,123)==0)
       assert(captured.button=='middle' and passed==2 and exclusive==0)
     ''')
+
+
+def test_native_chain_distinguishes_quickslot_release_from_pointer_takeover(lua):
+    lua.execute('''
+      local c=Catalog.new({
+        {id='game.quickload',contexts={'game'},states={'live-sp'},
+         command=false,default={button='middle',mods=0}},
+        {id='pointer.order',contexts={'game'},states={'live-sp'},
+         command=true,default={button='right',mods=0}}})
+      local r,quickslot,forwarded,observed
+      local platform={owns=function(_,hwnd) return hwnd==9 end,
+        observe=function() return false end,
+        modifiers=function() return {mods=0,altgr=false,win=false,composing=false} end}
+      local callback
+      package.loaded.ffi={os='Windows',arch='x86',cast=function(_,value)
+        if value==123 then
+          return function(fn,priority) callback=fn;return priority end
+        end
+        if value==456 then
+          return function(_,_,message) forwarded=message;return 42 end
+        end
+        return value
+      end}
+      package.loaded.jit={off=function() end}
+      r=Router.new(c,Catalog.defaults(c),{
+        resolve=function() if not quickslot then return current end end,
+        dispatch=function(id)
+          if id=='pointer.order' then return 'left' end
+          r:barrier()
+          quickslot=true
+        end,
+        canRecover=function() return false end,recover=function() end,
+        cancelLocalHold=function() end,cancelPending=function() quickslot=false end})
+      require('code/native/chain').install({RegisterProc=123,CallNextProc=456},r,platform,nil,
+        function(message) observed=message;quickslot=false end,function() return true end)
+      local function msg(message,flags) return callback(-110000,9,message,flags,0) end
+      assert(msg(0x207,16)==0 and quickslot and observed==0x207)
+      assert(msg(0x208,0)==0 and quickslot and observed==0x207 and forwarded==nil)
+      assert(msg(0x201,1)==42 and not quickslot and observed==0x201)
+      assert(msg(0x202,0)==42 and observed==0x202 and forwarded==0x202)
+      assert(msg(0x204,2)==42 and observed==0x204 and forwarded==0x201)
+      assert(msg(0x205,0)==42 and observed==0x205 and forwarded==0x202)
+    ''')
+
+
+def test_native_chain_keeps_wheel_quicksave_through_its_remaining_notches(lua):
+    # W9 native finding: one wheel spin sends several WM_MOUSEWHEEL notches.
+    # The first started Quicksave; the next was treated as pointer takeover and
+    # cancelled it, leaving the native Save dialog open with a blank name.
+    lua.execute('''
+      local c=Catalog.new({
+        {id='game.quicksave',contexts={'game'},states={'live-sp'},
+         command=false,default={wheel='down',mods=0}},
+        {id='camera.pan.left',contexts={'game'},states={'live-sp'},
+         command=false,default={scan=30,extended=false,mods=0}}})
+      local r,quickslot,forwarded,observed
+      local opens,cancels=0,0
+      local platform={owns=function(_,hwnd) return hwnd==9 end,
+        observe=function() return false end,
+        modifiers=function() return {mods=0,altgr=false,win=false,composing=false} end}
+      local callback
+      package.loaded.ffi={os='Windows',arch='x86',cast=function(_,value)
+        if value==123 then
+          return function(fn,priority) callback=fn;return priority end
+        end
+        if value==456 then
+          return function(_,_,message) forwarded=message;return 42 end
+        end
+        return value
+      end}
+      package.loaded.jit={off=function() end}
+      r=Router.new(c,Catalog.defaults(c),{
+        resolve=function() if not quickslot then return current end end,
+        dispatch=function(id)
+          assert(id=='game.quicksave')
+          r:barrier()
+          quickslot=true;opens=opens+1
+        end,
+        canRecover=function() return false end,recover=function() end,
+        cancelLocalHold=function() end,
+        cancelPending=function() if quickslot then cancels=cancels+1 end;quickslot=false end,
+        exclusive=function() return quickslot==true end})
+      require('code/native/chain').install({RegisterProc=123,CallNextProc=456},r,platform,nil,
+        function(message)
+          observed=message
+          if quickslot then cancels=cancels+1 end
+          quickslot=false
+        end,function() return true end)
+      local function wheel(delta,flags)
+        observed,forwarded=nil,nil
+        return callback(-110000,9,0x20a,(delta%65536)*65536+(flags or 0),0)
+      end
+      current=facts()
+      assert(wheel(-120)==0 and quickslot and opens==1 and observed==0x20a)
+      -- The rest of the same spin stays with the workflow: no takeover and
+      -- nothing reaches the Save dialog it opened.
+      for _=1,3 do
+        assert(wheel(-120)==0 and quickslot and opens==1 and cancels==0)
+        assert(observed==nil and forwarded==nil)
+      end
+      -- Another direction or chord is real pointer input and cancels.
+      assert(wheel(-120,8)==42 and not quickslot and cancels==1 and observed==0x20a)
+      assert(wheel(-120)==0 and quickslot and opens==2)
+      assert(wheel(120)==42 and not quickslot and cancels==2 and observed==0x20a)
+      -- A fresh key ends the wheel gesture, so a later notch is takeover again.
+      assert(wheel(-120)==0 and quickslot and opens==3)
+      assert(callback(-110000,9,0x100,65,30*65536)==42 and quickslot)
+      assert(callback(-110000,9,0x101,65,30*65536+3221225472)==42 and quickslot)
+      assert(wheel(-120)==0 and observed==0x20a and cancels==3 and opens==4 and quickslot)
+      -- One high-resolution message worth two notches starts one workflow and
+      -- its own barrier must not cancel it on the second step.
+      quickslot=false
+      assert(wheel(-240)==0 and quickslot and opens==5 and cancels==3)
+      -- After the workflow ends while its dialog stays open (no context), the
+      -- same notch is native scrolling again, not swallowed by the old gesture.
+      quickslot=false;current=nil
+      assert(wheel(-120)==42 and observed==0x20a and opens==5)
+      current=facts()
+    ''')

@@ -9,8 +9,7 @@ function M.controls(page)
   if page=='profiles' then
     add(118,584,18,156,'bindings')
     add(101,28,100,568,'profile');add(102,608,100,56,'<');add(103,676,100,56,'>')
-    add(104,28,158,340,'new');add(116,28,204,340,'import')
-    add(117,388,204,344,'export');add(110,28,264,340,'resetProfile')
+    add(110,28,158,340,'resetProfile')
   else
     add(118,494,16,246,'profile')
     add(105,104,50,382,'search',26);add(106,494,48,246,'groups')

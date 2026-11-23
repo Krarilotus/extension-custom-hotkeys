@@ -5,5 +5,7 @@
     <file src="init.lua" />
     <file src="code" />
     <file src="README.md" />
-  </files>
+    <file src="locale" />
+    <file src="CREDITS.md" />
+</files>
 </module>

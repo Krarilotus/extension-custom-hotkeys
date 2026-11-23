@@ -19,7 +19,7 @@ def lua(request):
       Catalog = require('code/catalog')
       Context = require('code/context')
       Router = require('code/router')
-      Profiles = require('code/profiles')
+      Bindings = require('code/bindings')
       require('code/dialog_context').bind(function(id)
         return id==5 and reference_addresses.optionsMenu or nil
       end)
@@ -38,6 +38,28 @@ def lua(request):
       end
       function repeat_event(scan, mods)
         local e=event(scan,'down',mods); e.repeated=true; return e
+      end
+      -- An in-memory UCP config dictionary: explicit and effective trees match
+      -- because no plugin suggests anything.
+      function memoryConfig()
+        local config={tree={},saves={}}
+        function config:save(changes)
+          if self.failed then return nil,'config.write' end
+          for _,change in ipairs(changes) do
+            local node=self.tree
+            for i=1,#change.path-1 do
+              node[change.path[i]]=node[change.path[i]] or {}
+              node=node[change.path[i]]
+            end
+            node[change.path[#change.path]]=change.value
+          end
+          self.saves[#self.saves+1]=changes
+          return true
+        end
+        function config:open(catalog,router)
+          return Bindings.new(catalog,Bindings.source(catalog,self.tree,self.tree),self,router)
+        end
+        return config
       end
       function fixture()
         catalog = Catalog.new({

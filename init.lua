@@ -6,14 +6,20 @@ if not ok then
   error(labels(reason)..' ['..tostring(reason)..']')
 end
 local launch=require('code/launch')
-local prepared=launch.prepare('ucp/modules/custom-hotkeys')
+local registry=require('code/extension_actions').new()
+local prepared=launch.prepare('ucp/modules/custom-hotkeys',registry)
 local M={}
-function M:enable()
+function M:registerAction(spec)
+  return registry.register(spec)
+end
+function M:enable(config)
   assert(not self.started,'Custom Hotkeys is already enabled; restart required')
   self.started=true
   hooks.registerHookCallback('afterInit',function()
-    self.runtime=launch.start(prepared)
-    log(INFO,'Custom Hotkeys initialized: '..json:encode(self.runtime.receipt))
+    self.runtime=launch.start(prepared,config or {},USER_CONFIG)
+    if self.runtime.receipt.installed then
+      log(INFO,'Custom Hotkeys initialized: '..json:encode(self.runtime.receipt))
+    end
   end)
 end
 function M:disable()

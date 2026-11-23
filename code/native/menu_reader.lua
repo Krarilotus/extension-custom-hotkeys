@@ -7,6 +7,28 @@ local function n(value) return tonumber(value) end
 function M.new()
   return setmetatable({},M)
 end
+-- Some providers rebuild an existing dialog with a relocated item table.
+-- Prove the original prefix through the current Menu owner. The Load workflow
+-- still verifies the individual controls it will activate.
+function M.matchesPrefix(menuAddress,originalAddress,count,matchAction)
+  local menu=ffi.cast('Menu *',menuAddress)
+  local array=menu[0].menuItemArray
+  if array==nil then return false end
+  local original=ffi.cast('MenuItem *',originalAddress)
+  for index=0,count-1 do
+    local row,reference=array[index],original[index]
+    if n(row.menuItemType)==0x66 or row.menuPointer~=menu
+        or row.menuItemType~=reference.menuItemType
+        or row.callbackParameter.parameter~=reference.callbackParameter.parameter
+        or row.itemWidth~=reference.itemWidth or row.itemHeight~=reference.itemHeight
+        -- Group members can acquire the header callback during construction.
+        or (matchAction and reference.menuItemActionHandler.simple~=nil
+          and row.menuItemActionHandler.simple~=reference.menuItemActionHandler.simple) then
+      return false
+    end
+  end
+  return true
+end
 function M:read(menuAddress, state, origin,includeDisabled,allowSliding)
   if not menuAddress or menuAddress==0 then return nil,'menu.missing' end
   local menu=ffi.cast('Menu *',menuAddress)

@@ -11,13 +11,21 @@ function M.new(catalog, bindings, adapter)
   assert(type(adapter.resolve) == 'function' and type(adapter.dispatch) == 'function'
     and type(adapter.recover) == 'function' and type(adapter.canRecover) == 'function'
     and type(adapter.cancelLocalHold) == 'function', 'adapter.required')
-  local self = setmetatable({catalog=catalog, adapter=adapter, held={}, charBlocked={}, blocked=false}, M)
+  local self = setmetatable({catalog=catalog, adapter=adapter, held={}, charBlocked={}, blocked=false, localHolds=0}, M)
   assert(self:apply(bindings))
   return self
 end
 
+function M:block(where,problem)
+  if self.blocked then return end
+  self.blocked=true
+  if self.adapter.report then pcall(self.adapter.report,where,problem) end
+end
+
 function M:cancelGestures()
   self.pointerHolds=0
+  self.wheelPending=nil
+  self.wheelGesture=nil
   -- Native cancellation may inspect another key's ownership. Revoke every
   -- gesture first so table traversal order cannot preserve an old native hold.
   for _, held in pairs(self.held) do held.blocked = true end
@@ -31,6 +39,16 @@ function M:cancelGestures()
   for _, held in pairs(self.held) do self:cancelHold(held) end
 end
 
+-- While the exclusive workflow a wheel gesture started is active, its further
+-- notches are router input, like a consumed button release, and not native
+-- pointer takeover. Once the workflow ends, wheel input is native again.
+function M:ownsWheel(wheel,mods)
+  if wheel == nil or self.wheelGesture == nil
+      or self.wheelGesture ~= Binding.key({wheel=wheel,mods=mods}) then return false end
+  local ok,active = pcall(self.adapter.exclusive or function() return false end)
+  return ok and active == true
+end
+
 function M:barrier()
   self:cancelGestures()
   self:cancelCapture()
@@ -41,8 +59,8 @@ function M:cancelCapture()
   local callback = self.capture
   self.capture = nil
   if callback then
-    local ok = pcall(callback, nil, 'capture.cancel')
-    if not ok then self.blocked = true end
+    local ok,err = pcall(callback, nil, 'capture.cancel')
+    if not ok then self:block('capture cancel',err) end
   end
 end
 
@@ -50,13 +68,14 @@ function M:cancelHold(held)
   if not held.localHold then return end
   local action = held.localHold
   held.localHold = nil
+  self.localHolds=self.localHolds-1
   -- Cancellation only releases local input ownership, including when the old
   -- screen is already gone. It must never submit a simulation command.
   local wasDispatching = self.dispatching
   self.dispatching = true
-  local ok = pcall(self.adapter.cancelLocalHold, action)
+  local ok,err = pcall(self.adapter.cancelLocalHold, action)
   self.dispatching = wasDispatching
-  if not ok then self.blocked = true end
+  if not ok then self:block('hold release',err) end
 end
 
 function M:apply(bindings,options)
@@ -66,25 +85,25 @@ function M:apply(bindings,options)
   self.bindings, self.index, self.nativeMasks, self.nativeDispatch = normalized, {}, {}, {}
   for id, binding in pairs(normalized) do
     if binding then
+      local action=self.catalog.actions[id]
       local key = Binding.key(binding)
       self.index[key] = self.index[key] or {}
-      local action=self.catalog.actions[id]
       for owner in pairs(action.contexts) do
         local states=self.index[key][owner] or {}
         self.index[key][owner]=states
         for state in pairs(action.states) do
           -- Compile each key's disjoint native panels on Apply. Input retains
           -- constant-time lookup and never enumerates inactive menus.
-          local scope=states[state] or {panels={}}
+          local scope=states[state] or {panels={},modals={}}
           states[state]=scope
-          if action.panels then
-            assert(not scope.any,'binding.conflict')
-            for panel in pairs(action.panels) do
-              assert(not scope.panels[panel],'binding.conflict')
-              scope.panels[panel]=action
+          if action.panels or action.modals then
+            local slots=action.panels and scope.panels or scope.modals
+            for value in pairs(action.panels or action.modals) do
+              assert(not slots[value],'binding.conflict')
+              slots[value]=action
             end
           else
-            assert(not scope.any and next(scope.panels)==nil,'binding.conflict')
+            assert(not scope.any,'binding.conflict')
             scope.any=action
           end
         end
@@ -139,13 +158,14 @@ function M:handle(event)
     return event.kind == 'down' or event.kind == 'up' or event.kind == 'char'
   end
   if event.kind == 'barrier' then self:barrier(); return false end
-  if (event.button and not Binding.buttons[event.button]) or (not event.button and
+  if (event.wheel and (not Binding.wheels[event.wheel] or type(event.delta)~='number' or event.delta==0))
+      or (event.button and not Binding.buttons[event.button]) or (not event.button and not event.wheel and
       (type(event.scan) ~= 'number' or event.scan < 1 or event.scan > 127
       or event.scan ~= math.floor(event.scan) or type(event.extended) ~= 'boolean'
   )) then
     self:barrier(); return false
   end
-  local physical = Binding.physical(event.scan, event.extended,event.button)
+  local physical = Binding.physical(event.scan,event.extended,event.button,event.wheel)
   local context = self:refresh()
   local held = self.held[physical]
   if event.kind == 'up' then
@@ -172,11 +192,17 @@ function M:handle(event)
     return held.consumed or held.blocked
   end
   held = {consumed=false, blocked=false}
-  self.held[physical] = held
-  self.charBlocked[physical] = nil
+  if not event.wheel then
+    self.held[physical] = held
+    self.charBlocked[physical] = nil
+    self.wheelGesture = nil
+  end
   -- Unknown held keys on focus regain must never become a new activation.
   if event.repeated ~= false then held.blocked = true; return false end
-  if event.win ~= false or event.altgr ~= false or event.composing ~= false then return false end
+  if event.win ~= false or event.altgr ~= false or event.composing ~= false then
+    if event.wheel then self.wheelPending=nil end
+    return false
+  end
   if type(event.mods) ~= 'number' or event.mods ~= math.floor(event.mods)
       or event.mods < 0 or event.mods > 7 then return false end
   if Binding.system(event) then
@@ -184,7 +210,11 @@ function M:handle(event)
     if self.capture then self.capture(nil, 'binding.reserved') end
     return false
   end
-  if not context then return false end
+  if not context then
+    -- A workflow started by this wheel gesture owns input until it ends.
+    -- Its further notches must not reach the dialog it opened.
+    return event.wheel ~= nil and self:ownsWheel(event.wheel,event.mods)
+  end
   if self.capture and Binding.recovery(event) then
     held.consumed=true
     self:barrier()
@@ -195,7 +225,8 @@ function M:handle(event)
     -- A modifier starts a chord; wait for its main key without flashing an
     -- invalid-binding error or allowing the modifier to activate a native menu.
     if Binding.modifier(event.scan) then held.consumed=true;return true end
-    local candidate=event.button and {button=event.button,mods=event.mods}
+    local candidate=event.wheel and {wheel=event.wheel,mods=event.mods}
+      or event.button and {button=event.button,mods=event.mods}
       or {scan=event.scan,extended=event.extended,mods=event.mods}
     local binding, err = Binding.validate(candidate)
     held.consumed = true
@@ -215,19 +246,21 @@ function M:handle(event)
     end
     held.consumed = true
     self.dispatching = true
-    local ok = pcall(self.adapter.recover, now)
+    local ok,err = pcall(self.adapter.recover, now)
     self.dispatching = false
     self:barrier()
-    if not ok then self.blocked = true end
+    if not ok then self:block('recovery',err) end
     return true
   end
   if self.blocked then return false end
   local owners = self.index[Binding.key(event)]
   local states = owners and owners[context.owner]
   local scope = states and states[context.state]
-  local chosen = scope and (scope.any or scope.panels[Context.panel(context)])
-  if chosen and not Context.allows(chosen,context) then chosen=nil end
+  local chosen = scope and (scope.modals[context.modal] or scope.panels[Context.panel(context)])
+  if not Context.allows(chosen,context) then chosen=scope and scope.any end
+  if not Context.allows(chosen,context) then chosen=nil end
   if not chosen then
+    if event.wheel then self.wheelPending=nil end
     for _, action in ipairs(self.nativeMasks[Binding.key(event)] or empty) do
       if Context.allows(action, context) then
         if not Context.same(context, self:readContext()) then self:barrier(); return false end
@@ -244,12 +277,37 @@ function M:handle(event)
   -- Consume even a rejected native action: forwarding its original key would
   -- invoke a second, unrelated native shortcut. Never retry an uncertain call.
   held.consumed = true
-  if chosen.behavior == 'hold-local' then held.localHold = chosen.id end
-  self.dispatching = true
-  local nativeBinding=self.nativeDispatch[Binding.key(event)]==chosen.id
-  local ok,result = pcall(self.adapter.dispatch, chosen.id, now,nativeBinding,event)
-  self.dispatching = false
-  if not ok then self.blocked = true; self:barrier() end
+  if chosen.behavior == 'hold-local' then
+    held.localHold=chosen.id
+    self.localHolds=self.localHolds+1
+  end
+  local key=Binding.key(event)
+  local steps,wheelBatch=1,nil
+  if event.wheel then
+    local pending=self.wheelPending
+    local units=math.abs(event.delta)+(pending and pending.key==key and pending.units or 0)
+    steps=math.floor(units/120)
+    wheelBatch={key=key,units=units%120}
+    self.wheelPending=wheelBatch
+    event.delta=event.delta>0 and 120 or -120
+  end
+  local nativeBinding=self.nativeDispatch[key]==chosen.id
+  local ok,result
+  for step=1,steps do
+    -- The action's own barrier already ended the burst; a second barrier
+    -- would cancel the workflow it has just started.
+    if step>1 and self.wheelPending~=wheelBatch then break end
+    if step>1 and not Context.same(now,self:readContext()) then
+      self:barrier()
+      break
+    end
+    self.dispatching = true
+    ok,result = pcall(self.adapter.dispatch,chosen.id,now,nativeBinding,event)
+    self.dispatching = false
+    if not ok then self:block(chosen.id,result);self:barrier();break end
+  end
+  -- Set after dispatch: an action's own barrier must not end its gesture.
+  if event.wheel and ok then self.wheelGesture=key end
   if ok and result=='native' and nativeBinding then held.consumed=false;return false end
   if ok and result=='pointer-native' and event.button and chosen.id:sub(1,8)=='pointer.' then
     held.consumed=false;return false

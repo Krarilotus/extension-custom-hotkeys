@@ -49,22 +49,21 @@ Building groups validate native identity serials and ownership. Camera bookmarks
 are local viewport positions. Only sessions with bookmarks perform their small
 lifetime check; there is no per-frame building/unit census or simulation hook.
 
-`profiles.lua` separates draft and committed state. Apply persists before
-activating; Cancel discards. Existing saved preferences take precedence over
-launcher bootstrap defaults. Complete catalog validation covers native/custom
-conflicts, atomic key swaps and imported JSON. The profile schema remains
-experimental until the required catalog is complete.
+`bindings.lua` holds the sparse dictionary of explicit choices from the active
+UCP config and derives the effective bindings from it, the layout, plugin
+suggestions and provider defaults. It separates draft and committed state.
+Apply writes only the changed explicit entries before activating; Cancel
+discards. Complete catalog validation covers native/custom conflicts and
+atomic key swaps.
 
-`store.lua` alternates two checksummed, validated files, verifies writes by
-reading them back and retains the last good file after a failed write. UCP3.0.7
-public io.open supplies the fixed installation-local boundary. A named mutex
-prevents a second profile writer. The in-game editor imports/exports a separate
-exchange pair; it cannot use a profile name as a filesystem path. Framework
-userdata PR142 remains separately owned and is not required for this boundary.
+`config_file.lua` writes those entries into the `custom-hotkeys` block of the
+active config file and checks the result with the framework's YAML reader
+before replacing the file. A named mutex prevents a second writer.
+`legacy_profiles.lua` reads the 0.2 profile slots once for migration.
 
 `editor.lua` drives the real native view in `native/editor_view.lua`, using the
 UI owner's public menu/modal API and explicit arrays. It supports search/groups,
-profiles, capture/clear/reset/swap, Apply/Cancel and profile exchange. Text is
+layouts, capture/clear/reset/swap and Apply/Cancel. Text is
 UTF-8 in storage and explicitly converted to the verified native font code page.
 Native text widths bound labels and keep the editing caret/selection visible.
 Game-language labels and Windows key names are cached. Source language coverage

@@ -1,7 +1,7 @@
 # Custom Hotkeys
 
-Crusader kontrollerini oyun tarzına göre düzenle. Oyunun varsayılan düzeni, Modern RTS veya Izgara ile başla; ardından klavye kısayollarını ve fare tuşlarını yeniden ata, düzenlerini profil olarak kaydet. Izgara, açık olan inşa veya birim panelini izler; böylece aynı tuşlar farklı işlemler için kullanılabilir.
+Crusader kontrollerini oyun tarzınıza göre düzenleyin. Oyunun varsayılanı, Modern RTS veya Izgara ile başlayın; ardından klavye kısayollarını ve fare tuşlarını yeniden atayın. Izgara, açık olan inşaat veya birim panelini izler; böylece aynı tuşlar farklı eylemler için kullanılabilir.
 
-Ana menüden veya duraklatma menüsünden **Seçenekler > Özel Kısayollar** bölümünü aç ya da oyun sırasında **F12**'ye bas. Bir işlem seçip **Enter**'a bastıktan sonra bir tuş veya fare düğmesi ata; **Delete** atamayı temizler, **Uygula** profili kaydeder. Kamera konumları, gruplar, bina yerleştirme ve birim emirleri de bu editörde ayarlanır.
+Ana menüden veya duraklatma menüsünden **Seçenekler > Özel Kısayollar** bölümünü açın ya da oyun sırasında **F12**'ye basın. Bir eylem seçip **Enter**'a bastıktan sonra bir tuş veya fare düğmesi atayın; **Delete** atamayı temizler, **Uygula** seçimlerinizi etkin UCP yapılandırmasına kaydeder. Kamera konumları, gruplar, bina yerleştirme ve birim emirleri de bu düzenleyicide ayarlanır.
 
 ![Oyun içi kısayol düzenleyicisi](https://raw.githubusercontent.com/Krarilotus/extension-custom-hotkeys/v0.2.1/docs/images/hotkeys-010-editor-ingame.jpg)

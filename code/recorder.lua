@@ -1,4 +1,4 @@
--- Optional lifecycle notifications, not a tester-build compatibility gate.
+-- Optional Recorder input generation and transition notifications.
 local M={}
 function M.connect(modules,extensions)
   local active=false
