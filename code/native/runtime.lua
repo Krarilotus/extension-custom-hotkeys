@@ -78,29 +78,32 @@ function M.start(language)
   })
   local replace=require('code/native/replace_file')
   local source=remote.interface.bindingSource()
-  -- The 0.2 slots retire with the first config write that holds their entries.
-  local retirePending=source.legacy~=nil
-  local function retire()
-    if not retirePending or not lock then return end
-    local ok,problem=remote.interface.retireLegacyProfiles()
-    retirePending=not ok
-    if not ok then remote.interface.logWarning('Saved 0.2 profiles kept ('..tostring(problem)..')') end
-  end
   local store={save=function(_,changes)
     if not lock then return nil,lockProblem end
     local staged,problem=remote.interface.stageBindings(changes)
     if not staged then return nil,problem end
     local ok,err=replace(staged.staged,staged.target)
-    if ok then retire() end
+    remote.interface.bindingsReplaced(ok==true)
     return ok,err
   end}
-  local bindings=Bindings.new(catalog,source,store,router)
+  local built,bindings=pcall(Bindings.new,catalog,source,store,router)
+  if not built then
+    remote.interface.logWarning('Using layout defaults without saving ('..tostring(bindings)..')')
+    source={}
+    bindings=Bindings.new(catalog,source,{save=function() return nil,'config.unavailable' end},router)
+  end
   for _,id in ipairs(bindings.committed.aside) do
     remote.interface.logWarning('Saved binding for '..id..' set aside: its chord is taken')
   end
-  if bindings.migration and bindings.migration.saved then retire()
-  elseif bindings.migration then
-    remote.interface.logWarning('Saved 0.2 profiles not migrated yet ('..tostring(bindings.migration.problem)..')')
+  -- The 0.2 slots are imported once: the writing process renames them to
+  -- *.migrated right away. Entries not yet written stay pending for Apply.
+  if source.legacy and lock then
+    local retired,problem=remote.interface.retireLegacyProfiles()
+    if not retired then remote.interface.logWarning('Saved 0.2 profiles kept ('..tostring(problem)..')') end
+    if not bindings.migration.saved then
+      remote.interface.logWarning('0.2 profile not written to the UCP config yet ('..tostring(bindings.migration.problem)
+        ..'); Apply writes it, the old files are kept as *.migrated')
+    end
   end
   view=View.new(bindings,catalog,router,scene,platform,require('code/locale').new(language,
     require('code/native/text').label,catalog.extensionLabels))

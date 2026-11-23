@@ -209,23 +209,31 @@ function M.files(io, os)
   return {read=read, write=write, remove=os.remove}
 end
 
--- Edits the config file this launch was started with. `loaded` is the
--- framework's startup parse of its config-sparse section, which unlike
--- config-full is never handed to modules. A file that no longer matches the
--- revision seen here, or the last one written here, was saved by someone else
--- and is not overwritten. stage() writes the result next to the config and
--- returns both paths for one atomic replacement.
-function M.writer(files, parse, path, version, digest, loaded)
+-- Edits the config file this launch was started with. `loaded` holds what
+-- this launch read: the startup config-sparse and config-full load order
+-- (the framework changes neither) and the effective Custom Hotkeys config it
+-- was enabled with. The file must still match them when the writer opens it.
+-- Afterwards only the revision seen then, or the one this writer last
+-- installed, may be replaced; anything else was saved by someone else.
+-- stage() writes the result next to the config and returns both paths for one
+-- atomic replacement, whose outcome is reported back through replaced().
+function M.writer(files, parse, path, version, digest, normalize, loaded)
   local text = files.read(path)
   local ok, current = pcall(parse, text or '')
-  local self = {revision=ok and type(current) == 'table' and loaded ~= nil
-    and equal(current['config-sparse'], loaded) and digest(text) or nil}
+  local full = ok and type(current) == 'table' and type(current['config-full']) == 'table'
+    and current['config-full'] or {}
+  local module = type(full.modules) == 'table' and full.modules[OWNER]
+  local effective = copy(type(module) == 'table' and module.config or {})
+  normalize(effective)
+  local self = {}
+  if ok and type(current) == 'table' and loaded and equal(current['config-sparse'], loaded.sparse)
+      and equal(full['load-order'], loaded.loadOrder) and equal(effective, loaded.effective or {}) then
+    self.revision = digest(text)
+  end
   function self.stage(changes)
     text = files.read(path)
     if not text then return nil, 'config.read' end
-    local now = digest(text)
-    if now ~= self.revision and now ~= self.pending then return nil, 'config.changed' end
-    self.revision = now
+    if not self.revision or digest(text) ~= self.revision then return nil, 'config.changed' end
     local result, problem = M.edit(text, parse, changes, version)
     if not result then return nil, problem end
     local staged = path .. '.custom-hotkeys.tmp'
@@ -233,6 +241,10 @@ function M.writer(files, parse, path, version, digest, loaded)
     if files.read(path) ~= text then files.remove(staged); return nil, 'config.changed' end
     self.pending = digest(result)
     return {staged=staged, target=path}
+  end
+  function self.replaced(success)
+    if success and self.pending then self.revision = self.pending end
+    self.pending = nil
   end
   return self
 end

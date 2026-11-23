@@ -112,6 +112,13 @@ def install(lua):
         if type(v)~='table' then return v end
         local r={} for k,x in pairs(v) do r[k]=copy(x) end return r
       end
+      -- What a launch read from a config document, for the writer's baseline.
+      function loadedOf(document)
+        local effective=copy(document['config-full'].modules['custom-hotkeys'].config or {})
+        normalize(effective)
+        return {sparse=copy(document['config-sparse']),
+          loadOrder=copy(document['config-full']['load-order']),effective=effective}
+      end
       -- One game launch with the config at `path`: the framework reads the
       -- file, the runtime builds the bindings and Apply writes back to it.
       function launch(path,catalog,router,legacy)
@@ -125,12 +132,14 @@ def install(lua):
         -- The native side replaces the file with MoveFileEx; os.rename cannot
         -- replace an existing file on Windows.
         local writer=ConfigFile.writer(ConfigFile.files(io,os),parse,path,'0.3.0',digest,
-          copy(document['config-sparse']))
+          normalize,loadedOf(document))
         local store={save=function(_,changes)
           local staged,problem=writer.stage(changes)
           if not staged then return nil,problem end
           os.remove(staged.target)
-          return assert(os.rename(staged.staged,staged.target))
+          local ok=assert(os.rename(staged.staged,staged.target))
+          writer.replaced(true)
+          return ok
         end}
         return Bindings.new(catalog,source,store,router)
       end

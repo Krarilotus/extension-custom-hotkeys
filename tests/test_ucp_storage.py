@@ -23,7 +23,7 @@ def test_retire_renames_existing_slots_and_keeps_a_recovery_copy(lua):
       local B=require('code/ucp_storage')
       local present={['ucp/custom-hotkeys-profiles-b.json']=true}
       local renamed={}
-      local io={open=function(path) if present[path] then return {close=function() end} end end}
+      local io={open=function(path) if present[path] then return {close=function() end} end return nil,'missing',2 end}
       local fs={remove=function() end,rename=function(from,to) renamed[#renamed+1]=from..'>'..to;return true end}
       assert(B.new(io,fs).retire())
       assert(#renamed==1 and renamed[1]=='ucp/custom-hotkeys-profiles-b.json>ucp/custom-hotkeys-profiles-b.json.migrated')

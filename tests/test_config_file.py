@@ -132,27 +132,50 @@ def test_the_writer_stages_only_the_revision_this_launch_loaded(writer, tmp_path
     target = tmp_path / 'ucp-config.yml'
     target.write_text(LAUNCHER)
     writer.globals().target = str(target)
+    writer.globals().launcher = LAUNCHER
     writer.execute('''
       local files=ConfigFile.files(io,os)
-      local function open(path)
-        return ConfigFile.writer(files,parse,path or target,'0.3.0',digest,parse(files.read(target))['config-sparse'])
+      local startup=loadedOf(parse(files.read(target)))
+      local function open(loaded)
+        return ConfigFile.writer(files,parse,target,'0.3.0',digest,normalize,loaded==nil and startup or loaded)
+      end
+      local function install(staged)
+        os.remove(staged.target);assert(os.rename(staged.staged,staged.target))
       end
       local w=open()
       local staged=assert(w.stage(changes))
       assert(staged.target==target and staged.staged==target..'.custom-hotkeys.tmp')
-      -- The game's own previous write is accepted as the next base.
-      os.remove(target);assert(os.rename(staged.staged,target))
+      install(staged);w.replaced(true)
+      -- The game's own confirmed write is the next base.
       staged=assert(w.stage({{path={'layout'},value='grid'}}))
-      os.remove(staged.staged)
-      -- A save by someone else in between is never overwritten.
-      local other=open()
+      os.remove(staged.staged);w.replaced(false)
+      -- The previous file, restored byte for byte, is no longer accepted.
+      local mine=files.read(target)
+      assert(files.write(target,launcher))
+      local ok,err=w.stage(changes);assert(not ok and err=='config.changed')
+      assert(files.write(target,mine))
+      assert(w.stage(changes)).staged=nil;os.remove(target..'.custom-hotkeys.tmp');w.replaced(false)
+      -- A save by someone else is never overwritten.
       local f=io.open(target,'ab');f:write('# saved by the launcher');f:close()
-      local ok,err=other.stage(changes);assert(not ok and err=='config.changed')
-      -- Nor is a file that already differed from the startup parse.
-      local stale=ConfigFile.writer(files,parse,target,'0.3.0',digest,{})
-      ok,err=stale.stage(changes);assert(not ok and err=='config.changed')
+      ok,err=w.stage(changes);assert(not ok and err=='config.changed')
+      -- Nor a file that differed from what this launch loaded, in any section.
+      assert(files.write(target,launcher))
+      local changedFull=loadedOf(parse(launcher));changedFull.effective={bindings={zoom={['in']={wheel='down',mods=1}}}}
+      ok,err=open(changedFull).stage(changes);assert(not ok and err=='config.changed')
+      local changedOrder=loadedOf(parse(launcher));changedOrder.loadOrder={}
+      ok,err=open(changedOrder).stage(changes);assert(not ok and err=='config.changed')
+      ok,err=open(false).stage(changes);assert(not ok and err=='config.changed')
+      -- A file changed while staging is not replaced.
+      local stagedOnce=false
+      local racing={read=function(path)
+        local text=files.read(path)
+        if path==target and stagedOnce then return text..'#' end
+        return text
+      end,write=function(path,text) stagedOnce=true;return files.write(path,text) end,remove=files.remove}
+      local raced=ConfigFile.writer(racing,parse,target,'0.3.0',digest,normalize,startup)
+      ok,err=raced.stage(changes);assert(not ok and err=='config.changed')
       local failing=ConfigFile.writer({read=files.read,write=function() return false end,remove=files.remove},
-        parse,target,'0.3.0',digest,parse(files.read(target))['config-sparse'])
+        parse,target,'0.3.0',digest,normalize,startup)
       ok,err=failing.stage(changes);assert(not ok and err=='config.write')
     ''')
     assert sorted(p.name for p in tmp_path.iterdir()) == ['ucp-config.yml']

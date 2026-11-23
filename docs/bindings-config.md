@@ -138,9 +138,14 @@ active UCP config, and both files are renamed to `*.json.migrated`:
   profile cannot show whether it came from a suggestion. Reset returns any of
   them to inheritance.
 
-Entries already in the config win. Only the active profile moves. To move
-another one, rename the `.migrated` files back, make that profile active in 0.2,
-and start 0.3 with the UCP config that should receive it. If the
-config cannot be written, the files stay in place and the migration runs again
-on the next start. To return to 0.2, rename the `.migrated` files back.
-The profile exchange files of 0.2 are no longer read.
+Entries already in the config win, including those of modules that are not
+enabled. Only the active profile moves, and only once: the game process that
+writes hotkeys renames both files at that start, the newer one last. If the
+config cannot be written at that start, the moved entries stay in the running
+editor and the next successful Apply writes them; if the game closes before
+that, they are only in the `.migrated` files.
+
+To move another profile, or to retry, rename the `.migrated` files back, make
+that profile active in 0.2, and start 0.3 with the UCP config that should
+receive it. To return to 0.2, rename the `.migrated` files back. The profile
+exchange files of 0.2 are no longer read.

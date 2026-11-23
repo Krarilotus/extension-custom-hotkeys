@@ -15,22 +15,24 @@ function M.new(ucpIO, ucpOS)
     if not file then return nil, errno == 2 and 'missing' or 'io' end
     return file
   end,
-  -- The newer slot moves last and the move rolls back on failure, so an older
-  -- generation never stays as the only readable slot.
+  -- Nothing moves while a slot is unreadable. The newer slot moves last and
+  -- the move rolls back on failure, so an older generation never stays as
+  -- the only readable slot.
   retire=function(latest)
-    local moved = {}
-    local order = latest == 'a' and {slots[2], slots[1]} or slots
-    for _, name in ipairs(order) do
+    local present = {}
+    for _, name in ipairs(latest == 'a' and {slots[2], slots[1]} or slots) do
       local path = prefix .. name
-      local file = ucpIO.open(path, 'rb')
-      if file then
-        file:close()
-        ucpOS.remove(path .. '.migrated')
-        if not ucpOS.rename(path, path .. '.migrated') then
-          for _, done in ipairs(moved) do ucpOS.rename(done .. '.migrated', done) end
-          return nil, 'store.retire'
+      local file, _, errno = ucpIO.open(path, 'rb')
+      if file then file:close(); present[#present + 1] = path
+      elseif errno ~= 2 then return nil, 'store.retire' end
+    end
+    for i, path in ipairs(present) do
+      ucpOS.remove(path .. '.migrated')
+      if not ucpOS.rename(path, path .. '.migrated') then
+        for j = i - 1, 1, -1 do
+          if not ucpOS.rename(present[j] .. '.migrated', present[j]) then return nil, 'store.retire-rollback' end
         end
-        moved[#moved + 1] = path
+        return nil, 'store.retire'
       end
     end
     return true

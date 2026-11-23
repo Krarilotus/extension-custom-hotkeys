@@ -121,7 +121,7 @@ def test_retire_moves_both_slots_or_neither(lua):
     lua.execute('''
       local B=require('code/ucp_storage')
       local present={['ucp/custom-hotkeys-profiles-a.json']=true,['ucp/custom-hotkeys-profiles-b.json']=true}
-      local io={open=function(path) if present[path] then return {close=function() end} end end}
+      local io={open=function(path) if present[path] then return {close=function() end} end return nil,'missing',2 end}
       local log={}
       local fs={remove=function() end,rename=function(from,to)
         if from:find('profiles%-b%.json$') then return nil,'denied' end
@@ -168,9 +168,70 @@ def test_retirement_moves_the_newer_slot_last(lua):
     lua.execute('''
       local B=require('code/ucp_storage')
       local present={['ucp/custom-hotkeys-profiles-a.json']=true,['ucp/custom-hotkeys-profiles-b.json']=true}
-      local io={open=function(path) if present[path] then return {close=function() end} end end}
+      local io={open=function(path) if present[path] then return {close=function() end} end return nil,'missing',2 end}
       local log={}
       local fs={remove=function() end,rename=function(from) log[#log+1]=from;return true end}
       assert(B.new(io,fs).retire('a'))
       assert(log[1]:find('profiles%-b') and log[2]:find('profiles%-a'))
+    ''')
+
+
+def chain_catalog(lua):
+    lua.execute('''
+      local both={'live-sp','editor'}
+      chain=Catalog.new({
+        {id='cc',contexts={'game'},states=both,command=false,default=key(46)},
+        {id='ss',contexts={'game','editor'},states=both,command=false,default=false},
+        {id='ee',contexts={'editor'},states=both,command=false,default=false},
+        {id='aa',contexts={'game'},states=both,command=false,default=key(44)},
+        {id='bb',contexts={'game'},states=both,command=false,default=key(45)}},
+        {{action='bb',binding=key(44)},{action='cc',binding=key(45)}})
+    ''')
+
+
+def test_a_native_replacement_chain_settles_once_its_last_owner_returns(lua):
+    # c loses 46 to a suggestion that then yields to an editor-only explicit
+    # entry; b needs c moved off 45 and a needs b moved off 44.
+    chain_catalog(lua)
+    lua.execute('''
+      local bindings,aside=Bindings.resolve(chain,nil,{ss=key(46)},{ee=key(46)})
+      assert(bindings.cc.scan==46 and bindings.bb.scan==45 and bindings.aa.scan==44)
+      assert(bindings.ss==false and bindings.ee.scan==46 and #aside==0)
+    ''')
+
+
+def test_required_values_never_stop_startup(lua):
+    chain_catalog(lua)
+    lua.execute('''
+      local bindings,aside=Bindings.resolve(chain,nil,{ss=key(46)},{ee=key(46),aa=key(44)},{aa=true})
+      assert(bindings.aa.scan==44 and bindings.bb.scan==45 and #aside==0)
+      bindings,aside=Bindings.resolve(chain,nil,{},{aa=key(47),bb=key(47)},{aa=true,bb=true})
+      assert(bindings.aa.scan==47 and bindings.bb==false and aside[1]=='bb')
+    ''')
+
+
+def test_equal_layers_keep_catalog_order_after_a_retry(lua):
+    lua.execute('''
+      local c=Catalog.new({
+        {id='first',contexts={'game'},states={'live-sp','editor'},command=false,default=key(60)},
+        {id='second',contexts={'game'},states={'live-sp','editor'},command=false,default=key(60)},
+        {id='wide',contexts={'game','editor'},states={'live-sp','editor'},command=false,default=false},
+        {id='narrow',contexts={'editor'},states={'live-sp','editor'},command=false,default=false}})
+      local bindings=Bindings.resolve(c,nil,{wide=key(60)},{narrow=key(60)})
+      assert(bindings.first.scan==60 and bindings.second==false and bindings.wide==false)
+    ''')
+
+
+def test_a_parked_required_value_survives_a_new_assignment_of_its_chord(lua):
+    lua.execute('''
+      local c=Catalog.new({
+        {id='game.a',contexts={'game'},states={'live-sp'},command=false,default=key(10)},
+        {id='game.b',contexts={'game'},states={'live-sp'},command=false,default=key(11)},
+        {id='game.c',contexts={'game'},states={'live-sp'},command=false,default=key(12)}})
+      local source=Bindings.source(c,{bindings={['custom-hotkeys']={game={a=key(20),b=key(21)}}}},
+        {bindings={['custom-hotkeys']={game={a=key(33),b=key(33)}}}})
+      local b=Bindings.new(c,source,memoryConfig(),Router.new(c,Catalog.defaults(c),adapter))
+      assert(b.committed.aside[1]=='game.b' and b.committed.bindings['game.a'].scan==33)
+      b:begin();assert(b:reassign('game.c',key(33),'game.a',key(12))==nil)
+      assert(b.draft.explicit['game.b'].scan==33)
     ''')

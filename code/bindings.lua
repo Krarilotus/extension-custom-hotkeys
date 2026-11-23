@@ -102,43 +102,65 @@ function M.layoutOf(catalog, document, suggestedLayout)
   return catalog.presets and M.defaultLayout or nil
 end
 
--- Layers rank required > explicit > suggested > layout or provider default.
--- Where two chords collide the lower layer, or on a tie the action later in
--- catalog order (built-ins in declaration order, then providers by ID), is
--- unbound; an action on a native chord whose owner still needs it always
--- yields. Each unbound action is then retried in rank order, because the
--- action that displaced it may have yielded too. Explicit entries that stay
--- unbound are returned as set aside.
+-- Layers rank required > explicit > suggested > layout or provider default;
+-- within a rank the earlier action in catalog order (built-ins in declaration
+-- order, then providers by ID) comes first. A colliding action lower in that
+-- order is unbound, and an action on a native chord whose owner still needs
+-- it yields. Unbound actions are then retried in that order, repeatedly,
+-- because the action that displaced them, or a native key's owner, may have
+-- moved since; a retried action may displace one below it. Explicit and
+-- required entries that stay unbound are returned as set aside.
 function M.resolve(catalog, layout, suggested, explicit, locked)
   locked = locked or {}
   local preset = catalog.presets and catalog.presets[layout]
   local bindings = copy(preset and preset.bindings or Catalog.defaults(catalog))
-  local rank, wanted, losers = {}, {}, {}
-  for _, action in ipairs(catalog.ordered) do
+  local rank, wanted, index = {}, {}, {}
+  for position, action in ipairs(catalog.ordered) do
     local id = action.id
     if explicit[id] ~= nil then bindings[id], rank[id] = copy(explicit[id]), locked[id] and 4 or 3
     elseif suggested[id] ~= nil then bindings[id], rank[id] = copy(suggested[id]), 2
     else rank[id] = 1 end
-    wanted[id] = bindings[id]
+    wanted[id], index[id] = bindings[id], position
+  end
+  local function before(a, b) return rank[a] > rank[b] or (rank[a] == rank[b] and index[a] < index[b]) end
+  local losers, lost = {}, {}
+  local function unbind(id)
+    bindings[id] = false
+    if not lost[id] then lost[id] = true; losers[#losers + 1] = id end
   end
   for _ = 0, #catalog.ordered do
     local valid, problem, detail = Catalog.validate(catalog, bindings)
     if valid then bindings = valid; break end
     local ids = type(detail) == 'table' and detail or {detail}
     local loser = ids[1]
-    if problem == 'binding.conflict' and rank[ids[2]] < rank[loser] then loser = ids[2] end
-    assert(loser and bindings[loser] and rank[loser] < 4, problem)
-    losers[#losers + 1] = loser
-    bindings[loser] = false
+    if problem == 'binding.conflict' and before(loser, ids[2]) then loser = ids[2] end
+    assert(loser and bindings[loser], problem)
+    unbind(loser)
   end
-  assert(Catalog.validate(catalog, bindings), 'bindings.resolve')
-  table.sort(losers, function(a, b) return rank[a] > rank[b] end)
+  bindings = assert(Catalog.validate(catalog, bindings), 'bindings.resolve')
+  for _ = 1, #catalog.ordered do
+    table.sort(losers, before)
+    local changed = false
+    for _, id in ipairs(losers) do
+      if bindings[id] == false and wanted[id] then
+        bindings[id] = copy(wanted[id])
+        local valid, problem, detail = Catalog.validate(catalog, bindings)
+        local other = type(detail) == 'table' and (detail[1] == id and detail[2] or detail[1]) or nil
+        if not valid and problem == 'binding.conflict' and other and before(id, other) then
+          local kept = bindings[other]
+          bindings[other] = false
+          valid = Catalog.validate(catalog, bindings)
+          if valid then unbind(other) else bindings[other] = kept end
+        end
+        if valid then bindings, changed = valid, true else bindings[id] = false end
+      end
+    end
+    if not changed then break end
+  end
   local aside = {}
+  table.sort(losers, before)
   for _, id in ipairs(losers) do
-    bindings[id] = copy(wanted[id])
-    local valid = Catalog.validate(catalog, bindings)
-    if valid then bindings = valid else bindings[id] = false end
-    if bindings[id] == false and rank[id] == 3 then aside[#aside + 1] = id end
+    if bindings[id] == false and rank[id] >= 3 and wanted[id] then aside[#aside + 1] = id end
   end
   return bindings, aside
 end
@@ -160,13 +182,17 @@ function M.new(catalog, source, store, router)
     if current.layout == nil and source.legacy.layout ~= M.layoutOf(catalog, {}, self.suggestedLayout) then
       current.layout = source.legacy.layout
     end
+  end
+  self.committed = self:derive(current)
+  if source.legacy then
+    -- Entries not written now stay pending against the saved baseline, so the
+    -- next successful Apply writes them.
     local changes = self:changes(self.saved, current)
     local saved, problem = true, nil
     if #changes > 0 then saved, problem = store:save(changes) end
     if saved then self.saved = document(current) end
     self.migration = {saved=saved == true, problem=problem}
   end
-  self.committed = self:derive(current)
   assert(router:apply(self.committed.bindings, {nativeAliases=self.committed.active == M.defaultLayout}))
   return self
 end

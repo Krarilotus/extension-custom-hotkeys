@@ -51,6 +51,7 @@ function M.prepare(modulePath,registry)
         if not writer then return nil,'config.changed' end
         return writer.stage(changes)
       end,
+      bindingsReplaced=function(success) if writer then writer.replaced(success) end end,
       retireLegacyProfiles=function() return legacy.retire(latestSlot) end,
       gameLanguage=function() return data.version.getGameLanguage() end,
       logWarning=function(message) log(WARNING,'Custom Hotkeys: '..message) end}}
@@ -64,8 +65,12 @@ function M.prepare(modulePath,registry)
       for _,extension in ipairs(allActiveExtensions) do
         if extension.name==Bindings.owner then version=extension.version end
       end
+      local deproxy=extensions.proxies.Deproxy
       writer=ConfigFile.writer(files,yaml.parse,CONFIG_FILE,version,sha.sha256,
-        type(userConfig)=='table' and extensions.proxies.Deproxy(userConfig['config-sparse']) or nil)
+        config.ConfigHandler.normalizeContentsValues,type(userConfig)=='table' and {
+          sparse=deproxy(userConfig['config-sparse']),
+          loadOrder=deproxy(userConfig['config-full']['load-order']),
+          effective=deproxy(settings)} or nil)
       local explicit=Bindings.explicitTree(userConfig,config.ConfigHandler.normalizeContentsValues,
         extensions.proxies.Deproxy)
       source=Bindings.source(catalog,explicit,settings)
