@@ -128,7 +128,7 @@ def install(lua):
         normalize(effective)
         local explicit=Bindings.explicitTree(document,normalize,copy)
         local source=Bindings.source(catalog,explicit,effective)
-        source.legacy=Bindings.unclaimed(legacy,explicit)
+        if legacy and Bindings.fresh(explicit) then source.legacy=legacy end
         -- The native side replaces the file with MoveFileEx; os.rename cannot
         -- replace an existing file on Windows.
         local writer=ConfigFile.writer(ConfigFile.files(io,os),parse,path,'0.3.0',digest,

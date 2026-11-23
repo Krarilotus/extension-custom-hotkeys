@@ -1,5 +1,6 @@
 -- Reads the installation-local profile slots written by Custom Hotkeys 0.2.x
--- (schemas 1-3) once, so their active profile can move into the UCP config.
+-- (schemas 1-3), so their active profile can seed a UCP config that has no
+-- Custom Hotkeys entries yet. The slots themselves are never changed.
 local Catalog = require('code/catalog')
 local Binding = require('code/binding')
 local M = {}
@@ -24,7 +25,7 @@ local function read(boundary, codec, sha256, slot)
   if envelope.sha256 ~= digest then return nil, 'invalid' end
   local valid, document = pcall(codec.decode, envelope.payload)
   if not valid or type(document) ~= 'table' then return nil, 'invalid' end
-  return {document=document, generation=envelope.generation, digest=digest, slot=slot}
+  return {document=document, generation=envelope.generation, digest=digest}
 end
 
 -- The newer of the two alternating slots; an unreadable one is never assumed older.
@@ -38,8 +39,7 @@ function M.load(boundary, codec, sha256)
   if a and b and a.generation == b.generation and a.digest ~= b.digest then
     return nil, 'store.ambiguous'
   end
-  local latest = (a and (not b or a.generation >= b.generation)) and a or b
-  return latest.document, nil, latest.slot
+  return ((a and (not b or a.generation >= b.generation)) and a or b).document
 end
 
 -- An old snapshot cannot tell inherited chords from chosen ones, so every

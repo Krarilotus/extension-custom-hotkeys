@@ -95,15 +95,9 @@ function M.start(language)
   for _,id in ipairs(bindings.committed.aside) do
     remote.interface.logWarning('Saved binding for '..id..' set aside: its chord is taken')
   end
-  -- The 0.2 slots are imported once: the writing process renames them to
-  -- *.migrated right away. Entries not yet written stay pending for Apply.
-  if source.legacy and lock then
-    local retired,problem=remote.interface.retireLegacyProfiles()
-    if not retired then remote.interface.logWarning('Saved 0.2 profiles kept ('..tostring(problem)..')') end
-    if not bindings.migration.saved then
-      remote.interface.logWarning('0.2 profile not written to the UCP config yet ('..tostring(bindings.migration.problem)
-        ..'); Apply writes it, the old files are kept as *.migrated')
-    end
+  if bindings.migration and not bindings.migration.saved then
+    remote.interface.logWarning('0.2 profile not written to the UCP config ('..tostring(bindings.migration.problem)
+      ..'); it is imported again on the next start')
   end
   view=View.new(bindings,catalog,router,scene,platform,require('code/locale').new(language,
     require('code/native/text').label,catalog.extensionLabels))

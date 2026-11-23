@@ -84,16 +84,11 @@ function M.source(catalog, explicitTree, effectiveTree)
   return result
 end
 
--- Legacy entries apply only where the config has no entry of its own,
--- including entries of modules that are not enabled now.
-function M.unclaimed(legacy, explicitTree)
-  if not legacy then return nil end
-  explicitTree = type(explicitTree) == 'table' and explicitTree or {}
-  local result = {explicit={}, layout=explicitTree.layout == nil and legacy.layout or nil}
-  for id, value in pairs(legacy.explicit) do
-    if lookup(explicitTree.bindings, M.path(id)) == nil then result.explicit[id] = value end
-  end
-  return result
+-- A config that has never held Custom Hotkeys entries. Importing always
+-- writes `layout`, which Reset keeps, so a config is imported into once.
+function M.fresh(explicitTree)
+  return type(explicitTree) ~= 'table' or (explicitTree.layout == nil
+    and (type(explicitTree.bindings) ~= 'table' or next(explicitTree.bindings) == nil))
 end
 
 function M.layoutOf(catalog, document, suggestedLayout)
@@ -106,9 +101,10 @@ end
 -- within a rank the earlier action in catalog order (built-ins in declaration
 -- order, then providers by ID) comes first. A colliding action lower in that
 -- order is unbound, and an action on a native chord whose owner still needs
--- it yields. Unbound actions are then retried in that order, repeatedly,
--- because the action that displaced them, or a native key's owner, may have
--- moved since; a retried action may displace one below it. Explicit and
+-- it yields. Unbound actions are then retried in that order until nothing
+-- changes. A retry succeeds when its chord fits after unbinding every action
+-- below it that blocks it and binding the native key's owner if that owner
+-- is unbound itself; otherwise nothing it touched changes. Explicit and
 -- required entries that stay unbound are returned as set aside.
 function M.resolve(catalog, layout, suggested, explicit, locked)
   locked = locked or {}
@@ -123,11 +119,7 @@ function M.resolve(catalog, layout, suggested, explicit, locked)
     wanted[id], index[id] = bindings[id], position
   end
   local function before(a, b) return rank[a] > rank[b] or (rank[a] == rank[b] and index[a] < index[b]) end
-  local losers, lost = {}, {}
-  local function unbind(id)
-    bindings[id] = false
-    if not lost[id] then lost[id] = true; losers[#losers + 1] = id end
-  end
+  local unbound = {}
   for _ = 0, #catalog.ordered do
     local valid, problem, detail = Catalog.validate(catalog, bindings)
     if valid then bindings = valid; break end
@@ -135,33 +127,52 @@ function M.resolve(catalog, layout, suggested, explicit, locked)
     local loser = ids[1]
     if problem == 'binding.conflict' and before(loser, ids[2]) then loser = ids[2] end
     assert(loser and bindings[loser], problem)
-    unbind(loser)
+    bindings[loser], unbound[loser] = false, true
   end
   bindings = assert(Catalog.validate(catalog, bindings), 'bindings.resolve')
-  for _ = 1, #catalog.ordered do
-    table.sort(losers, before)
-    local changed = false
-    for _, id in ipairs(losers) do
-      if bindings[id] == false and wanted[id] then
-        bindings[id] = copy(wanted[id])
-        local valid, problem, detail = Catalog.validate(catalog, bindings)
-        local other = type(detail) == 'table' and (detail[1] == id and detail[2] or detail[1]) or nil
-        if not valid and problem == 'binding.conflict' and other and before(id, other) then
-          local kept = bindings[other]
-          bindings[other] = false
-          valid = Catalog.validate(catalog, bindings)
-          if valid then unbind(other) else bindings[other] = kept end
-        end
-        if valid then bindings, changed = valid, true else bindings[id] = false end
+  local function attempt(id)
+    local touched, displaced, pulled = {}, {}, {[id]=true}
+    local function set(other, value) touched[#touched + 1] = {other, bindings[other]}; bindings[other] = value end
+    set(id, copy(wanted[id]))
+    for _ = 1, #catalog.ordered do
+      local valid, problem, detail = Catalog.validate(catalog, bindings)
+      if valid then
+        bindings = valid
+        for other in pairs(displaced) do unbound[other] = true end
+        for other in pairs(pulled) do unbound[other] = nil end
+        return true
       end
+      local ids = type(detail) == 'table' and detail or {detail}
+      local blocker
+      if problem == 'binding.conflict' then
+        blocker = before(ids[1], ids[2]) and ids[2] or ids[1]
+        if pulled[blocker] or not before(id, blocker) then blocker = nil end
+        if blocker then set(blocker, false); displaced[blocker] = true end
+      elseif problem == 'binding.native-conflict' then
+        blocker = ids[2]
+        if pulled[blocker] or bindings[blocker] ~= false or not wanted[blocker] then blocker = nil end
+        if blocker then set(blocker, copy(wanted[blocker])); pulled[blocker] = true end
+      end
+      if not blocker then break end
+    end
+    for i = #touched, 1, -1 do bindings[touched[i][1]] = touched[i][2] end
+    return false
+  end
+  for _ = 1, #catalog.ordered do
+    local order = {}
+    for id in pairs(unbound) do if wanted[id] then order[#order + 1] = id end end
+    table.sort(order, before)
+    local changed = false
+    for _, id in ipairs(order) do
+      if unbound[id] and attempt(id) then unbound[id], changed = nil, true end
     end
     if not changed then break end
   end
   local aside = {}
-  table.sort(losers, before)
-  for _, id in ipairs(losers) do
+  for id in pairs(unbound) do
     if bindings[id] == false and rank[id] >= 3 and wanted[id] then aside[#aside + 1] = id end
   end
+  table.sort(aside, before)
   return bindings, aside
 end
 
@@ -176,12 +187,7 @@ function M.new(catalog, source, store, router)
   self.saved = {layout=source.layout, explicit=copy(source.explicit or {})}
   local current = document(self.saved)
   if source.legacy then
-    for id, value in pairs(source.legacy.explicit) do
-      if current.explicit[id] == nil then current.explicit[id] = copy(value) end
-    end
-    if current.layout == nil and source.legacy.layout ~= M.layoutOf(catalog, {}, self.suggestedLayout) then
-      current.layout = source.legacy.layout
-    end
+    current.explicit, current.layout = copy(source.legacy.explicit), source.legacy.layout
   end
   self.committed = self:derive(current)
   if source.legacy then

@@ -199,3 +199,26 @@ def test_a_result_that_reads_back_differently_is_refused(writer):
         assert(not ok and err=='config.verify')
       end
     ''')
+
+
+def test_a_malformed_reread_leaves_the_writer_closed(writer, tmp_path):
+    target = tmp_path / 'ucp-config.yml'
+    target.write_text(LAUNCHER.replace("""    custom-hotkeys:
+      config:
+        bindings:
+          zoom:
+            in:
+              contents:
+                value:
+                  wheel: up
+                  mods: 1
+""", "    custom-hotkeys:\n      config: broken\n"))
+    writer.globals().target = str(target)
+    writer.globals().launcher = LAUNCHER
+    writer.execute('''
+      local files=ConfigFile.files(io,os)
+      local w=ConfigFile.writer(files,parse,target,'0.3.0',digest,normalize,loadedOf(parse(launcher)))
+      local ok,err=w.stage(changes);assert(not ok and err=='config.changed')
+      w=ConfigFile.writer(files,parse,target..'.missing','0.3.0',digest,normalize,loadedOf(parse(launcher)))
+      ok,err=w.stage(changes);assert(not ok and err=='config.read')
+    ''')

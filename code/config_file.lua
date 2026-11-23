@@ -219,17 +219,18 @@ end
 -- atomic replacement, whose outcome is reported back through replaced().
 function M.writer(files, parse, path, version, digest, normalize, loaded)
   local text = files.read(path)
-  local ok, current = pcall(parse, text or '')
-  local full = ok and type(current) == 'table' and type(current['config-full']) == 'table'
-    and current['config-full'] or {}
-  local module = type(full.modules) == 'table' and full.modules[OWNER]
-  local effective = copy(type(module) == 'table' and module.config or {})
-  normalize(effective)
   local self = {}
-  if ok and type(current) == 'table' and loaded and equal(current['config-sparse'], loaded.sparse)
-      and equal(full['load-order'], loaded.loadOrder) and equal(effective, loaded.effective or {}) then
-    self.revision = digest(text)
-  end
+  local ok, same = pcall(function()
+    local current = parse(text)
+    local full = current['config-full']
+    local config = full.modules[OWNER].config
+    if config ~= nil and type(config) ~= 'table' then return false end
+    local effective = copy(config or {})
+    normalize(effective)
+    return equal(current['config-sparse'], loaded.sparse) and equal(full['load-order'], loaded.loadOrder)
+      and equal(effective, loaded.effective or {})
+  end)
+  if text and loaded and ok and same then self.revision = digest(text) end
   function self.stage(changes)
     text = files.read(path)
     if not text then return nil, 'config.read' end

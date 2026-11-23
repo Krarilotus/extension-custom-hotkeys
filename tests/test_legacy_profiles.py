@@ -99,25 +99,21 @@ def test_schema_1_unbound_group_recall_keeps_the_native_number(lua):
     ''')
 
 
-def test_migration_writes_into_the_config_once_and_config_entries_win(lua):
+
+def test_migration_writes_the_whole_profile_with_its_layout_and_reset_keeps_it_done(lua):
     lua.execute('''
       local Legacy=require('code/legacy_profiles')
       local c=Catalog.production()
-      local doc={schema=3,active='Mine',profiles={Mine={preset='grid',
-        bindings={['game.quicksave']=key(65,1),['game.quickload']=key(66,1)},
-        unavailable={['ext.gone.act']=key(67)}}}}
+      local doc={schema=3,active='Mine',profiles={Mine={preset='game-default',
+        bindings={['game.quicksave']=key(65,1)},unavailable={['ext.gone.act']=key(67)}}}}
       local config=memoryConfig()
-      config.tree={bindings={['custom-hotkeys']={game={quickload=key(68,1)}}}}
       local source=Bindings.source(c,config.tree,config.tree)
       source.legacy=Legacy.explicit(c,doc)
       local r=Router.new(c,Catalog.defaults(c),adapter)
       local b=Bindings.new(c,source,config,r)
       assert(b.migration.saved and #config.saves==1)
-      assert(config.tree.layout=='grid' and config.tree.bindings['custom-hotkeys'].game.quicksave.scan==65)
-      assert(config.tree.bindings['custom-hotkeys'].game.quickload.scan==68)
-      assert(config.tree.bindings.gone.act.scan==67)
-      assert(b.committed.active=='grid' and r.bindings['game.quicksave'].scan==65)
-      config.failed=true
-      local again=Bindings.source(c,{},{});again.legacy=source.legacy
-      assert(not Bindings.new(c,again,config,r).migration.saved)
+      assert(config.tree.layout=='game-default' and config.tree.bindings['custom-hotkeys'].game.quicksave.scan==65)
+      assert(config.tree.bindings.gone.act.scan==67 and r.bindings['game.quicksave'].scan==65)
+      b:begin();assert(b:reset());assert(b:apply())
+      assert(config.tree.layout=='game-default' and not Bindings.fresh(config.tree))
     ''')

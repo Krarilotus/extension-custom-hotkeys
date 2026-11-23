@@ -84,7 +84,8 @@ def test_config_wrapper_and_owner_names_are_not_provider_ids(lua):
     ''')
 
 
-def test_parked_provider_chords_migrate_and_existing_config_paths_win(lua):
+
+def test_parked_provider_chords_migrate_and_only_fresh_configs_import(lua):
     lua.execute('''
       local Legacy=require('code/legacy_profiles')
       local c=Catalog.production()
@@ -93,9 +94,8 @@ def test_parked_provider_chords_migrate_and_existing_config_paths_win(lua):
         unavailable={['ext.zoom.in']={wheel='up',mods=1}}}}}
       local migrated=Legacy.explicit(c,doc)
       assert(migrated.explicit['ext.zoom.in'].wheel=='up' and migrated.explicit['ext.zoom.out']==false)
-      local unclaimed=Bindings.unclaimed(migrated,{bindings={gone={act=false}},layout='grid'})
-      assert(unclaimed.explicit['ext.gone.act']==nil and unclaimed.layout==nil)
-      assert(unclaimed.explicit['ext.zoom.in'].wheel=='up')
+      assert(Bindings.fresh({}) and Bindings.fresh({bindings={}}))
+      assert(not Bindings.fresh({bindings={gone={act=false}}}) and not Bindings.fresh({layout='grid'}))
     ''')
 
 
@@ -114,22 +114,6 @@ def test_a_failed_migration_write_is_written_by_the_next_apply(lua):
       for _,change in ipairs(config.saves[1]) do written[table.concat(change.path,'.')]=true end
       assert(written['bindings.custom-hotkeys.game.quicksave'] and written['bindings.gone.act'])
       assert(written['bindings.custom-hotkeys.game.quickload'])
-    ''')
-
-
-def test_retire_moves_both_slots_or_neither(lua):
-    lua.execute('''
-      local B=require('code/ucp_storage')
-      local present={['ucp/custom-hotkeys-profiles-a.json']=true,['ucp/custom-hotkeys-profiles-b.json']=true}
-      local io={open=function(path) if present[path] then return {close=function() end} end return nil,'missing',2 end}
-      local log={}
-      local fs={remove=function() end,rename=function(from,to)
-        if from:find('profiles%-b%.json$') then return nil,'denied' end
-        log[#log+1]=from..'>'..to;return true end}
-      local ok,err=B.new(io,fs).retire()
-      assert(not ok and err=='store.retire')
-      assert(log[1]=='ucp/custom-hotkeys-profiles-a.json>ucp/custom-hotkeys-profiles-a.json.migrated')
-      assert(log[2]=='ucp/custom-hotkeys-profiles-a.json.migrated>ucp/custom-hotkeys-profiles-a.json')
     ''')
 
 
@@ -161,18 +145,6 @@ def test_an_action_displaced_by_a_loser_gets_its_chord_back(lua):
       local bindings,aside=Bindings.resolve(c,nil,{['both.suggested']=key(20)},{['editor.explicit']=key(20)})
       assert(bindings['world.default'].scan==20 and bindings['both.suggested']==false)
       assert(bindings['editor.explicit'].scan==20 and #aside==0)
-    ''')
-
-
-def test_retirement_moves_the_newer_slot_last(lua):
-    lua.execute('''
-      local B=require('code/ucp_storage')
-      local present={['ucp/custom-hotkeys-profiles-a.json']=true,['ucp/custom-hotkeys-profiles-b.json']=true}
-      local io={open=function(path) if present[path] then return {close=function() end} end return nil,'missing',2 end}
-      local log={}
-      local fs={remove=function() end,rename=function(from) log[#log+1]=from;return true end}
-      assert(B.new(io,fs).retire('a'))
-      assert(log[1]:find('profiles%-b') and log[2]:find('profiles%-a'))
     ''')
 
 
@@ -234,4 +206,34 @@ def test_a_parked_required_value_survives_a_new_assignment_of_its_chord(lua):
       assert(b.committed.aside[1]=='game.b' and b.committed.bindings['game.a'].scan==33)
       b:begin();assert(b:reassign('game.c',key(33),'game.a',key(12))==nil)
       assert(b.draft.explicit['game.b'].scan==33)
+    ''')
+
+
+def test_a_retry_displaces_every_lower_blocker_together(lua):
+    lua.execute('''
+      local both={'live-sp','editor','menu'}
+      local c=Catalog.new({
+        {id='t.wide',contexts={'game','editor'},states=both,command=false,default=false},
+        {id='o.all',contexts={'game','editor','menu'},states=both,command=false,default=false},
+        {id='m.menu',contexts={'menu'},states=both,command=false,default=false},
+        {id='x.game',contexts={'game'},states=both,command=false,default=key(46)},
+        {id='y.editor',contexts={'editor'},states=both,command=false,default=key(46)}})
+      local bindings=Bindings.resolve(c,nil,{['t.wide']=key(46)},{['o.all']=key(46),['m.menu']=key(46)},{['m.menu']=true})
+      assert(bindings['t.wide'].scan==46 and bindings['x.game']==false and bindings['y.editor']==false)
+      assert(bindings['m.menu'].scan==46 and bindings['o.all']==false)
+    ''')
+
+
+def test_two_actions_swapping_native_keys_return_together(lua):
+    lua.execute('''
+      local both={'live-sp','editor'}
+      local c=Catalog.new({
+        {id='aa.swap',contexts={'game'},states=both,command=false,default=key(45)},
+        {id='bb.swap',contexts={'game'},states=both,command=false,default=key(44)},
+        {id='ss.wide',contexts={'game','editor'},states=both,command=false,default=false},
+        {id='ee.editor',contexts={'editor'},states=both,command=false,default=false}},
+        {{action='aa.swap',binding=key(44)},{action='bb.swap',binding=key(45)}})
+      local bindings=Bindings.resolve(c,nil,{['ss.wide']=key(44)},{['ee.editor']=key(44)})
+      assert(bindings['aa.swap'].scan==45 and bindings['bb.swap'].scan==44)
+      assert(bindings['ss.wide']==false and bindings['ee.editor'].scan==44)
     ''')

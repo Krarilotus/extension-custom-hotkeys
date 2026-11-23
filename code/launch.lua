@@ -3,13 +3,13 @@ local M={}
 -- Pin their state before initialization, including a partially failed startup.
 local live={}
 function M.prepare(modulePath,registry)
-  local recorder,catalog,definitions,source,version,writer,latestSlot
+  local recorder,catalog,definitions,source,version,writer
   local access=modules.ui:access()
   local cffi=modules.cffi:cffi()
   local addresses=require('code/addresses')
   local bindings=require('code/address_bindings')
   for name,value in pairs(bindings.resolve(core,utils,access.game,cffi)) do addresses[name]=value end
-  local legacy=require('code/ucp_storage').new(io,os)
+  local legacy=require('code/ucp_storage').new(io)
   local ConfigFile=require('code/config_file')
   local files=ConfigFile.files(io,os)
   local chain,library=require('code/native/interface').open(core)
@@ -52,7 +52,6 @@ function M.prepare(modulePath,registry)
         return writer.stage(changes)
       end,
       bindingsReplaced=function(success) if writer then writer.replaced(success) end end,
-      retireLegacyProfiles=function() return legacy.retire(latestSlot) end,
       gameLanguage=function() return data.version.getGameLanguage() end,
       logWarning=function(message) log(WARNING,'Custom Hotkeys: '..message) end}}
   })
@@ -78,12 +77,10 @@ function M.prepare(modulePath,registry)
         log(WARNING,'Custom Hotkeys: ignoring invalid binding for '..id..' in the UCP config')
       end
       local document,problem
-      document,problem,latestSlot=require('code/legacy_profiles').load(legacy,
-        {decode=function(value) return json:decode(value) end},sha.sha256)
+      if Bindings.fresh(explicit) then document,problem=require('code/legacy_profiles').load(legacy,
+        {decode=function(value) return json:decode(value) end},sha.sha256) end
       if document then
-        local migrated
-        migrated,problem=require('code/legacy_profiles').explicit(catalog,document)
-        source.legacy=Bindings.unclaimed(migrated,explicit)
+        source.legacy,problem=require('code/legacy_profiles').explicit(catalog,document)
       end
       if problem and problem~='store.missing' then
         log(WARNING,'Custom Hotkeys: saved 0.2 profiles not migrated ('..tostring(problem)..')')

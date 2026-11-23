@@ -16,17 +16,3 @@ def test_storage_reads_fixed_install_local_files_and_distinguishes_missing(lua):
       assert(not pcall(boundary.open,boundary,'../other.json','rb'))
       assert(not pcall(boundary.open,boundary,'profiles-a.json','wb'))
     ''')
-
-
-def test_retire_renames_existing_slots_and_keeps_a_recovery_copy(lua):
-    lua.execute('''
-      local B=require('code/ucp_storage')
-      local present={['ucp/custom-hotkeys-profiles-b.json']=true}
-      local renamed={}
-      local io={open=function(path) if present[path] then return {close=function() end} end return nil,'missing',2 end}
-      local fs={remove=function() end,rename=function(from,to) renamed[#renamed+1]=from..'>'..to;return true end}
-      assert(B.new(io,fs).retire())
-      assert(#renamed==1 and renamed[1]=='ucp/custom-hotkeys-profiles-b.json>ucp/custom-hotkeys-profiles-b.json.migrated')
-      fs.rename=function() return nil,'denied' end
-      local ok,err=B.new(io,fs).retire();assert(not ok and err=='store.retire')
-    ''')
