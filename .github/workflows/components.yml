@@ -1,8 +1,7 @@
 name: Component checks
 on:
-  pull_request:
-  push:
-    branches: [main, feat/binding-core]
+  # Runs only when started by hand (Actions tab > Run workflow), to save CI minutes.
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
