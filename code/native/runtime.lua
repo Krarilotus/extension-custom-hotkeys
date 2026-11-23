@@ -76,9 +76,12 @@ function M.start(language)
     cancelPointerHold=function() if cursor then cursor.adapter.cancel() end end,
     exclusive=function() return quickslot~=nil and quickslot.active==true end,
   })
+  local replace=require('code/native/replace_file')
   local store={save=function(_,changes)
     if not lock then return nil,lockProblem end
-    return remote.interface.saveBindings(changes)
+    local staged,problem=remote.interface.stageBindings(changes)
+    if not staged then return nil,problem end
+    return replace(staged.staged,staged.target)
   end}
   local source=remote.interface.bindingSource()
   local bindings=Bindings.new(catalog,source,store,router)
@@ -86,7 +89,7 @@ function M.start(language)
     remote.interface.logWarning('Saved binding for '..id..' set aside: its chord is taken')
   end
   if bindings.migration then
-    local retired,problem=bindings.migration.saved,bindings.migration.problem
+    local retired,problem=bindings.migration.saved and lock,bindings.migration.problem or lockProblem
     if retired then retired,problem=remote.interface.retireLegacyProfiles() end
     if not retired then remote.interface.logWarning('Saved 0.2 profiles kept ('..tostring(problem)..')') end
   end

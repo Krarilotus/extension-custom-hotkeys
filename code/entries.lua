@@ -30,12 +30,12 @@ local entries={{id='view.lower-buildings',contexts=world,states={'live-sp','live
     default={scan=28,extended=false,mods=0}}}
 for _,adjust in ipairs({{'decrease',75},{'increase',77}}) do
   entries[#entries+1]={id='menu.'..adjust[1],contexts={'menu.options','game.options'},
-    states={'menu','live-sp','live-mp'},command=false,introduced=3,
+    states={'menu','live-sp','live-mp'},command=false,
     default={scan=adjust[2],extended=true,mods=0}}
 end
 for _,id in ipairs({'primary','secondary','select','order','select-add','order-queued'}) do
   entries[#entries+1]={id='pointer.'..id,contexts=world,states={'live-sp','live-mp'},
-    command=true,introduced=3,default=(id=='primary' or id=='secondary')
+    command=true,default=(id=='primary' or id=='secondary')
       and {button=id=='primary' and 'left' or 'right',mods=0} or false}
 end
 for group=0,9 do
@@ -49,7 +49,7 @@ end
 for slot=0,9 do
   for _,verb in ipairs({'assign','recall'}) do
     entries[#entries+1]={id='camera.bookmark.'..verb..'.'..slot,contexts=world,
-      states={'live-sp','live-mp'},command=false,introduced=3,
+      states={'live-sp','live-mp'},command=false,
       default={scan=slot==0 and 11 or slot+1,extended=false,mods=verb=='assign' and 6 or 5}}
   end
 end
@@ -95,6 +95,6 @@ for _,control in ipairs(require('code/controls')) do
 end
 for slot=1,12 do
   entries[#entries+1]={id='grid.slot.'..slot,contexts={'game.build','game.build.slide','game.status'},states={'live-sp','live-mp'},
-    command=true,default=false,introduced=2}
+    command=true,default=false}
 end
 return entries

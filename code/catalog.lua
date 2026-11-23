@@ -2,9 +2,13 @@ local Binding = require('code/binding')
 local Context = require('code/context')
 local M = {}
 
+-- Provider IDs map to config paths bindings.<module>.<action>. `contents` marks
+-- a launcher value wrapper and custom-hotkeys holds the built-in actions.
+local reserved={contents=true,['custom-hotkeys']=true}
 function M.extensionId(id)
-  return type(id)=='string' and #id<=120
-    and id:match('^ext%.[a-z][a-z0-9_-]*%.[a-z][a-z0-9_-]*$')~=nil
+  if type(id)~='string' or #id>120 then return false end
+  local provider,action=id:match('^ext%.([a-z][a-z0-9_-]*)%.([a-z][a-z0-9_-]*)$')
+  return provider~=nil and not reserved[provider] and action~='contents'
 end
 
 local function set(values, valid)
@@ -36,7 +40,7 @@ function M.new(entries, nativeBindings)
     local panels=entry.panels and assert(set(entry.panels),'action.panels') or nil
     local a = {id=entry.id, contexts=contexts, states=states, panels=panels,
       command=entry.command, behavior=behavior, default=default, label=entry.label or entry.id,
-      introduced=entry.introduced or 1,extension=entry.extension,
+      extension=entry.extension,
       labels=entry.labels,category=entry.category,
       modals=entry.modals and assert(set(entry.modals),'action.modals') or nil}
     actions[a.id], ordered[#ordered+1] = a, a

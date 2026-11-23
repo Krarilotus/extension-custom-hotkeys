@@ -83,6 +83,12 @@ function M.same(a, b)
   return a ~= nil and b ~= nil and M.key(a) == M.key(b)
 end
 
+-- Equality of stored values: a binding, false (explicitly unbound) or nil (absent).
+function M.equal(a, b)
+  if a == b then return true end
+  return type(a) == 'table' and type(b) == 'table' and M.same(a, b)
+end
+
 function M.recovery(event)
   return event.scan == 88 and event.extended == false and event.mods == 3
 end

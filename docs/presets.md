@@ -1,10 +1,10 @@
 # Presets and grid controls (development)
 
 The editor provides Game Default, Modern RTS and Grid. New installations start
-with Game Default. Select a profile on the Profiles page, then Apply. New profile
-copies the selected profile, including its reset baseline. Reset action/profile
-restores that baseline; export/import preserves it. Names are stored independently
-of game language; built-in names and grid action labels are localized.
+with Game Default. Select a layout on the Profiles page, then Apply. Reset
+action/profile returns actions to the layout, plugin suggestions and module
+defaults. Layout IDs are stored independently of game language; layout names
+and grid action labels are localized.
 
 | Behavior | Game Default | Modern RTS | Grid |
 | --- | --- | --- | --- |
@@ -50,16 +50,9 @@ displayed key name. The geometry principle is informed by the official
 [Age of Empires II grid/control-group guide](https://www.ageofempires.com/learn-to-play/match-goals-aoe2/).
 This six-column adaptation uses SHC's own toolbar and command panels.
 
-Profile document schema3 supports keyboard and mouse bindings and64 named profiles.
-Schema1/2 imports/load preserve existing bindings, profile names and active
-selection. Only explicitly versioned new actions may be absent. Named preset
-profiles receive their new preset bindings when these do not conflict with an
-older assignment; new actions in custom profiles start unbound. Missing old
-actions, unknown fields/actions and conflicts
-still fail validation. The three preset copies are added under unique names,
-without replacing a same-named user profile. Migration is saved only through the
-normal Apply operation and alternating verified store. The storage envelope
-schema remains1. Older extension builds do not understand the new payload.
+The active layout is the `layout` value of the UCP config; explicit choices
+are stored next to it. See [bindings in the UCP config](bindings-config.md),
+which also describes the one-time migration of 0.2 profiles.
 
 ## Pointer and bookmark behavior
 

@@ -41,11 +41,6 @@ function M.load(boundary, codec, sha256)
   return ((a and (not b or a.generation >= b.generation)) and a or b).document
 end
 
-local function same(a, b)
-  if a == b then return true end
-  return type(a) == 'table' and type(b) == 'table' and Binding.same(a, b)
-end
-
 -- An old snapshot cannot tell inherited chords from chosen ones, so every
 -- provider entry and every built-in chord that differs from the layout
 -- becomes explicit. Reset returns any of them to inheritance.
@@ -62,16 +57,19 @@ function M.explicit(catalog, document)
     if value ~= false then value = Binding.validate(value) end
     if value == nil then return end
     if Catalog.extensionId(id) then explicit[id] = value
-    elseif catalog.actions[id] and not same(value, base[id])
+    elseif catalog.actions[id] and not Binding.equal(value, base[id])
         -- Before schema 3 an unbound group recall still passed the game's own key.
         and not (schema < 3 and value == false and id:match('^unit%.group%.recall%.%d$')) then
       explicit[id] = value
     end
   end
-  if type(profile.unavailable) == 'table' then
-    for id, value in pairs(profile.unavailable) do take(id, value) end
-  end
   for id, value in pairs(profile.bindings) do take(id, value) end
+  -- 0.2 parked a provider chord here while its action was missing or unbound.
+  if type(profile.unavailable) == 'table' then
+    for id, value in pairs(profile.unavailable) do
+      if not profile.bindings[id] then take(id, value) end
+    end
+  end
   return {layout=layout, explicit=explicit}
 end
 

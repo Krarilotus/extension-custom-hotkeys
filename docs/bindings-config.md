@@ -8,9 +8,9 @@ Select an action and press Enter (or double-click its row) to capture a key or
 mouse button. Delete unbinds it. A conflict preserves both bindings and offers
 Swap keys; the swap is atomic and still rejects collisions with a third action
 or a native action left without a required replacement. The Profile page picks
-the layout (Game Default, Modern RTS or Grid) and resets every action to it.
-Reset action, Reset profile and the layout choice affect only the draft. Apply
-saves and activates the draft. Cancel discards it.
+the layout (Game Default, Modern RTS or Grid); explicit choices stay. Reset
+action and Reset profile return actions to inheritance. All of these affect only
+the draft. Apply saves and activates the draft. Cancel discards it.
 
 ## One dictionary per UCP config
 
@@ -30,11 +30,18 @@ for the enabled modules in this order:
 2. a plugin suggestion for the same path;
 3. the layout's chord, or the providing module's default.
 
-An inherited chord that would collide with an explicit one stays unbound. A
-suggestion or provider default is used only where its chord is free, in stable
-ID order. An explicit entry whose chord is taken by another explicit entry, or
-that no longer fits a provider's changed action, is set aside for that launch:
-it stays in the config, the action starts unbound and a warning is logged.
+Where two chords collide, the action from the lower layer stays unbound; on
+a tie, the later action in stable ID order does. An action never takes a game
+key whose own action still needs it. An explicit entry that yields, or that no
+longer fits a provider's changed action, is set aside: it stays in the config,
+the action is unbound and a warning is logged. It returns as soon as its chord
+is free, and assigning that chord to another action replaces it. The editor
+derives its bindings the same way after every change, so Apply routes exactly
+what the next launch reads.
+
+A value the launcher requires (`required-value`) appears in config-full with a
+different value than the player's entry. It wins, and the editor refuses to
+change or reset that action, or the layout when the layout is required.
 
 Entries for modules that are not enabled are kept unchanged. When the module
 returns, its chord or explicit clear returns with it. Several UCP configs, and
@@ -89,13 +96,19 @@ A plugin suggests a chord through the same path in its own `config.yml`, with
 ## Apply writes the active config
 
 UCP 3.0.7 has no config writer for modules, and its YAML round trip changes
-other modules' values. Apply therefore replaces only the `custom-hotkeys` block
-of `config-sparse` and `config-full` in the file the game was started with.
-All other lines stay byte-identical. The result must parse back with the
-framework's YAML reader to exactly the intended document before it replaces
-the file through a temporary copy. A file the writer cannot place this block
-in safely, for example one in flow style, is left unchanged and the editor
-reports that the config could not be saved.
+other modules' values. Apply therefore rewrites only the `custom-hotkeys` block
+of `config-sparse` and `config-full` in the file the game was started with,
+from its parsed content: comments and null values inside that block are not
+kept. All other lines, including their line endings, stay byte-identical. The
+result must parse back with the framework's YAML reader to exactly the intended
+document. It is written next to the config and replaces it in one atomic rename.
+
+The file is left unchanged, and the editor reports that the config could not
+be saved, when:
+- its config-full no longer lists this Custom Hotkeys version as active, for
+  example after the launcher saved another setup into it;
+- it changed while the game was writing;
+- it is not in the launcher's block style, for example in flow style.
 
 Reset removes the explicit entry. When that entry had replaced a plugin
 suggestion, the file no longer contains the suggestion, so the layout or

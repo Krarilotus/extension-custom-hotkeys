@@ -40,8 +40,8 @@ and [WASD replacements](https://github.com/UnofficialCrusaderPatch/UnofficialCru
 Two-PC multiplayer is deferred to manual testers and does not block development
 or tester access. Full native acceptance and normal reviewed merge remain open.
 
-The current branch contains the binding router, persistent profiles, native
-profile editor and Windows input transport. Direct menu, building and Grid shortcuts invoke the active native button
+The current branch contains the binding router, bindings saved in the UCP config,
+the native binding editor and Windows input transport. Direct menu, building and Grid shortcuts invoke the active native button
 without moving the cursor. Positional navigation and world targeting retain
 the native mouse-input path.
 The three presets are Game Default, Modern RTS and Grid. Modern RTS separates

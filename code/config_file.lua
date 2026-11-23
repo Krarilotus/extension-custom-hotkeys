@@ -1,9 +1,9 @@
 -- Writes explicit Custom Hotkeys entries into the active UCP config file. The
 -- launcher owns that file and UCP 3.0.7 has no config writer, so only the
 -- custom-hotkeys block of config-sparse (launcher user values) and config-full
--- (what the framework loads) is replaced. Every other line stays byte-identical,
--- and the framework's YAML parser must read back exactly the intended document
--- before the file is replaced.
+-- (what the framework loads) is rewritten from its parsed content. Every other
+-- line stays byte-identical, and the framework's YAML parser must read back
+-- exactly the intended document before the file is staged for replacement.
 local M = {}
 local OWNER = 'custom-hotkeys'
 -- Launcher qualifier for user values in config-sparse, plain value in config-full.
@@ -59,12 +59,12 @@ local function indent(line) return #line:match('^ *') end
 local function skip(line) return line:match('^%s*$') or line:match('^%s*#') end
 
 -- Finds a block-style key among the children of lines[first..last]. Returns
--- its line, the last line of its block and its inline remainder, or nil and
--- the indentation of the existing children.
+-- its line, the last line of its block and its inline value without a
+-- trailing comment, or nil and the indentation of the existing children.
 local function find(lines, first, last, parent, key)
   local depth
   for i = first, last do
-    local line = lines[i]
+    local line = lines[i].text
     if not skip(line) then
       local n = indent(line)
       if n <= parent then break end
@@ -76,12 +76,12 @@ local function find(lines, first, last, parent, key)
         if found == key then
           local stop = i
           for j = i + 1, last do
-            if not skip(lines[j]) then
-              if indent(lines[j]) <= n then break end
+            if not skip(lines[j].text) then
+              if indent(lines[j].text) <= n then break end
               stop = j
             end
           end
-          return {line=i, stop=stop, indent=n, rest=remainder}
+          return {line=i, stop=stop, indent=n, rest=remainder:match('^#') and '' or remainder}
         end
       end
     end
@@ -91,14 +91,14 @@ end
 
 local function empty(block) return block.stop == block.line and (block.rest == '' or block.rest == '{}') end
 
-local function splice(lines, section, module)
+local function splice(lines, section, module, newline)
   local top = find(lines, 1, #lines, -1, section)
   if not top or top.rest ~= '' then return nil, 'config.layout' end
   local modules = find(lines, top.line + 1, top.stop, top.indent, 'modules')
   if not modules then return nil, 'config.layout' end
   local block, first, stop = {}, nil, nil
   if empty(modules) then
-    lines[modules.line] = string.rep(' ', modules.indent) .. 'modules:'
+    lines[modules.line].text = string.rep(' ', modules.indent) .. 'modules:'
     emit(block, OWNER, module, modules.indent + 2)
     first, stop = modules.line + 1, modules.line
   elseif modules.rest ~= '' then return nil, 'config.layout'
@@ -108,8 +108,9 @@ local function splice(lines, section, module)
     if owner then first, stop = owner.line, owner.stop
     else first, stop = modules.stop + 1, modules.stop end
   end
+  local ending = lines[first] and lines[first].ending or newline
   for _ = first, stop do table.remove(lines, first) end
-  for i, line in ipairs(block) do table.insert(lines, first + i - 1, line) end
+  for i, text in ipairs(block) do table.insert(lines, first + i - 1, {text=text, ending=ending}) end
   return true
 end
 
@@ -133,14 +134,28 @@ local function assign(tree, path, value)
   end
 end
 
+-- The launcher lists every active extension in config-full's load order and
+-- gives it a module entry; without both, this config does not run this module.
+local function runs(document, version)
+  local full = document['config-full']
+  if type(full) ~= 'table' or type(full.modules) ~= 'table' or type(full.modules[OWNER]) ~= 'table'
+      or type(full['load-order']) ~= 'table' then return false end
+  for _, item in ipairs(full['load-order']) do
+    if type(item) == 'table' and item.extension == OWNER and tostring(item.version) == version then return true end
+  end
+  return false
+end
+
 -- changes: {path={...below custom-hotkeys.config}, value=<explicit or nil>, inherited=<suggestion>}
-function M.edit(text, parse, changes)
+function M.edit(text, parse, changes, version)
   local ok, document = pcall(parse, text)
   if not ok or type(document) ~= 'table' then return nil, 'config.parse' end
-  local newline = text:find('\r\n', 1, true) and '\r\n' or '\n'
-  local lines = {}
-  for line in (text:gsub('\r\n', '\n') .. '\n'):gmatch('(.-)\n') do lines[#lines + 1] = line end
-  if lines[#lines] == '' then lines[#lines] = nil end
+  if not runs(document, version) then return nil, 'config.inactive' end
+  local lines, newline = {}, text:find('\r\n', 1, true) and '\r\n' or '\n'
+  for body, ending in text:gmatch('([^\r\n]*)(\r?\n?)') do
+    if body == '' and ending == '' then break end
+    lines[#lines + 1] = {text=body, ending=ending}
+  end
   local expected = copy(document)
   for _, section in ipairs(SECTIONS) do
     local part = expected[section[1]]
@@ -159,17 +174,20 @@ function M.edit(text, parse, changes)
       assign(module.config, change.path, value ~= nil and {contents={[section[2]]=copy(value)}} or nil)
     end
     part.modules[OWNER] = module
-    local emitted, problem = pcall(splice, lines, section[1], module)
+    local emitted, problem = pcall(splice, lines, section[1], module, newline)
     if not emitted or not problem then return nil, emitted and 'config.layout' or 'config.value' end
   end
-  local result = table.concat(lines, newline) .. newline
+  local out = {}
+  for i, line in ipairs(lines) do
+    out[i] = line.text .. ((line.ending ~= '' or i < #lines) and (line.ending ~= '' and line.ending or newline) or '')
+  end
+  local result = table.concat(out)
   local parsed, reread = pcall(parse, result)
   if not parsed or not equal(reread, expected) then return nil, 'config.verify' end
   return result
 end
 
--- File access through the framework's io.open, replacing the file only after
--- its successor was written and read back completely.
+-- File access through the framework's io.open.
 function M.files(io, os)
   local function read(path)
     local file = io.open(path, 'rb')
@@ -187,23 +205,21 @@ function M.files(io, os)
     local closed, closeStatus = pcall(file.close, file)
     return flushed and flushStatus and closed and closeStatus and read(path) == text
   end
-  return {read=read, replace=function(path, text)
-    local staged, previous = path .. '.custom-hotkeys.tmp', path .. '.custom-hotkeys.old'
-    if not write(staged, text) then os.remove(staged); return nil, 'config.write' end
-    os.remove(previous)
-    if not os.rename(path, previous) then os.remove(staged); return nil, 'config.write' end
-    if not os.rename(staged, path) then os.rename(previous, path); return nil, 'config.write' end
-    os.remove(previous)
-    return true
-  end}
+  return {read=read, write=write, remove=os.remove}
 end
 
-function M.save(files, parse, path, changes)
+-- Writes the edited config next to the active one and returns both paths for
+-- a single atomic replacement. A file that changed while it was being edited
+-- is not replaced.
+function M.stage(files, parse, path, changes, version)
   local text = files.read(path)
   if not text then return nil, 'config.read' end
-  local result, problem = M.edit(text, parse, changes)
+  local result, problem = M.edit(text, parse, changes, version)
   if not result then return nil, problem end
-  return files.replace(path, result)
+  local staged = path .. '.custom-hotkeys.tmp'
+  if not files.write(staged, result) then files.remove(staged); return nil, 'config.write' end
+  if files.read(path) ~= text then files.remove(staged); return nil, 'config.changed' end
+  return {staged=staged, target=path}
 end
 
 return M

@@ -3,6 +3,7 @@
 -- plugin suggestion, then the layout or provider default, on every launch.
 local Catalog = require('code/catalog')
 local Binding = require('code/binding')
+local Context = require('code/context')
 local M = {}
 M.__index = M
 M.owner = 'custom-hotkeys'
@@ -13,11 +14,6 @@ local function copy(value)
   local result = {}
   for key, item in pairs(value) do result[key] = copy(item) end
   return result
-end
-
-local function same(a, b)
-  if a == b then return true end
-  return type(a) == 'table' and type(b) == 'table' and Binding.same(a, b)
 end
 
 -- Config path below `bindings`. Provider IDs follow ext.<module>.<action>;
@@ -51,34 +47,52 @@ local function entry(value)
 end
 
 -- The launcher stores user values in config-sparse; the framework loads
--- config-full, which also contains plugin suggestions.
-function M.explicitTree(userConfig, normalize)
+-- config-full, which also contains plugin suggestions and required values.
+function M.explicitTree(userConfig, normalize, deproxy)
   local ok, tree = pcall(function() return userConfig['config-sparse'].modules[M.owner].config end)
   if not ok or type(tree) ~= 'table' then return {} end
-  local result = copy(tree)
+  local result = deproxy(tree)
   normalize(result)
   return result
 end
 
 -- Reads this launch's catalog actions from the explicit (user) and effective
 -- config trees. The effective tree repeats explicit values, so only actions
--- without an explicit entry carry a plugin suggestion.
+-- without an explicit entry carry a plugin suggestion. An effective value that
+-- differs from the explicit one is a launcher-required value.
 function M.source(catalog, explicitTree, effectiveTree)
-  local result = {explicit={}, suggested={}, ignored={}}
+  local result = {explicit={}, suggested={}, locked={}, ignored={}}
   explicitTree = type(explicitTree) == 'table' and explicitTree or {}
   effectiveTree = type(effectiveTree) == 'table' and effectiveTree or {}
   for _, action in ipairs(catalog.ordered) do
-    local path = M.path(action.id)
-    local mine = lookup(explicitTree.bindings, path)
-    if mine ~= nil then
-      result.explicit[action.id] = entry(mine)
-      if result.explicit[action.id] == nil then result.ignored[#result.ignored + 1] = action.id end
+    local id, path = action.id, M.path(action.id)
+    local mine, effective = lookup(explicitTree.bindings, path), entry(lookup(effectiveTree.bindings, path))
+    if mine == nil then
+      result.suggested[id] = effective
+    elseif effective ~= nil and not Binding.equal(effective, entry(mine)) then
+      result.explicit[id], result.locked[id] = effective, true
     else
-      result.suggested[action.id] = entry(lookup(effectiveTree.bindings, path))
+      result.explicit[id] = entry(mine)
+      if result.explicit[id] == nil then result.ignored[#result.ignored + 1] = id end
     end
   end
-  if type(explicitTree.layout) == 'string' then result.layout = explicitTree.layout
-  elseif type(effectiveTree.layout) == 'string' then result.suggestedLayout = effectiveTree.layout end
+  local mine, effective = explicitTree.layout, effectiveTree.layout
+  if type(mine) == 'string' then
+    result.layout = type(effective) == 'string' and effective or mine
+    result.layoutLocked = result.layout ~= mine
+  elseif type(effective) == 'string' then result.suggestedLayout = effective end
+  return result
+end
+
+-- Legacy entries apply only where the config has no entry of its own,
+-- including entries of modules that are not enabled now.
+function M.unclaimed(legacy, explicitTree)
+  if not legacy then return nil end
+  explicitTree = type(explicitTree) == 'table' and explicitTree or {}
+  local result = {explicit={}, layout=explicitTree.layout == nil and legacy.layout or nil}
+  for id, value in pairs(legacy.explicit) do
+    if lookup(explicitTree.bindings, M.path(id)) == nil then result.explicit[id] = value end
+  end
   return result
 end
 
@@ -88,75 +102,66 @@ function M.layoutOf(catalog, document, suggestedLayout)
   return catalog.presets and M.defaultLayout or nil
 end
 
--- Explicit values win over inherited ones. Inherited suggestions apply in
--- stable ID order where they still fit; a conflicting one leaves its action unbound.
+-- Layers rank explicit > suggested > layout or provider default. Where two
+-- chords collide the lower layer, or on a tie the later action, is unbound;
+-- an action on a native chord whose owner still needs it always yields.
+-- Explicit entries that yield are returned as set aside.
 function M.resolve(catalog, layout, suggested, explicit)
   local preset = catalog.presets and catalog.presets[layout]
   local bindings = copy(preset and preset.bindings or Catalog.defaults(catalog))
+  local rank = {}
   for _, action in ipairs(catalog.ordered) do
-    local value = explicit[action.id]
-    if value ~= nil then bindings[action.id] = copy(value) end
+    local id = action.id
+    if explicit[id] ~= nil then bindings[id], rank[id] = copy(explicit[id]), 3
+    elseif suggested[id] ~= nil then bindings[id], rank[id] = copy(suggested[id]), 2
+    else rank[id] = 1 end
   end
   local aside = {}
   for _ = 0, #catalog.ordered do
     local valid, problem, detail = Catalog.validate(catalog, bindings)
-    if valid then bindings = valid; break end
+    if valid then return valid, aside end
     local ids = type(detail) == 'table' and detail or {detail}
     local loser = ids[1]
-    -- A native conflict is resolved only by unbinding the action on the native chord.
-    if problem == 'binding.conflict' and explicit[loser] ~= nil and explicit[ids[2]] == nil then
-      loser = ids[2]
-    end
+    if problem == 'binding.conflict' and rank[ids[2]] < rank[loser] then loser = ids[2] end
     assert(loser and bindings[loser], problem)
-    if explicit[loser] ~= nil then aside[#aside + 1] = loser end
+    if rank[loser] == 3 then aside[#aside + 1] = loser end
     bindings[loser] = false
   end
-  assert(Catalog.validate(catalog, bindings), 'bindings.resolve')
-  for _, action in ipairs(catalog.ordered) do
-    local id, value = action.id, suggested[action.id]
-    if explicit[id] == nil and value ~= nil and not same(value, bindings[id]) then
-      bindings[id] = copy(value)
-      local valid = Catalog.validate(catalog, bindings)
-      if valid then bindings = valid else bindings[id] = false end
-    end
-  end
-  return assert(Catalog.validate(catalog, bindings)), aside
+  error('bindings.resolve')
 end
+
+local function document(value) return {layout=value.layout, explicit=copy(value.explicit)} end
 
 -- store:save(changes) writes the listed explicit entries into the active
 -- config; `inherited` is the plugin suggestion an effective entry falls back to.
 function M.new(catalog, source, store, router)
   local self = setmetatable({catalog=catalog, store=store, router=router,
-    suggested=source.suggested or {}, suggestedLayout=source.suggestedLayout}, M)
-  local document = {layout=source.layout, explicit=copy(source.explicit or {})}
-  local migration
+    suggested=source.suggested or {}, suggestedLayout=source.suggestedLayout,
+    locked=source.locked or {}, layoutLocked=source.layoutLocked}, M)
+  self.saved = {layout=source.layout, explicit=copy(source.explicit or {})}
+  local current = document(self.saved)
   if source.legacy then
-    migration = {}
     for id, value in pairs(source.legacy.explicit) do
-      if document.explicit[id] == nil then
-        document.explicit[id] = copy(value)
-        migration[#migration + 1] = {path=M.configPath(id), value=copy(value), inherited=self.suggested[id]}
-      end
+      if current.explicit[id] == nil then current.explicit[id] = copy(value) end
     end
-    if document.layout == nil and source.legacy.layout ~= M.layoutOf(catalog, {}, self.suggestedLayout) then
-      document.layout = source.legacy.layout
-      migration[#migration + 1] = {path={'layout'}, value=document.layout, inherited=self.suggestedLayout}
+    if current.layout == nil and source.legacy.layout ~= M.layoutOf(catalog, {}, self.suggestedLayout) then
+      current.layout = source.legacy.layout
     end
-  end
-  self.committed = self:derive(document)
-  assert(router:apply(self.committed.bindings, {nativeAliases=self.committed.active == M.defaultLayout}))
-  if migration then
+    local changes = self:changes(self.saved, current)
     local saved, problem = true, nil
-    if #migration > 0 then saved, problem = store:save(migration) end
+    if #changes > 0 then saved, problem = store:save(changes) end
+    if saved then self.saved = document(current) end
     self.migration = {saved=saved == true, problem=problem}
   end
+  self.committed = self:derive(current)
+  assert(router:apply(self.committed.bindings, {nativeAliases=self.committed.active == M.defaultLayout}))
   return self
 end
 
-function M:derive(document)
-  local active = M.layoutOf(self.catalog, document, self.suggestedLayout)
-  local bindings, aside = M.resolve(self.catalog, active, self.suggested, document.explicit)
-  return {layout=document.layout, explicit=document.explicit, active=active, bindings=bindings, aside=aside}
+function M:derive(value)
+  local active = M.layoutOf(self.catalog, value, self.suggestedLayout)
+  local bindings, aside = M.resolve(self.catalog, active, self.suggested, value.explicit)
+  return {layout=value.layout, explicit=value.explicit, active=active, bindings=bindings, aside=aside}
 end
 
 function M:begin()
@@ -170,6 +175,9 @@ function M:cancel()
   self.router:barrier()
 end
 
+-- Player edits are checked strictly against the current bindings, so a
+-- conflict reaches the editor as a swap offer; the draft is then derived
+-- from the sparse choices exactly as on the next launch.
 local function edit(self, operation)
   if not self.draft then return nil, 'profiles.no-draft' end
   local candidate = copy(self.draft)
@@ -177,20 +185,28 @@ local function edit(self, operation)
   if not ok then return nil, err end
   local valid, problem, detail = Catalog.validate(self.catalog, candidate.bindings)
   if not valid then return nil, problem, detail end
-  candidate.bindings = valid
-  self.draft = candidate
+  self.draft = self:derive(candidate)
   return true
 end
 
-local function assign(d, id, binding)
+local function assign(self, d, id, binding)
+  if self.locked[id] then return false end
+  -- A chord the player assigns replaces a parked preference for it.
+  for _, other in ipairs(d.aside) do
+    if other ~= id and binding and Binding.equal(d.explicit[other], binding)
+        and Context.overlap(self.catalog.actions[id], self.catalog.actions[other]) then
+      d.explicit[other] = nil
+    end
+  end
   d.explicit[id] = copy(binding)
   d.bindings[id] = copy(binding)
+  return true
 end
 
 function M:bind(action, binding)
   return edit(self, function(d)
     if not self.catalog.actions[action] then return nil, 'profile.unknown-action' end
-    assign(d, action, binding)
+    if not assign(self, d, action, binding) then return nil, 'binding.locked' end
     return true
   end)
 end
@@ -200,43 +216,44 @@ function M:reassign(action, binding, displaced, replacement)
   return edit(self, function(d)
     if not self.catalog.actions[action] or not self.catalog.actions[displaced]
         or action == displaced then return nil, 'profile.unknown-action' end
-    assign(d, action, binding)
-    assign(d, displaced, replacement)
-    return true
-  end)
-end
-
--- Reset returns an action, or the whole active layout, to inheritance.
-function M:reset(action)
-  if action and not self.catalog.actions[action] then return nil, 'profile.unknown-action' end
-  return edit(self, function(d)
-    local inherited = M.resolve(self.catalog, d.active, self.suggested, {})
-    if action then
-      d.explicit[action] = nil
-      d.bindings[action] = inherited[action]
-    else
-      for _, item in ipairs(self.catalog.ordered) do d.explicit[item.id] = nil end
-      d.bindings = inherited
+    if not (assign(self, d, action, binding) and assign(self, d, displaced, replacement)) then
+      return nil, 'binding.locked'
     end
     return true
   end)
 end
 
+-- Reset returns an action, or every action, to inheritance.
+function M:reset(action)
+  if action and not self.catalog.actions[action] then return nil, 'profile.unknown-action' end
+  if action and self.locked[action] then return nil, 'binding.locked' end
+  return edit(self, function(d)
+    for _, item in ipairs(self.catalog.ordered) do
+      if (not action or item.id == action) and not self.locked[item.id] then d.explicit[item.id] = nil end
+    end
+    d.bindings = M.resolve(self.catalog, d.active, self.suggested, d.explicit)
+    return true
+  end)
+end
+
 function M:select(layout)
+  if self.layoutLocked then return nil, 'binding.locked' end
   return edit(self, function(d)
     if not (self.catalog.presets and self.catalog.presets[layout]) then return nil, 'profiles.unknown' end
     d.layout = layout
-    local derived = self:derive(d)
-    d.active, d.bindings = derived.active, derived.bindings
+    d.bindings = self:derive(d).bindings
     return true
   end)
 end
 
 function M:changes(before, after)
+  local ids = {}
+  for id in pairs(before.explicit) do ids[#ids + 1] = id end
+  for id in pairs(after.explicit) do if before.explicit[id] == nil then ids[#ids + 1] = id end end
+  table.sort(ids)
   local list = {}
-  for _, action in ipairs(self.catalog.ordered) do
-    local id = action.id
-    if not same(before.explicit[id], after.explicit[id]) then
+  for _, id in ipairs(ids) do
+    if not Binding.equal(before.explicit[id], after.explicit[id]) then
       list[#list + 1] = {path=M.configPath(id), value=copy(after.explicit[id]), inherited=self.suggested[id]}
     end
   end
@@ -251,12 +268,12 @@ function M:apply()
   local valid, err = Catalog.validate(self.catalog, self.draft.bindings)
   if not valid then return nil, err end
   self.router:barrier()
-  local changes = self:changes(self.committed, self.draft)
+  local changes = self:changes(self.saved, self.draft)
   if #changes > 0 then
     local ok, problem = self.store:save(changes)
     if not ok then return nil, problem end
   end
-  self.draft.bindings = valid
+  self.saved = document(self.draft)
   assert(self.router:apply(valid, {nativeAliases=self.draft.active == M.defaultLayout}))
   self.committed = self.draft
   self.draft = nil

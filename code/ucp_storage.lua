@@ -15,14 +15,20 @@ function M.new(ucpIO, ucpOS)
     if not file then return nil, errno == 2 and 'missing' or 'io' end
     return file
   end,
+  -- Both slots move or neither does, so an older generation never stays alone.
   retire=function()
+    local moved = {}
     for _, name in ipairs(slots) do
       local path = prefix .. name
       local file = ucpIO.open(path, 'rb')
       if file then
         file:close()
         ucpOS.remove(path .. '.migrated')
-        if not ucpOS.rename(path, path .. '.migrated') then return nil, 'store.retire' end
+        if not ucpOS.rename(path, path .. '.migrated') then
+          for _, done in ipairs(moved) do ucpOS.rename(done .. '.migrated', done) end
+          return nil, 'store.retire'
+        end
+        moved[#moved + 1] = path
       end
     end
     return true
