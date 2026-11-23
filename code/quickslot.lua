@@ -2,6 +2,7 @@
 -- filename resolution, overwrite policy, serialization and session transitions.
 local M={}
 M.__index=M
+local OPENING_FRAMES=30
 function M.new(adapter)
   return setmetatable({adapter=adapter,active=false},M)
 end
@@ -9,7 +10,7 @@ function M:start(context,action)
   if self.active then return false end
   local token=self.adapter.open(context,action)
   if not token then return false end
-  self.token,self.phase,self.frames=token,action=='game.quickload' and 'load' or 'name',0
+  self.token,self.phase,self.frames,self.seen=token,action=='game.quickload' and 'load' or 'name',0,false
   self.limit=action=='game.quickload' and 900 or 90
   self.active=true
   return true
@@ -25,6 +26,13 @@ function M:beforeFrame()
   self.frames=self.frames+1
   local kind=self.adapter.observe(self.token)
   if not kind or self.frames>self.limit then self:cancel();return end
+  -- A just-opened dialog can need a few frames before its state verifies.
+  -- Waiting sends no input; once a verified state was seen, it cancels.
+  if kind=='opening' then
+    if self.seen or self.frames>OPENING_FRAMES then self:cancel() end
+    return
+  end
+  self.seen=true
   if kind=='progress' or kind=='done' then self:cancel();return end
   if self.phase=='load' then
     if kind~='load' then self:cancel();return end

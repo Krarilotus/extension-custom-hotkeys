@@ -36,7 +36,7 @@ function M.new(scene,view,world,cursor,reader)
     end
     if token.action=='game.quickload' then
       if Load.origin(s) then return s,'load' end
-      return nil
+      return s,'opening'
     end
     if s.modal==10 and s.textModal==10 and s.activeModalID==10
         and s.activeModalMenu==A.confirmationMenu
@@ -48,6 +48,8 @@ function M.new(scene,view,world,cursor,reader)
         and s.activeModalMenu==A.saveMenu and read(A.saveMenu)==A.confirmationItems
         and s.textIndex==9 and s.textState==3 and s.operation==30
         and name()==NAME and Origin.read(s) then return s,'confirm' end
+    -- Same session and focus, but the dialog is not in a verified state.
+    return s,'opening'
   end
   local adapter={}
   function adapter.open(context,action)

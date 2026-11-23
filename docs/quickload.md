@@ -11,7 +11,9 @@ ordered file mapping, bounded to500 entries with1001-byte NUL-terminated names,
 and requires exactly one case-insensitive match. It retains the mapping and
 revalidates that mapping, target name, screen, session, focus generation, text
 owner and native modal geometry before each gesture. Missing/ambiguous names or
-changed lists cancel, leaving normal Load UI available. It never writes a list
+changed lists cancel, leaving normal Load UI available. A just-opened dialog
+may take a few frames to reach that state. Quicksave and Quickload wait up to 30
+frames for it, without sending input. Any unverified state after that cancels. It never writes a list
 index, invokes a raw Load callback or retries an uncertain native commit.
 
 The native vertical scrollbar supplies15-row page steps (callback0x492BA0,
