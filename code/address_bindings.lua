@@ -47,6 +47,8 @@ function M.resolve(core,utils,game,ffi)
   scan('ignoreMenuAction','C7 05 ? ? ? ? 00 00 00 00 C3 CC CC CC CC CC C7 05 ? ? ? ? 01 00 00 00',false)
   scan('inGame','89 35 I(? ? ? ?) 89 35 ? ? ? ? 89 35 ? ? ? ? E8 ? ? ? ? 56 6A FF B9 ? ? ? ? E8 ? ? ? ?',true)
   scan('inputFrame','83 EC 08 53 55 56 57 8B F1 FF 15 ? ? ? ? 8B 4E 14',false)
+  -- Enter after the prologue, including the five bytes used by Autoclicker.
+  addresses.inputFrame=addresses.inputFrame+9
   scan('keepBookmark','89 3D I(? ? ? ?) 89 3D ? ? ? ? 5F 89 35 ? ? ? ? 89 35 ? ? ? ? 89 35 ? ? ? ? 89 35 ? ? ? ? 89 35 ? ? ? ?',true)
   scan('lastBuildTab','C7 05 I(? ? ? ?) 0A 00 00 00 E8 ? ? ? ? C7 05 ? ? ? ? 00 00 00 00 E9 ? ? ? ? 8B 44 24 14 6A 08 50 53',true)
   scan('loadAction','81 EC F4 03 00 00 A1 ? ? ? ? 33 C4 89 84 24 F0 03 00 00 8B 84 24 F8 03 00 00 83 C0 02 83 F8 13 0F 87 ? ? ? ?',false)
