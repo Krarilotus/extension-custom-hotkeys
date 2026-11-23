@@ -110,9 +110,10 @@ document. It is written next to the config and replaces it in one atomic rename.
 
 The file is left unchanged, and the editor reports that the config could not
 be saved, when:
-- its config-full no longer lists this Custom Hotkeys version as active, for
-  example after the launcher saved another setup into it;
-- it changed while the game was writing;
+- it changed since this game loaded it or last wrote it, for example because
+  the launcher saved it meanwhile (restart the game to load the new file);
+- it is marked inactive, or its config-full no longer lists this Custom
+  Hotkeys version as active;
 - it is not in the launcher's block style, for example in flow style.
 
 Reset removes the explicit entry. When that entry had replaced a plugin
@@ -120,9 +121,10 @@ suggestion, the file no longer contains the suggestion, so the layout or
 provider default applies until the launcher saves this config again.
 
 One game process at a time writes hotkeys; Apply reports an error in a second
-process. The launcher keeps its own copy of the config while it is open.
-Save in the launcher only after reloading the config, or in-game changes made
-since it was loaded are overwritten.
+process. The launcher keeps its own copy of the config while it is open, and
+UCP 3.0.7's launcher does not reload it when the game exits. Reopen the config
+in the launcher before saving there, or in-game changes made since it was
+loaded are overwritten.
 
 ## Migration from 0.2
 
