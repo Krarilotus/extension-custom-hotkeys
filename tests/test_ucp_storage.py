@@ -29,3 +29,17 @@ def test_the_import_marker_is_one_fixed_file(lua, tmp_path):
       assert(boundary.imported())
     ''')
     assert [p.name for p in (tmp_path / 'ucp').iterdir()] == ['custom-hotkeys-0.2-imported']
+
+
+def test_an_unreadable_or_unwritable_marker_fails_closed(lua):
+    lua.execute('''
+      local B=require('code/ucp_storage')
+      assert(B.new({open=function() return nil,'denied',13 end}).imported())
+      assert(not B.new({open=function() return nil,'missing',2 end}).imported())
+      local failing={write=function() return nil,'disk full' end,close=function() return true end}
+      local ok,err=B.new({open=function() return failing end}).markImported()
+      assert(not ok and err=='store.marker')
+      local unclosed={write=function(self) return self end,close=function() return nil,'close failed' end}
+      ok,err=B.new({open=function() return unclosed end}).markImported()
+      assert(not ok and err=='store.marker')
+    ''')

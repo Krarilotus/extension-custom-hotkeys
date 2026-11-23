@@ -52,6 +52,7 @@ function M.prepare(modulePath,registry)
         return writer.stage(changes)
       end,
       bindingsReplaced=function(success) if writer then writer.replaced(success) end end,
+      legacyImported=function() return legacy.imported() end,
       markLegacyImported=function() return legacy.markImported() end,
       gameLanguage=function() return data.version.getGameLanguage() end,
       logWarning=function(message) log(WARNING,'Custom Hotkeys: '..message) end}}
@@ -78,7 +79,7 @@ function M.prepare(modulePath,registry)
         log(WARNING,'Custom Hotkeys: ignoring invalid binding for '..id..' in the UCP config')
       end
       local document,problem
-      if Bindings.fresh(explicit) and not legacy.imported() then document,problem=require('code/legacy_profiles').load(legacy,
+      if Bindings.fresh(explicit) then document,problem=require('code/legacy_profiles').load(legacy,
         {decode=function(value) return json:decode(value) end},sha.sha256) end
       if document then
         source.legacy,problem=require('code/legacy_profiles').explicit(catalog,document)

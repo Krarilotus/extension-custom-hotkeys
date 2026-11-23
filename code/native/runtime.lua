@@ -78,12 +78,24 @@ function M.start(language)
   })
   local replace=require('code/native/replace_file')
   local source=remote.interface.bindingSource()
+  -- The 0.2 profile is imported once per installation, by the process that
+  -- holds the writer lock, and recorded with the first config write after it.
+  if source.legacy and (not lock or remote.interface.legacyImported()) then source.legacy=nil end
+  local importPending=source.legacy~=nil
   local store={save=function(_,changes)
     if not lock then return nil,lockProblem end
     local staged,problem=remote.interface.stageBindings(changes)
     if not staged then return nil,problem end
     local ok,err=replace(staged.staged,staged.target)
     remote.interface.bindingsReplaced(ok==true)
+    if ok and importPending then
+      importPending=false
+      local marked,markProblem=remote.interface.markLegacyImported()
+      if not marked then
+        remote.interface.logWarning('0.2 import not recorded ('..tostring(markProblem)
+          ..'); create ucp/custom-hotkeys-0.2-imported to keep other configs from importing it')
+      end
+    end
     return ok,err
   end}
   local built,bindings=pcall(Bindings.new,catalog,source,store,router)
@@ -95,12 +107,9 @@ function M.start(language)
   for _,id in ipairs(bindings.committed.aside) do
     remote.interface.logWarning('Saved binding for '..id..' set aside: its chord is taken')
   end
-  if bindings.migration and bindings.migration.saved then
-    local marked,problem=remote.interface.markLegacyImported()
-    if not marked then remote.interface.logWarning('0.2 import not recorded ('..tostring(problem)..')') end
-  elseif bindings.migration then
-    remote.interface.logWarning('0.2 profile not written to the UCP config ('..tostring(bindings.migration.problem)
-      ..'); the 0.2 files are unchanged, and a later start imports them into a config without Custom Hotkeys entries')
+  if bindings.migration and not bindings.migration.saved then
+    remote.interface.logWarning('0.2 profile not written to the UCP config yet ('..tostring(bindings.migration.problem)
+      ..'); a successful Apply writes it, and the 0.2 files are unchanged')
   end
   view=View.new(bindings,catalog,router,scene,platform,require('code/locale').new(language,
     require('code/native/text').label,catalog.extensionLabels))

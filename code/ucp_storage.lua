@@ -15,17 +15,18 @@ function M.new(ucpIO)
     if not file then return nil, errno == 2 and 'missing' or 'io' end
     return file
   end,
+  -- An unreadable marker counts as present, so no second import can start.
   imported=function()
-    local file = ucpIO.open(marker, 'rb')
+    local file, _, errno = ucpIO.open(marker, 'rb')
     if file then file:close() end
-    return file ~= nil
+    return file ~= nil or errno ~= 2
   end,
   markImported=function()
     local file = ucpIO.open(marker, 'wb')
     if not file then return nil, 'store.marker' end
-    local ok = pcall(file.write, file, 'The Custom Hotkeys 0.2 profile was imported into a UCP config.\n')
-    file:close()
-    if not ok then return nil, 'store.marker' end
+    local wrote, written = pcall(file.write, file, 'The Custom Hotkeys 0.2 profile was imported into a UCP config.\n')
+    local closed, status = pcall(file.close, file)
+    if not (wrote and written and closed and status) then return nil, 'store.marker' end
     return true
   end}
 end

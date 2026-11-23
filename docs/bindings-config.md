@@ -138,12 +138,14 @@ entries takes over the active one of those profiles:
   0.2 had set aside, because a saved profile cannot show whether it came from a
   suggestion. Reset returns any of them to inheritance.
 
-A config that already has entries is never changed by the import. After the
-import has been written, `ucp/custom-hotkeys-0.2-imported` records it, and no
-other config imports again. If the config cannot be written at that start, the
-editor still holds the imported choices and the next successful Apply writes
-them; a later start also retries while some config has no Custom Hotkeys
-entries.
+A config that already has entries is never changed by the import, and only
+the game process that holds the writer lock imports. With the first config
+write after the import, at that start or at a later Apply, the file
+`ucp/custom-hotkeys-0.2-imported` records it, and no other config imports
+again; an unreadable marker counts as present. If no write succeeds before the
+game closes, a later start imports again into a config without Custom Hotkeys
+entries. If the marker cannot be written, the game logs it; create the file
+yourself to keep other configs from importing.
 
 The 0.2 files are only read, never changed, so 0.2 keeps working with them.
 Only the active profile is imported. To import again, for example another
