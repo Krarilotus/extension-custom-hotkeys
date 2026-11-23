@@ -84,8 +84,8 @@ function M.source(catalog, explicitTree, effectiveTree)
   return result
 end
 
--- A config that has never held Custom Hotkeys entries. Importing always
--- writes `layout`, which Reset keeps, so a config is imported into once.
+-- A config that holds no Custom Hotkeys entries. Importing writes `layout`,
+-- which Reset keeps.
 function M.fresh(explicitTree)
   return type(explicitTree) ~= 'table' or (explicitTree.layout == nil
     and (type(explicitTree.bindings) ~= 'table' or next(explicitTree.bindings) == nil))
@@ -99,80 +99,65 @@ end
 
 -- Layers rank required > explicit > suggested > layout or provider default;
 -- within a rank the earlier action in catalog order (built-ins in declaration
--- order, then providers by ID) comes first. A colliding action lower in that
--- order is unbound, and an action on a native chord whose owner still needs
--- it yields. Unbound actions are then retried in that order until nothing
--- changes. A retry succeeds when its chord fits after unbinding every action
--- below it that blocks it and binding the native key's owner if that owner
--- is unbound itself; otherwise nothing it touched changes. Explicit and
--- required entries that stay unbound are returned as set aside.
+-- order, then providers by ID) comes first. If the wanted bindings conflict,
+-- actions claim their chords one at a time in that order, starting from no
+-- bindings. An action on another action's native key claims it together with
+-- that owner's own binding, since the game key may only move once its owner
+-- has one. A claim that conflicts with an earlier claim fails as a whole.
+-- An action whose chord no other action wants, and that is no other action's
+-- native key, cannot conflict and is placed first. Explicit and required
+-- entries left unbound are returned as set aside.
 function M.resolve(catalog, layout, suggested, explicit, locked)
   locked = locked or {}
   local preset = catalog.presets and catalog.presets[layout]
-  local bindings = copy(preset and preset.bindings or Catalog.defaults(catalog))
-  local rank, wanted, index = {}, {}, {}
+  local wanted = copy(preset and preset.bindings or Catalog.defaults(catalog))
+  local rank, index, order = {}, {}, {}
   for position, action in ipairs(catalog.ordered) do
     local id = action.id
-    if explicit[id] ~= nil then bindings[id], rank[id] = copy(explicit[id]), locked[id] and 4 or 3
-    elseif suggested[id] ~= nil then bindings[id], rank[id] = copy(suggested[id]), 2
+    if explicit[id] ~= nil then wanted[id], rank[id] = copy(explicit[id]), locked[id] and 4 or 3
+    elseif suggested[id] ~= nil then wanted[id], rank[id] = copy(suggested[id]), 2
     else rank[id] = 1 end
-    wanted[id], index[id] = bindings[id], position
+    index[id], order[position] = position, id
   end
-  local function before(a, b) return rank[a] > rank[b] or (rank[a] == rank[b] and index[a] < index[b]) end
-  local unbound = {}
-  for _ = 0, #catalog.ordered do
-    local valid, problem, detail = Catalog.validate(catalog, bindings)
-    if valid then bindings = valid; break end
-    local ids = type(detail) == 'table' and detail or {detail}
-    local loser = ids[1]
-    if problem == 'binding.conflict' and before(loser, ids[2]) then loser = ids[2] end
-    assert(loser and bindings[loser], problem)
-    bindings[loser], unbound[loser] = false, true
+  local valid = Catalog.validate(catalog, wanted)
+  if valid then return valid, {} end
+  table.sort(order, function(a, b) return rank[a] > rank[b] or (rank[a] == rank[b] and index[a] < index[b]) end)
+  local users, natives = {}, {}
+  for _, id in ipairs(order) do
+    if wanted[id] then local key = Binding.key(wanted[id]); users[key] = (users[key] or 0) + 1 end
   end
-  bindings = assert(Catalog.validate(catalog, bindings), 'bindings.resolve')
-  local function attempt(id)
-    local touched, displaced, pulled = {}, {}, {[id]=true}
-    local function set(other, value) touched[#touched + 1] = {other, bindings[other]}; bindings[other] = value end
-    set(id, copy(wanted[id]))
-    for _ = 1, #catalog.ordered do
-      local valid, problem, detail = Catalog.validate(catalog, bindings)
-      if valid then
-        bindings = valid
-        for other in pairs(displaced) do unbound[other] = true end
-        for other in pairs(pulled) do unbound[other] = nil end
-        return true
-      end
-      local ids = type(detail) == 'table' and detail or {detail}
-      local blocker
-      if problem == 'binding.conflict' then
-        blocker = before(ids[1], ids[2]) and ids[2] or ids[1]
-        if pulled[blocker] or not before(id, blocker) then blocker = nil end
-        if blocker then set(blocker, false); displaced[blocker] = true end
-      elseif problem == 'binding.native-conflict' then
-        blocker = ids[2]
-        if pulled[blocker] or bindings[blocker] ~= false or not wanted[blocker] then blocker = nil end
-        if blocker then set(blocker, copy(wanted[blocker])); pulled[blocker] = true end
-      end
-      if not blocker then break end
+  for _, original in ipairs(catalog.originals) do natives[Binding.key(original.binding)] = original.action end
+  local bindings = {}
+  for _, id in ipairs(order) do
+    local key = wanted[id] and Binding.key(wanted[id])
+    bindings[id] = key and users[key] == 1 and (natives[key] == nil or natives[key] == id)
+      and copy(wanted[id]) or false
+  end
+  for _ = 0, #order do
+    local accepted, _, detail = Catalog.validate(catalog, bindings)
+    if accepted then bindings = accepted; break end
+    for _, id in ipairs(type(detail) == 'table' and detail or {detail}) do bindings[id] = false end
+  end
+  local function claim(id)
+    local added = {id}
+    bindings[id] = copy(wanted[id])
+    for _ = 1, #order do
+      local accepted, problem, detail = Catalog.validate(catalog, bindings)
+      if accepted then bindings = accepted; return end
+      local owner = problem == 'binding.native-conflict' and detail[2]
+      if not owner or bindings[owner] ~= false or not wanted[owner] then break end
+      bindings[owner] = copy(wanted[owner])
+      added[#added + 1] = owner
     end
-    for i = #touched, 1, -1 do bindings[touched[i][1]] = touched[i][2] end
-    return false
+    for _, other in ipairs(added) do bindings[other] = false end
   end
-  for _ = 1, #catalog.ordered do
-    local order = {}
-    for id in pairs(unbound) do if wanted[id] then order[#order + 1] = id end end
-    table.sort(order, before)
-    local changed = false
-    for _, id in ipairs(order) do
-      if unbound[id] and attempt(id) then unbound[id], changed = nil, true end
-    end
-    if not changed then break end
+  for _, id in ipairs(order) do
+    if bindings[id] == false and wanted[id] then claim(id) end
   end
   local aside = {}
-  for id in pairs(unbound) do
-    if bindings[id] == false and rank[id] >= 3 and wanted[id] then aside[#aside + 1] = id end
+  for _, id in ipairs(order) do
+    if bindings[id] == false and wanted[id] and rank[id] >= 3 then aside[#aside + 1] = id end
   end
-  table.sort(aside, before)
   return bindings, aside
 end
 

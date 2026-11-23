@@ -31,9 +31,11 @@ def game(lua, tmp_path):
       end
       withZoom=Catalog.production(registry.freeze())
       withoutZoom=Catalog.production()
-      function start(path,provider)
+      function start(path,provider,legacy)
         local c=provider==false and withoutZoom or withZoom
-        session=launch(path,c,Router.new(c,Catalog.defaults(c),adapter))
+        session=launch(path,c,Router.new(c,Catalog.defaults(c),adapter),legacy)
+        -- The runtime records a written import once per installation.
+        if session.migration and session.migration.saved then legacyImported=true end
         return session
       end
       function scan(id)
@@ -130,3 +132,26 @@ def test_layout_is_a_config_value_too(game):
     lua.execute("apply(function(s) return s:select('grid') end)")
     lua.eval('start')(str(a))
     assert lua.eval('session.committed.active') == 'grid'
+
+
+def test_a_0_2_profile_is_imported_once_even_after_the_launcher_drops_the_module(game):
+    lua, tmp = game
+    a = tmp / 'a.yml'
+    Launcher(BASE).save(a)
+    lua.execute("""
+      legacy={layout='grid',explicit={['game.quicksave']=key(65,1),['ext.zoom.in']=false}}
+      start(target_a,nil,legacy)
+      assert(session.committed.active=='grid' and scan('game.quicksave')==65 and legacyImported)
+      apply(function(s) return s:reset('game.quicksave') end)
+    """.replace('target_a', repr(str(a))))
+    # Disabling Custom Hotkeys in the launcher drops its entries; re-enabling brings none back.
+    loaded = Launcher.load(a)
+    loaded.active, loaded.explicit = ['zoom'], ['zoom']
+    loaded.save(a)
+    loaded = Launcher.load(a)
+    loaded.active, loaded.explicit = BASE, BASE
+    loaded.save(a)
+    lua.execute("""
+      start(target_a,nil,legacy)
+      assert(not session.migration and scan('game.quicksave')==31 and session.committed.active=='game-default')
+    """.replace('target_a', repr(str(a))))

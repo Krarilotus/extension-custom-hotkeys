@@ -95,9 +95,12 @@ function M.start(language)
   for _,id in ipairs(bindings.committed.aside) do
     remote.interface.logWarning('Saved binding for '..id..' set aside: its chord is taken')
   end
-  if bindings.migration and not bindings.migration.saved then
+  if bindings.migration and bindings.migration.saved then
+    local marked,problem=remote.interface.markLegacyImported()
+    if not marked then remote.interface.logWarning('0.2 import not recorded ('..tostring(problem)..')') end
+  elseif bindings.migration then
     remote.interface.logWarning('0.2 profile not written to the UCP config ('..tostring(bindings.migration.problem)
-      ..'); it is imported again on the next start')
+      ..'); the 0.2 files are unchanged, and a later start imports them into a config without Custom Hotkeys entries')
   end
   view=View.new(bindings,catalog,router,scene,platform,require('code/locale').new(language,
     require('code/native/text').label,catalog.extensionLabels))

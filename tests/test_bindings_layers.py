@@ -237,3 +237,20 @@ def test_two_actions_swapping_native_keys_return_together(lua):
       assert(bindings['aa.swap'].scan==45 and bindings['bb.swap'].scan==44)
       assert(bindings['ss.wide']==false and bindings['ee.editor'].scan==44)
     ''')
+
+
+def test_a_higher_claim_wins_over_a_lower_action_and_its_native_dependent(lua):
+    lua.execute('''
+      local states={'live-sp','editor','menu'}
+      local c=Catalog.new({
+        {id='e2.editor-menu',contexts={'editor','menu'},states=states,command=false,default=false},
+        {id='e1.game-editor',contexts={'game','editor'},states=states,command=false,default=false},
+        {id='s1.game',contexts={'game'},states=states,command=false,default=key(59,2)},
+        {id='s2.game',contexts={'game'},states=states,command=false,default=false},
+        {id='rq.menu',contexts={'menu'},states=states,command=false,default=false}},
+        {{action='s1.game',binding=key(59,2)}})
+      local bindings,aside=Bindings.resolve(c,nil,{['s1.game']=key(65),['s2.game']=key(59,2)},
+        {['e1.game-editor']=key(65),['e2.editor-menu']=key(65),['rq.menu']=key(65)},{['rq.menu']=true})
+      assert(bindings['e1.game-editor'].scan==65 and bindings['rq.menu'].scan==65)
+      assert(bindings['e2.editor-menu']==false and aside[1]=='e2.editor-menu')
+    ''')

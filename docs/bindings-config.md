@@ -129,8 +129,8 @@ loaded are overwritten.
 ## Migration from 0.2
 
 Custom Hotkeys 0.2 kept named profiles in `ucp/custom-hotkeys-profiles-a.json`
-and `-b.json`. A UCP config that has no Custom Hotkeys entries yet takes over the
-active one of those profiles on its first start with 0.3:
+and `-b.json`. The first UCP config started with 0.3 that has no Custom Hotkeys
+entries takes over the active one of those profiles:
 
 - its layout is written as `layout`;
 - each built-in chord or clear that differs from that layout becomes explicit;
@@ -138,14 +138,15 @@ active one of those profiles on its first start with 0.3:
   0.2 had set aside, because a saved profile cannot show whether it came from a
   suggestion. Reset returns any of them to inheritance.
 
-`layout` stays when actions are reset, so each config is imported into once.
-A config that already has entries is never changed by the import. If the
-config cannot be written at that start, the editor still holds the imported
-choices and the next successful Apply writes them; otherwise the next start
-imports again.
+A config that already has entries is never changed by the import. After the
+import has been written, `ucp/custom-hotkeys-0.2-imported` records it, and no
+other config imports again. If the config cannot be written at that start, the
+editor still holds the imported choices and the next successful Apply writes
+them; a later start also retries while some config has no Custom Hotkeys
+entries.
 
 The 0.2 files are only read, never changed, so 0.2 keeps working with them.
-While they exist, a new config without Custom Hotkeys entries starts from that
-profile too; delete or move them to start new configs from the layouts. Only
-the active profile is imported: make another one active in 0.2 to import it.
-The profile exchange files of 0.2 are not read.
+Only the active profile is imported. To import again, for example another
+profile made active in 0.2, delete `ucp/custom-hotkeys-0.2-imported` and start
+0.3 with a config that has no Custom Hotkeys entries. The profile exchange
+files of 0.2 are not read.
