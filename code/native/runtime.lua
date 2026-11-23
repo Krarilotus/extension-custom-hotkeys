@@ -80,7 +80,9 @@ function M.start(language)
   local source=remote.interface.bindingSource()
   -- The 0.2 profile is imported once per installation, by the process that
   -- holds the writer lock, and recorded with the first config write after it.
-  if source.legacy and (not lock or remote.interface.legacyImported()) then source.legacy=nil end
+  if source.fresh and lock and not remote.interface.legacyImported() then
+    source.legacy=remote.interface.legacyProfile()
+  end
   local importPending=source.legacy~=nil
   local store={save=function(_,changes)
     if not lock then return nil,lockProblem end
@@ -89,12 +91,9 @@ function M.start(language)
     local ok,err=replace(staged.staged,staged.target)
     remote.interface.bindingsReplaced(ok==true)
     if ok and importPending then
-      importPending=false
       local marked,markProblem=remote.interface.markLegacyImported()
-      if not marked then
-        remote.interface.logWarning('0.2 import not recorded ('..tostring(markProblem)
-          ..'); create ucp/custom-hotkeys-0.2-imported to keep other configs from importing it')
-      end
+      importPending=not marked
+      if not marked then remote.interface.logWarning('0.2 import not recorded yet ('..tostring(markProblem)..')') end
     end
     return ok,err
   end}

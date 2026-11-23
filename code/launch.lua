@@ -53,6 +53,16 @@ function M.prepare(modulePath,registry)
       end,
       bindingsReplaced=function(success) if writer then writer.replaced(success) end end,
       legacyImported=function() return legacy.imported() end,
+      legacyProfile=function()
+        local Legacy=require('code/legacy_profiles')
+        local document,problem=Legacy.load(legacy,{decode=function(value) return json:decode(value) end},sha.sha256)
+        local profile
+        if document then profile,problem=Legacy.explicit(catalog,document) end
+        if problem and problem~='store.missing' then
+          log(WARNING,'Custom Hotkeys: saved 0.2 profiles not migrated ('..tostring(problem)..')')
+        end
+        return profile
+      end,
       markLegacyImported=function() return legacy.markImported() end,
       gameLanguage=function() return data.version.getGameLanguage() end,
       logWarning=function(message) log(WARNING,'Custom Hotkeys: '..message) end}}
@@ -78,15 +88,7 @@ function M.prepare(modulePath,registry)
       for _,id in ipairs(source.ignored) do
         log(WARNING,'Custom Hotkeys: ignoring invalid binding for '..id..' in the UCP config')
       end
-      local document,problem
-      if Bindings.fresh(explicit) then document,problem=require('code/legacy_profiles').load(legacy,
-        {decode=function(value) return json:decode(value) end},sha.sha256) end
-      if document then
-        source.legacy,problem=require('code/legacy_profiles').explicit(catalog,document)
-      end
-      if problem and problem~='store.missing' then
-        log(WARNING,'Custom Hotkeys: saved 0.2 profiles not migrated ('..tostring(problem)..')')
-      end
+      source.fresh=Bindings.fresh(explicit)
     end}
   live[#live+1]=prepared
   -- This state is created before luajit:enable applies its global defaults.

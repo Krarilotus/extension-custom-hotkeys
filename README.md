@@ -108,8 +108,7 @@ end
 ```
 
 Use a lowercase ID such as `ext.my-overlay.toggle`. Label and category tables
-use `en, de, fr, ru, hu, tr, ch, es, fa` with UTF-8 values. Machine
-translations need human review. `registerAction` returns true and raises on
+use `en, de, fr, ru, hu, tr, ch, es, fa` with UTF-8 values. `registerAction` returns true and raises on
 invalid, duplicate or late registration. Registration lasts for the process.
 
 - `context={kind='world'}` selects the live game map. Use
@@ -130,12 +129,13 @@ invalid, duplicate or late registration. Registration lasts for the process.
 - One context receives the gesture. Specific panels take priority over
   general map actions. Recognized modals and the editor have their own
   checked input ownership. Same-scope conflicts and retained native
-  bindings use the existing editor checks. Suggested bindings that conflict
-  with the active layout's built-in bindings start unbound.
+  bindings use the existing editor checks. A module's default yields to any
+  layout or explicit binding on the same chord.
 
 Family presets and plugins can suggest a key in their ordinary `config.yml`.
-Explicit player choices in the UCP config take precedence. The example
-suggests leaving Zoom In unbound.
+A suggestion wins over the layout and module defaults; explicit player choices
+in the UCP config win over suggestions. The example suggests leaving Zoom In
+unbound.
 
 ```yaml
 config-sparse:
