@@ -31,8 +31,10 @@ for the enabled modules in this order:
 3. the layout's chord, or the providing module's default.
 
 Where two chords collide, the action from the lower layer stays unbound; on
-a tie, the later action in stable ID order does. An action never takes a game
-key whose own action still needs it. An explicit entry that yields, or that no
+a tie, the later one in catalog order does (built-in actions in the order
+they are declared, then other modules' actions by ID). An action never takes a game key
+whose own action still needs it. An unbound action gets its chord back when
+the action that displaced it yields as well. An explicit entry that yields, or that no
 longer fits a provider's changed action, is set aside: it stays in the config,
 the action is unbound and a warning is logged. It returns as soon as its chord
 is free, and assigning that chord to another action replaces it. The editor
@@ -40,8 +42,11 @@ derives its bindings the same way after every change, so Apply routes exactly
 what the next launch reads.
 
 A value the launcher requires (`required-value`) appears in config-full with a
-different value than the player's entry. It wins, and the editor refuses to
-change or reset that action, or the layout when the layout is required.
+different value than the player's entry. It wins over every other layer, and
+the editor refuses to change or reset that action, or the layout when the
+layout is required. A required value equal to the player's entry, or one
+without any player entry, cannot be told apart from an ordinary value in the
+file and stays editable.
 
 Entries for modules that are not enabled are kept unchanged. When the module
 returns, its chord or explicit clear returns with it. Several UCP configs, and

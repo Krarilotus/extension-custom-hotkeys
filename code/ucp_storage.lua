@@ -15,10 +15,12 @@ function M.new(ucpIO, ucpOS)
     if not file then return nil, errno == 2 and 'missing' or 'io' end
     return file
   end,
-  -- Both slots move or neither does, so an older generation never stays alone.
-  retire=function()
+  -- The newer slot moves last and the move rolls back on failure, so an older
+  -- generation never stays as the only readable slot.
+  retire=function(latest)
     local moved = {}
-    for _, name in ipairs(slots) do
+    local order = latest == 'a' and {slots[2], slots[1]} or slots
+    for _, name in ipairs(order) do
       local path = prefix .. name
       local file = ucpIO.open(path, 'rb')
       if file then

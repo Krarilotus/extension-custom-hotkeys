@@ -77,21 +77,30 @@ function M.start(language)
     exclusive=function() return quickslot~=nil and quickslot.active==true end,
   })
   local replace=require('code/native/replace_file')
+  local source=remote.interface.bindingSource()
+  -- The 0.2 slots retire with the first config write that holds their entries.
+  local retirePending=source.legacy~=nil
+  local function retire()
+    if not retirePending or not lock then return end
+    local ok,problem=remote.interface.retireLegacyProfiles()
+    retirePending=not ok
+    if not ok then remote.interface.logWarning('Saved 0.2 profiles kept ('..tostring(problem)..')') end
+  end
   local store={save=function(_,changes)
     if not lock then return nil,lockProblem end
     local staged,problem=remote.interface.stageBindings(changes)
     if not staged then return nil,problem end
-    return replace(staged.staged,staged.target)
+    local ok,err=replace(staged.staged,staged.target)
+    if ok then retire() end
+    return ok,err
   end}
-  local source=remote.interface.bindingSource()
   local bindings=Bindings.new(catalog,source,store,router)
   for _,id in ipairs(bindings.committed.aside) do
     remote.interface.logWarning('Saved binding for '..id..' set aside: its chord is taken')
   end
-  if bindings.migration then
-    local retired,problem=bindings.migration.saved and lock,bindings.migration.problem or lockProblem
-    if retired then retired,problem=remote.interface.retireLegacyProfiles() end
-    if not retired then remote.interface.logWarning('Saved 0.2 profiles kept ('..tostring(problem)..')') end
+  if bindings.migration and bindings.migration.saved then retire()
+  elseif bindings.migration then
+    remote.interface.logWarning('Saved 0.2 profiles not migrated yet ('..tostring(bindings.migration.problem)..')')
   end
   view=View.new(bindings,catalog,router,scene,platform,require('code/locale').new(language,
     require('code/native/text').label,catalog.extensionLabels))

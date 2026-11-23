@@ -77,7 +77,8 @@ def test_launcher_required_values_win_and_cannot_be_edited(lua):
 def test_config_wrapper_and_owner_names_are_not_provider_ids(lua):
     lua.execute('''
       assert(Catalog.extensionId('ext.zoom.in'))
-      for _,id in ipairs({'ext.contents.in','ext.zoom.contents','ext.custom-hotkeys.in'}) do
+      for _,id in ipairs({'ext.contents.in','ext.zoom.contents','ext.custom-hotkeys.in',
+          'ext.constructor.in','ext.zoom.constructor'}) do
         assert(not Catalog.extensionId(id),id)
       end
     ''')
@@ -129,4 +130,47 @@ def test_retire_moves_both_slots_or_neither(lua):
       assert(not ok and err=='store.retire')
       assert(log[1]=='ucp/custom-hotkeys-profiles-a.json>ucp/custom-hotkeys-profiles-a.json.migrated')
       assert(log[2]=='ucp/custom-hotkeys-profiles-a.json.migrated>ucp/custom-hotkeys-profiles-a.json')
+    ''')
+
+
+def test_a_required_value_outranks_explicit_entries_and_survives_a_swap(lua):
+    lua.execute('''
+      local c=Catalog.new({
+        {id='game.a',contexts={'game'},states={'live-sp'},command=false,default=key(10)},
+        {id='game.b',contexts={'game'},states={'live-sp'},command=false,default=key(11)},
+        {id='game.c',contexts={'game'},states={'live-sp'},command=false,default=key(12)}})
+      local source=Bindings.source(c,{bindings={['custom-hotkeys']={game={a=key(14),b=key(13)}}}},
+        {bindings={['custom-hotkeys']={game={a=key(14),b=key(14)}}}})
+      assert(source.locked['game.b'])
+      local config=memoryConfig()
+      local b=Bindings.new(c,source,config,Router.new(c,Catalog.defaults(c),adapter))
+      assert(b.committed.bindings['game.b'].scan==14 and b.committed.bindings['game.a']==false)
+      b:begin();assert(b:reassign('game.c',key(14),'game.a',key(12))==nil)
+      assert(b.draft.explicit['game.b'].scan==14)
+      assert(b:bind('game.a',key(15)) and b:apply())
+      for _,change in ipairs(config.saves[1]) do assert(change.path[#change.path]~='b') end
+    ''')
+
+
+def test_an_action_displaced_by_a_loser_gets_its_chord_back(lua):
+    lua.execute('''
+      local c=Catalog.new({
+        {id='world.default',contexts={'game'},states={'live-sp','editor'},command=false,default=key(20)},
+        {id='both.suggested',contexts={'game','editor'},states={'live-sp','editor'},command=false,default=false},
+        {id='editor.explicit',contexts={'editor'},states={'live-sp','editor'},command=false,default=false}})
+      local bindings,aside=Bindings.resolve(c,nil,{['both.suggested']=key(20)},{['editor.explicit']=key(20)})
+      assert(bindings['world.default'].scan==20 and bindings['both.suggested']==false)
+      assert(bindings['editor.explicit'].scan==20 and #aside==0)
+    ''')
+
+
+def test_retirement_moves_the_newer_slot_last(lua):
+    lua.execute('''
+      local B=require('code/ucp_storage')
+      local present={['ucp/custom-hotkeys-profiles-a.json']=true,['ucp/custom-hotkeys-profiles-b.json']=true}
+      local io={open=function(path) if present[path] then return {close=function() end} end end}
+      local log={}
+      local fs={remove=function() end,rename=function(from) log[#log+1]=from;return true end}
+      assert(B.new(io,fs).retire('a'))
+      assert(log[1]:find('profiles%-b') and log[2]:find('profiles%-a'))
     ''')

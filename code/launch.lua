@@ -3,7 +3,7 @@ local M={}
 -- Pin their state before initialization, including a partially failed startup.
 local live={}
 function M.prepare(modulePath,registry)
-  local recorder,catalog,definitions,source,version
+  local recorder,catalog,definitions,source,version,writer,latestSlot
   local access=modules.ui:access()
   local cffi=modules.cffi:cffi()
   local addresses=require('code/addresses')
@@ -47,8 +47,11 @@ function M.prepare(modulePath,registry)
           width=cffi.tonumber(p.width),height=cffi.tonumber(p.height)}
       end,
       bindingSource=function() return source end,
-      stageBindings=function(changes) return ConfigFile.stage(files,yaml.parse,CONFIG_FILE,changes,version) end,
-      retireLegacyProfiles=function() return legacy.retire() end,
+      stageBindings=function(changes)
+        if not writer then return nil,'config.changed' end
+        return writer.stage(changes)
+      end,
+      retireLegacyProfiles=function() return legacy.retire(latestSlot) end,
       gameLanguage=function() return data.version.getGameLanguage() end,
       logWarning=function(message) log(WARNING,'Custom Hotkeys: '..message) end}}
   })
@@ -61,13 +64,16 @@ function M.prepare(modulePath,registry)
       for _,extension in ipairs(allActiveExtensions) do
         if extension.name==Bindings.owner then version=extension.version end
       end
+      writer=ConfigFile.writer(files,yaml.parse,CONFIG_FILE,version,sha.sha256,
+        type(userConfig)=='table' and extensions.proxies.Deproxy(userConfig['config-sparse']) or nil)
       local explicit=Bindings.explicitTree(userConfig,config.ConfigHandler.normalizeContentsValues,
         extensions.proxies.Deproxy)
       source=Bindings.source(catalog,explicit,settings)
       for _,id in ipairs(source.ignored) do
         log(WARNING,'Custom Hotkeys: ignoring invalid binding for '..id..' in the UCP config')
       end
-      local document,problem=require('code/legacy_profiles').load(legacy,
+      local document,problem
+      document,problem,latestSlot=require('code/legacy_profiles').load(legacy,
         {decode=function(value) return json:decode(value) end},sha.sha256)
       if document then
         local migrated

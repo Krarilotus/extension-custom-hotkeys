@@ -59,6 +59,7 @@ def test_bootstrap_uses_ucp_game_language_only_after_init(lua):
           bindings={committed={active='game-default'}}} end}
       config={ConfigHandler={normalizeContentsValues=function() end}}
       extensions={proxies={Deproxy=function(t) return t end}}
+      yaml={parse=function() return {} end};CONFIG_FILE='missing-ucp-config.yml'
       modules={ui={access=function() return {manager={}} end},
         cffi={cffi=function() return {} end},luajit={createState=function(_,options)
           remote={interface=options.interface.extra}

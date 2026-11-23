@@ -12,6 +12,7 @@ Framework: UCP 3.0.7 main.lua passes config-full.modules.<name>.config through
 config/init.lua normalizeContentsValues to the module's enable().
 """
 import copy
+import hashlib
 import yaml
 
 
@@ -103,6 +104,7 @@ def install(lua):
             return lua.table_from([to_lua(v) for v in value])
         return value
     lua.globals().parse_yaml = lambda text: to_lua(yaml.safe_load(text))
+    lua.globals().digest = lambda text: hashlib.sha256(text.encode('utf8')).hexdigest()
     lua.execute(NORMALIZE + '''
       ConfigFile=require('code/config_file')
       function parse(text) return parse_yaml(text) end
@@ -122,8 +124,10 @@ def install(lua):
         source.legacy=Bindings.unclaimed(legacy,explicit)
         -- The native side replaces the file with MoveFileEx; os.rename cannot
         -- replace an existing file on Windows.
+        local writer=ConfigFile.writer(ConfigFile.files(io,os),parse,path,'0.3.0',digest,
+          copy(document['config-sparse']))
         local store={save=function(_,changes)
-          local staged,problem=ConfigFile.stage(ConfigFile.files(io,os),parse,path,changes,'0.3.0')
+          local staged,problem=writer.stage(changes)
           if not staged then return nil,problem end
           os.remove(staged.target)
           return assert(os.rename(staged.staged,staged.target))

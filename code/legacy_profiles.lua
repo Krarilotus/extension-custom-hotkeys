@@ -24,7 +24,7 @@ local function read(boundary, codec, sha256, slot)
   if envelope.sha256 ~= digest then return nil, 'invalid' end
   local valid, document = pcall(codec.decode, envelope.payload)
   if not valid or type(document) ~= 'table' then return nil, 'invalid' end
-  return {document=document, generation=envelope.generation, digest=digest}
+  return {document=document, generation=envelope.generation, digest=digest, slot=slot}
 end
 
 -- The newer of the two alternating slots; an unreadable one is never assumed older.
@@ -38,7 +38,8 @@ function M.load(boundary, codec, sha256)
   if a and b and a.generation == b.generation and a.digest ~= b.digest then
     return nil, 'store.ambiguous'
   end
-  return ((a and (not b or a.generation >= b.generation)) and a or b).document
+  local latest = (a and (not b or a.generation >= b.generation)) and a or b
+  return latest.document, nil, latest.slot
 end
 
 -- An old snapshot cannot tell inherited chords from chosen ones, so every

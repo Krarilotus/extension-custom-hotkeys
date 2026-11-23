@@ -102,32 +102,45 @@ function M.layoutOf(catalog, document, suggestedLayout)
   return catalog.presets and M.defaultLayout or nil
 end
 
--- Layers rank explicit > suggested > layout or provider default. Where two
--- chords collide the lower layer, or on a tie the later action, is unbound;
--- an action on a native chord whose owner still needs it always yields.
--- Explicit entries that yield are returned as set aside.
-function M.resolve(catalog, layout, suggested, explicit)
+-- Layers rank required > explicit > suggested > layout or provider default.
+-- Where two chords collide the lower layer, or on a tie the action later in
+-- catalog order (built-ins in declaration order, then providers by ID), is
+-- unbound; an action on a native chord whose owner still needs it always
+-- yields. Each unbound action is then retried in rank order, because the
+-- action that displaced it may have yielded too. Explicit entries that stay
+-- unbound are returned as set aside.
+function M.resolve(catalog, layout, suggested, explicit, locked)
+  locked = locked or {}
   local preset = catalog.presets and catalog.presets[layout]
   local bindings = copy(preset and preset.bindings or Catalog.defaults(catalog))
-  local rank = {}
+  local rank, wanted, losers = {}, {}, {}
   for _, action in ipairs(catalog.ordered) do
     local id = action.id
-    if explicit[id] ~= nil then bindings[id], rank[id] = copy(explicit[id]), 3
+    if explicit[id] ~= nil then bindings[id], rank[id] = copy(explicit[id]), locked[id] and 4 or 3
     elseif suggested[id] ~= nil then bindings[id], rank[id] = copy(suggested[id]), 2
     else rank[id] = 1 end
+    wanted[id] = bindings[id]
   end
-  local aside = {}
   for _ = 0, #catalog.ordered do
     local valid, problem, detail = Catalog.validate(catalog, bindings)
-    if valid then return valid, aside end
+    if valid then bindings = valid; break end
     local ids = type(detail) == 'table' and detail or {detail}
     local loser = ids[1]
     if problem == 'binding.conflict' and rank[ids[2]] < rank[loser] then loser = ids[2] end
-    assert(loser and bindings[loser], problem)
-    if rank[loser] == 3 then aside[#aside + 1] = loser end
+    assert(loser and bindings[loser] and rank[loser] < 4, problem)
+    losers[#losers + 1] = loser
     bindings[loser] = false
   end
-  error('bindings.resolve')
+  assert(Catalog.validate(catalog, bindings), 'bindings.resolve')
+  table.sort(losers, function(a, b) return rank[a] > rank[b] end)
+  local aside = {}
+  for _, id in ipairs(losers) do
+    bindings[id] = copy(wanted[id])
+    local valid = Catalog.validate(catalog, bindings)
+    if valid then bindings = valid else bindings[id] = false end
+    if bindings[id] == false and rank[id] == 3 then aside[#aside + 1] = id end
+  end
+  return bindings, aside
 end
 
 local function document(value) return {layout=value.layout, explicit=copy(value.explicit)} end
@@ -160,7 +173,7 @@ end
 
 function M:derive(value)
   local active = M.layoutOf(self.catalog, value, self.suggestedLayout)
-  local bindings, aside = M.resolve(self.catalog, active, self.suggested, value.explicit)
+  local bindings, aside = M.resolve(self.catalog, active, self.suggested, value.explicit, self.locked)
   return {layout=value.layout, explicit=value.explicit, active=active, bindings=bindings, aside=aside}
 end
 
@@ -193,7 +206,7 @@ local function assign(self, d, id, binding)
   if self.locked[id] then return false end
   -- A chord the player assigns replaces a parked preference for it.
   for _, other in ipairs(d.aside) do
-    if other ~= id and binding and Binding.equal(d.explicit[other], binding)
+    if other ~= id and not self.locked[other] and binding and Binding.equal(d.explicit[other], binding)
         and Context.overlap(self.catalog.actions[id], self.catalog.actions[other]) then
       d.explicit[other] = nil
     end
@@ -231,7 +244,7 @@ function M:reset(action)
     for _, item in ipairs(self.catalog.ordered) do
       if (not action or item.id == action) and not self.locked[item.id] then d.explicit[item.id] = nil end
     end
-    d.bindings = M.resolve(self.catalog, d.active, self.suggested, d.explicit)
+    d.bindings = M.resolve(self.catalog, d.active, self.suggested, d.explicit, self.locked)
     return true
   end)
 end

@@ -116,6 +116,7 @@ def test_missing_module_block_inline_empty_maps_comments_and_line_endings(writer
 
 def test_a_config_that_does_not_run_this_module_or_is_not_block_style_is_refused(writer):
     edit = writer.eval('edit')
+    assert edit(LAUNCHER.replace('active: true', 'active: false'))[1] == 'config.inactive'
     inactive = LAUNCHER.replace("    - extension: custom-hotkeys\n      version: 0.3.0\n", "", 2)
     for text, version in ((inactive, None), (LAUNCHER, '0.2.19'),
                           (LAUNCHER.split('config-full:')[0], None),
@@ -127,32 +128,34 @@ def test_a_config_that_does_not_run_this_module_or_is_not_block_style_is_refused
     assert edit(inactive)[1] == 'config.inactive'
 
 
-def test_stage_writes_beside_the_config_and_refuses_a_file_changed_meanwhile(writer, tmp_path):
+def test_the_writer_stages_only_the_revision_this_launch_loaded(writer, tmp_path):
     target = tmp_path / 'ucp-config.yml'
     target.write_text(LAUNCHER)
     writer.globals().target = str(target)
     writer.execute('''
       local files=ConfigFile.files(io,os)
-      local staged=assert(ConfigFile.stage(files,parse,target,changes,'0.3.0'))
+      local function open(path)
+        return ConfigFile.writer(files,parse,path or target,'0.3.0',digest,parse(files.read(target))['config-sparse'])
+      end
+      local w=open()
+      local staged=assert(w.stage(changes))
       assert(staged.target==target and staged.staged==target..'.custom-hotkeys.tmp')
-      assert(files.read(target)~=files.read(staged.staged))
+      -- The game's own previous write is accepted as the next base.
+      os.remove(target);assert(os.rename(staged.staged,target))
+      staged=assert(w.stage({{path={'layout'},value='grid'}}))
       os.remove(staged.staged)
-      local racing={read=function(path)
-        local text=files.read(path)
-        if path==target and staged.seen then return text..'# saved by the launcher\\n' end
-        staged.seen=true
-        return text
-      end,write=files.write,remove=files.remove}
-      local ok,err=ConfigFile.stage(racing,parse,target,changes,'0.3.0')
-      assert(not ok and err=='config.changed')
-      local failing={read=files.read,write=function() return false end,remove=files.remove}
-      ok,err=ConfigFile.stage(failing,parse,target,changes,'0.3.0')
-      assert(not ok and err=='config.write')
-      ok,err=ConfigFile.stage(files,parse,target..'.missing',changes,'0.3.0')
-      assert(not ok and err=='config.read')
+      -- A save by someone else in between is never overwritten.
+      local other=open()
+      local f=io.open(target,'ab');f:write('# saved by the launcher');f:close()
+      local ok,err=other.stage(changes);assert(not ok and err=='config.changed')
+      -- Nor is a file that already differed from the startup parse.
+      local stale=ConfigFile.writer(files,parse,target,'0.3.0',digest,{})
+      ok,err=stale.stage(changes);assert(not ok and err=='config.changed')
+      local failing=ConfigFile.writer({read=files.read,write=function() return false end,remove=files.remove},
+        parse,target,'0.3.0',digest,parse(files.read(target))['config-sparse'])
+      ok,err=failing.stage(changes);assert(not ok and err=='config.write')
     ''')
     assert sorted(p.name for p in tmp_path.iterdir()) == ['ucp-config.yml']
-    assert target.read_text() == LAUNCHER
 
 
 def test_a_result_that_reads_back_differently_is_refused(writer):

@@ -138,6 +138,7 @@ end
 -- gives it a module entry; without both, this config does not run this module.
 local function runs(document, version)
   local full = document['config-full']
+  if document.active == false then return false end
   if type(full) ~= 'table' or type(full.modules) ~= 'table' or type(full.modules[OWNER]) ~= 'table'
       or type(full['load-order']) ~= 'table' then return false end
   for _, item in ipairs(full['load-order']) do
@@ -208,18 +209,32 @@ function M.files(io, os)
   return {read=read, write=write, remove=os.remove}
 end
 
--- Writes the edited config next to the active one and returns both paths for
--- a single atomic replacement. A file that changed while it was being edited
--- is not replaced.
-function M.stage(files, parse, path, changes, version)
+-- Edits the config file this launch was started with. `loaded` is the
+-- framework's startup parse of its config-sparse section, which unlike
+-- config-full is never handed to modules. A file that no longer matches the
+-- revision seen here, or the last one written here, was saved by someone else
+-- and is not overwritten. stage() writes the result next to the config and
+-- returns both paths for one atomic replacement.
+function M.writer(files, parse, path, version, digest, loaded)
   local text = files.read(path)
-  if not text then return nil, 'config.read' end
-  local result, problem = M.edit(text, parse, changes, version)
-  if not result then return nil, problem end
-  local staged = path .. '.custom-hotkeys.tmp'
-  if not files.write(staged, result) then files.remove(staged); return nil, 'config.write' end
-  if files.read(path) ~= text then files.remove(staged); return nil, 'config.changed' end
-  return {staged=staged, target=path}
+  local ok, current = pcall(parse, text or '')
+  local self = {revision=ok and type(current) == 'table' and loaded ~= nil
+    and equal(current['config-sparse'], loaded) and digest(text) or nil}
+  function self.stage(changes)
+    text = files.read(path)
+    if not text then return nil, 'config.read' end
+    local now = digest(text)
+    if now ~= self.revision and now ~= self.pending then return nil, 'config.changed' end
+    self.revision = now
+    local result, problem = M.edit(text, parse, changes, version)
+    if not result then return nil, problem end
+    local staged = path .. '.custom-hotkeys.tmp'
+    if not files.write(staged, result) then files.remove(staged); return nil, 'config.write' end
+    if files.read(path) ~= text then files.remove(staged); return nil, 'config.changed' end
+    self.pending = digest(result)
+    return {staged=staged, target=path}
+  end
+  return self
 end
 
 return M

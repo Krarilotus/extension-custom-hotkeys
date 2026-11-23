@@ -3,12 +3,13 @@ local Context = require('code/context')
 local M = {}
 
 -- Provider IDs map to config paths bindings.<module>.<action>. `contents` marks
--- a launcher value wrapper and custom-hotkeys holds the built-in actions.
-local reserved={contents=true,['custom-hotkeys']=true}
+-- a launcher value wrapper, custom-hotkeys holds the built-in actions, and the
+-- launcher's JavaScript objects cannot hold a `constructor` key.
+local reserved={contents=true,constructor=true}
 function M.extensionId(id)
   if type(id)~='string' or #id>120 then return false end
   local provider,action=id:match('^ext%.([a-z][a-z0-9_-]*)%.([a-z][a-z0-9_-]*)$')
-  return provider~=nil and not reserved[provider] and action~='contents'
+  return provider~=nil and provider~='custom-hotkeys' and not reserved[provider] and not reserved[action]
 end
 
 local function set(values, valid)
