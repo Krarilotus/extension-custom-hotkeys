@@ -10,16 +10,26 @@ local states={world={'live-sp','live-mp'},panel={'live-sp','live-mp'},
   editor={'editor'},modal={'menu','live-sp','live-mp','editor'}}
 local fields={id=true,label=true,category=true,context=true,default=true,callback=true,release=true}
 
-local function localized(values)
-  assert(type(values)=='table','action.locale')
+-- Language code -> label. Actions need every language; otherwise only `en`,
+-- the fallback for the others, is required.
+function M.localized(values,complete)
+  if type(values)~='table' then return nil end
   local result={}
   for _,language in ipairs(languages) do
     local value=values[language]
-    assert(type(value)=='string' and #value<=120 and value:find('%S')
-      and Text.valid(value) and not value:find('[%z\1-\31\127]'),'action.locale: '..language)
-    result[language]=value
+    if value~=nil or complete or language=='en' then
+      if not (type(value)=='string' and #value<=120 and value:find('%S')
+          and Text.valid(value) and not value:find('[%z\1-\31\127]')) then return nil,language end
+      result[language]=value
+    end
   end
   return result
+end
+
+local function localized(values)
+  assert(type(values)=='table','action.locale')
+  local result,language=M.localized(values,true)
+  return assert(result,'action.locale: '..tostring(language))
 end
 
 function M.new()

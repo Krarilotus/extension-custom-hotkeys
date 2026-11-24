@@ -50,7 +50,7 @@ function M.attach(catalog)
     grid[id]=key(scan,4)
   end
   local definitions={
-    {id='game-default',name='Game Default',bindings=classic},
+    {id='game-default',name='Game Default',bindings=classic,nativeAliases=true},
     {id='modern-rts',name='Modern RTS',bindings=modern},
     {id='grid',name='Grid',bindings=grid},
   }

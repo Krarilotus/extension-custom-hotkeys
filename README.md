@@ -150,7 +150,37 @@ config-sparse:
   plugins: {}
 ```
 
-A missing provider's entries stay in the UCP config for its return. When a
+A plugin can also contribute a named layout under `layouts.<id>`. It is
+listed on the Profiles page after the built-in layouts. It starts from Game
+Default, and its chords apply over it like suggestions. `label` needs `en`,
+which is the fallback for other languages. A suggested `layout` selects it until
+the player picks another one. Game Default itself stays unchanged.
+
+```yaml
+config-sparse:
+  modules:
+    custom-hotkeys:
+      config:
+        layout:
+          contents:
+            suggested-value: my-layout
+        layouts:
+          my-layout:
+            label:
+              contents:
+                suggested-value: {en: My Layout}
+            bindings:
+              custom-hotkeys:
+                camera:
+                  pan:
+                    up:
+                      contents:
+                        suggested-value: {scan: 17, mods: 0, extended: false}
+  plugins: {}
+```
+
+Without that plugin, a config that selected its layout uses Game Default and
+keeps the choice for the plugin's return. A missing provider's entries stay in the UCP config for its return. When a
 provider's new version changes an action so that a saved chord no longer fits,
 for example because the action became a hold, which cannot use the wheel, the
 chord stays in the config but the action starts unbound for that launch.
