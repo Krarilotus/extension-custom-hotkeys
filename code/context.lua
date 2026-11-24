@@ -65,9 +65,12 @@ function M.overlap(a, b, includeFallback)
       local shared=false
       for value in pairs(left) do if right[value] then shared=true;break end end
       if not shared then return false end
-    elseif not includeFallback and ((left and a.extension) or (right and b.extension)) then
-      -- A provider's verified narrower context can shadow a generic action.
-      return false
+    elseif not includeFallback then
+      -- A provider panel can shadow a generic action. A world provider can
+      -- likewise serve as fallback for a built-in action on a specific tab.
+      if (left and a.extension) or (right and b.extension)
+          or (field == 'panels' and ((left and b.extension and not b.modals)
+            or (right and a.extension and not a.modals))) then return false end
     end
   end
   for owner in pairs(a.contexts) do
