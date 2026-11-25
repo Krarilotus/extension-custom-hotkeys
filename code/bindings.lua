@@ -4,6 +4,7 @@
 local Catalog = require('code/catalog')
 local Binding = require('code/binding')
 local Context = require('code/context')
+local ExtensionActions = require('code/extension_actions')
 local M = {}
 M.__index = M
 M.owner = 'custom-hotkeys'
@@ -56,6 +57,35 @@ function M.explicitTree(userConfig, normalize, deproxy)
   return result
 end
 
+-- Layouts that plugins contribute: layouts.<id>.label maps language codes to
+-- the name (en required) and layouts.<id>.bindings has the shape of
+-- `bindings`. Actions of providers that are not enabled are skipped.
+local function layouts(catalog, tree, ignored)
+  local ids, list = {}, {}
+  for id in pairs(type(tree) == 'table' and tree or {}) do
+    if type(id) == 'string' then ids[#ids + 1] = id end
+  end
+  table.sort(ids)
+  for _, id in ipairs(ids) do
+    local value = tree[id]
+    local label = type(value) == 'table' and ExtensionActions.localized(value.label)
+    if not label or not id:match('^[a-z][a-z0-9-]*$') or (catalog.presets and catalog.presets[id]) then
+      ignored[#ignored + 1] = 'layouts.' .. id
+    else
+      local bindings = {}
+      for _, action in ipairs(catalog.ordered) do
+        local chord = lookup(value.bindings, M.path(action.id))
+        if chord ~= nil then
+          bindings[action.id] = entry(chord)
+          if bindings[action.id] == nil then ignored[#ignored + 1] = 'layouts.' .. id .. '.' .. action.id end
+        end
+      end
+      list[#list + 1] = {id=id, label=label, bindings=bindings}
+    end
+  end
+  return list
+end
+
 -- Reads this launch's catalog actions from the explicit (user) and effective
 -- config trees. The effective tree repeats explicit values, so only actions
 -- without an explicit entry carry a plugin suggestion. An effective value that
@@ -81,7 +111,29 @@ function M.source(catalog, explicitTree, effectiveTree)
     result.layout = type(effective) == 'string' and effective or mine
     result.layoutLocked = result.layout ~= mine
   elseif type(effective) == 'string' then result.suggestedLayout = effective end
+  result.layouts = layouts(catalog, effectiveTree.layouts, result.ignored)
   return result
+end
+
+-- A contributed layout is Game Default with its own chords resolved over it
+-- like suggestions, and it keeps Game Default's native aliases.
+local function contribute(catalog, layouts)
+  if not catalog.presets then return end
+  for _, layout in ipairs(layouts or {}) do
+    if not catalog.presets[layout.id] then
+      local preset = {id=layout.id, name=layout.label.en, nativeAliases=true,
+        bindings=M.resolve(catalog, M.defaultLayout, layout.bindings, {})}
+      catalog.presets[layout.id] = preset
+      catalog.presetOrder[#catalog.presetOrder + 1] = preset
+      catalog.extensionLabels = catalog.extensionLabels or {}
+      catalog.extensionLabels['preset.' .. layout.id] = layout.label
+    end
+  end
+end
+
+local function aliases(catalog, layout)
+  local preset = catalog.presets and catalog.presets[layout]
+  return preset ~= nil and preset.nativeAliases == true
 end
 
 -- A config that holds no Custom Hotkeys entries. Importing writes `layout`,
@@ -165,7 +217,9 @@ local function document(value) return {layout=value.layout, explicit=copy(value.
 
 -- store:save(changes) writes the listed explicit entries into the active
 -- config; `inherited` is the plugin suggestion an effective entry falls back to.
+-- The source's contributed layouts join the catalog's layouts.
 function M.new(catalog, source, store, router)
+  contribute(catalog, source.layouts)
   local self = setmetatable({catalog=catalog, store=store, router=router,
     suggested=source.suggested or {}, suggestedLayout=source.suggestedLayout,
     locked=source.locked or {}, layoutLocked=source.layoutLocked}, M)
@@ -184,7 +238,7 @@ function M.new(catalog, source, store, router)
     if saved then self.saved = document(current) end
     self.migration = {saved=saved == true, problem=problem}
   end
-  assert(router:apply(self.committed.bindings, {nativeAliases=self.committed.active == M.defaultLayout}))
+  assert(router:apply(self.committed.bindings, {nativeAliases=aliases(catalog, self.committed.active)}))
   return self
 end
 
@@ -304,7 +358,7 @@ function M:apply()
     if not ok then return nil, problem end
   end
   self.saved = document(self.draft)
-  assert(self.router:apply(valid, {nativeAliases=self.draft.active == M.defaultLayout}))
+  assert(self.router:apply(valid, {nativeAliases=aliases(self.catalog, self.draft.active)}))
   self.committed = self.draft
   self.draft = nil
   return true

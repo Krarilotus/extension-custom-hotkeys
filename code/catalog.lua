@@ -102,7 +102,10 @@ function M.validate(catalog, bindings)
             and Context.overlap(action, original.definition, true) then
           -- A native binding may only be displaced after its replacement is assigned.
           local replacement = normalized[original.action]
-          if original.unavailable or replacement == nil or replacement == false or Binding.same(replacement, original.binding) then
+          local scopedNative = original.definition.panels and action.extension and not action.panels
+            and not action.modals and replacement and Binding.same(replacement, original.binding)
+          if original.unavailable or not replacement
+              or (Binding.same(replacement, original.binding) and not scopedNative) then
             return nil, 'binding.native-conflict', {action.id, original.action}
           end
         end

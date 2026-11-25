@@ -8,7 +8,7 @@ Select an action and press Enter (or double-click its row) to capture a key or
 mouse button. Delete unbinds it. A conflict preserves both bindings and offers
 Swap keys; the swap is atomic and still rejects collisions with a third action
 or a native action left without a required replacement. The Profile page picks
-the layout (Game Default, Modern RTS or Grid); explicit choices stay. Reset
+the layout (Game Default, Modern RTS, Grid or a plugin's layout); explicit choices stay. Reset
 action and Reset profile return actions to inheritance. All of these affect only
 the draft. Apply saves and activates the draft. Cancel discards it.
 
@@ -17,7 +17,8 @@ the draft. Apply saves and activates the draft. Cancel discards it.
 Each UCP config file holds its own Custom Hotkeys dictionary under
 `custom-hotkeys.config`:
 
-- `layout`: `game-default` (used when absent), `modern-rts` or `grid`.
+- `layout`: `game-default` (used when absent), `modern-rts`, `grid` or the ID
+  of a layout that a plugin contributes under `layouts`.
 - `bindings.<module>.<action>`: an explicit chord, or `false` for an explicit
   clear. Actions of other modules use their registered ID `ext.<module>.<action>`
   without the `ext.` prefix. Built-in actions sit under `bindings.custom-hotkeys`,

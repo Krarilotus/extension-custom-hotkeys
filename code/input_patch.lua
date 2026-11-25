@@ -7,14 +7,13 @@ function M.install(core,callback)
   assert(not installed,'input-frame.installed')
   assert(type(callback)=='number' and callback>0 and callback<4294967296
     and callback==math.floor(callback),'input-frame.callback')
-  local original={0x83,0xec,0x08,0x53,0x55}
-  local current=core.readBytes(A.inputFrame,5)
-  for i,byte in ipairs(original) do assert(current[i]==byte,'input-frame.site-owned') end
+  local current=core.readBytes(A.inputFrame,9)
+  assert(current[1]==0xff and current[2]==0x15 and current[7]==0x8b
+    and current[8]==0x4e and current[9]==0x14,'input-frame.site-owned')
   local address={}
   for i=1,4 do address[i]=math.floor(callback/256^(i-1))%256 end
-  -- Preserve flags/registers, pass the actual native this pointer to a cdecl
-  -- callback, restore, and execute every displaced original instruction once.
-  installed=core.insertCode(A.inputFrame,5,{0x9c,0x60,0xfc,0x51,0xb8,address,
+  -- The prologue has moved this to ESI. Replay the absolute import call once.
+  installed=core.insertCode(A.inputFrame,6,{0x9c,0x60,0xfc,0x56,0xb8,address,
     0xff,0xd0,0x83,0xc4,0x04,0x61,0x9d},nil,'after')
   return installed
 end

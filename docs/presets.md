@@ -1,7 +1,8 @@
 # Presets and grid controls (development)
 
-The editor provides Game Default, Modern RTS and Grid. New installations start
-with Game Default. Select a layout on the Profiles page, then Apply. Reset
+The editor provides Game Default, Modern RTS and Grid, followed by any layouts
+that active plugins contribute ([README](../README.md)). New installations start
+with Game Default unless a plugin suggests another layout. Select a layout on the Profiles page, then Apply. Reset
 action/profile returns actions to the layout, plugin suggestions and module
 defaults. Layout IDs are stored independently of game language; layout names
 and grid action labels are localized.
