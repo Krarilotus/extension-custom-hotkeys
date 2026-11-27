@@ -48,7 +48,8 @@ function M.start(language)
       if id=='menu.previous' then return navigation:move(-1,context) end
       if id=='menu.decrease' then return navigation:adjust(-1,context) end
       if id=='menu.increase' then return navigation:adjust(1,context) end
-      if id=='menu.activate' or id=='game.menu.activate' then return navigation:activate(context) end
+      if id=='menu.activate' then return navigation:activate(context) end
+      if id=='game.menu.activate' then return navigation:activate(context) or (nativeBinding and 'native') end
       if id:sub(1,10)=='grid.slot.' then
         return navigation:activateGrid(tonumber(id:sub(11)),selectors,context)
       end

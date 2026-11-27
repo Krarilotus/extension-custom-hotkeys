@@ -14,6 +14,9 @@ for group=0,9 do
       binding={scan=scan,extended=false,mods=mods}}
   end
 end
+-- Enter without a selected control stays the game's chat key.
+entries[#entries+1]={action='game.menu.activate',forward=true,retain=true,
+  binding={scan=28,extended=false,mods=0}}
 for _,dialog in ipairs({{'save',59},{'load',60}}) do
   for _,mods in ipairs({2,3}) do add('game.'..dialog[1]..'.open',dialog[2],mods) end
 end
