@@ -57,8 +57,8 @@ for _,direction in ipairs({'next','previous'}) do
   entries[#entries+1]={id='unit.group.'..direction,contexts=world,states={'live-sp','live-mp'},
     command=true,default=false}
 end
-for _,dialog in ipairs({{'save',59},{'load',60}}) do
-  entries[#entries+1]={id='game.'..dialog[1]..'.open',contexts=world,states={'live-sp'},
+for _,dialog in ipairs({{'save',59,{'live-sp','live-mp'}},{'load',60,{'live-sp'}}}) do
+  entries[#entries+1]={id='game.'..dialog[1]..'.open',contexts=world,states=dialog[3],
     command=false,default={scan=dialog[2],extended=false,mods=2}}
 end
 for _,view in ipairs({{'rotate-left',45},{'rotate-right',46},{'toggle-zoom',44}}) do

@@ -110,10 +110,12 @@ function M:dispatch(id,context,nativeBinding,event)
     return true
   end
   if id=='game.save.open' or id=='game.load.open' then
+    local allowedMode=s.synchronyMode==0 or s.synchronyMode==99
+      or (id=='game.save.open' and s.synchronyMode==1)
     if not integer(s.mode,0,5) or s.mode==1 or s.mode==4 or s.scenarioRestriction~=0
-        or s.playerDead~=0 or (s.synchronyMode~=0 and s.synchronyMode~=99)
+        or s.playerDead~=0 or not allowedMode
         or s.textModal~=0 or s.modal~=-1 then return false end
-    if id=='game.save.open' and s.synchronyMode==99 and s.sessionHost~=1 then return false end
+    if id=='game.save.open' and s.synchronyMode~=0 and s.sessionHost~=1 then return false end
     a.saveLoadDialog(id=='game.save.open' and 10 or 9)
     return true
   end

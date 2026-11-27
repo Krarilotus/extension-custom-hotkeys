@@ -20,11 +20,11 @@ function M.live(s,allowPaused,allowBuildSlide)
       or not integer(s.selectedCount,0,A.unitCapacity) or not integer(s.selectedLast,0,(A.unitCapacity-1))
       or not integer(s.tribe,0,(A.tribeCapacity-1))
       or type(s.selectionBits)~='string' or #s.selectionBits~=A.selectionBytes
-      or not integer(s.building,0,1999) or s.building~=s.nextBuilding
-      or not integer(s.unit,0,(A.unitCapacity-1)) or s.unit~=s.nextUnit
+      or not integer(s.building,0,1999)
+      or not integer(s.unit,0,(A.unitCapacity-1))
       or not integer(s.placement,0,65535) or not integer(s.rotation,0,6) or s.rotation%2~=0
       or not integer(s.cameraX,-1000000,1000000) or not integer(s.cameraY,-1000000,1000000)
-      or s.pendingRotation~=8 or not integer(s.zoom,0,1) or not integer(s.patrol,0,1)
+      or not integer(s.zoom,0,1) or not integer(s.patrol,0,1)
       or not integer(s.unitMode,-2147483648,2147483647)
       or not integer(s.unitModeAux,-2147483648,2147483647) then return false end
   return true
