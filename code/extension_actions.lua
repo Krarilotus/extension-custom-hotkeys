@@ -101,6 +101,7 @@ function M.new()
         handler.failed=true
         return false,tostring(result)
       end
+      if result=='pass' and phase=='press' and not handler.release then return 'pass' end
       return ok and result==true
     end,
   }

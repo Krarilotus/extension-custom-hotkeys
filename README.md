@@ -123,7 +123,8 @@ invalid, duplicate or late registration. Registration lasts for the process.
   Modifier flags are Ctrl=1, Shift=2 and Alt=4. Windows shortcuts and the
   recovery chord remain reserved.
 - `callback(context,event)` runs the action. Return true for a successful
-  action. The callback owns any feedback, such as a sound. Optional
+  action. An action without `release` can return `'pass'` to leave this
+  input to the game. The callback owns any feedback, such as a sound. Optional
   `release()` pairs with a keyboard or mouse-button hold and runs after
   key-up, focus loss, a context transition or a binding change.
   Bare modifiers and wheel holds are outside this API.

@@ -24,8 +24,9 @@ function M.start(language)
   local function extensionAction(id,phase,context,event)
     local info=context and {owner=context.owner,panel=context.panel,modal=context.modal,
       screen=context.screen,state=context.state,authority=context.authority}
-    local _,problem=remote.interface.dispatchExtension(id,phase,info,event)
+    local result,problem=remote.interface.dispatchExtension(id,phase,info,event)
     if problem then remote.interface.logWarning(id..': '..problem) end
+    if result=='pass' then return 'pass' end
   end
   local selectors=require('code/controls')
   local controls={}
