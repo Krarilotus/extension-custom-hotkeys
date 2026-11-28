@@ -6,7 +6,7 @@ end
 all[#all+1]='game.build';all[#all+1]='game.status'
 local world={'game.build','game.status'}
 local cameraContexts={'game.build','game.status','editor.map'}
-local cameraStates={'live-sp','live-mp','spectator','editor'}
+local cameraStates={'editor',(table.unpack or unpack)(require('code/context').worldViewStates)}
 parents[#parents+1]='menu.options';parents[#parents+1]='menu.load'
 local navigation={'game.build','game.status','game.options','game.load'}
 for _,owner in ipairs(parents) do navigation[#navigation+1]=owner end

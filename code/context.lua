@@ -1,4 +1,5 @@
 local M = {}
+M.worldViewStates = {'live-sp','live-mp','spectator'}
 local states = {menu=true, ['live-sp']=true, ['live-mp']=true, spectator=true, editor=true, replay=true}
 local identityFields = {'owner','screen','panel','modal','focus','selection',
   'targeting','state','authority','generation','modalReady'}

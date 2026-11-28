@@ -61,7 +61,10 @@ function M.start(language)
           or id=='game.save.open' or id=='game.load.open' then cursor:cancel() end
       return worldActions:dispatch(id,context,nativeBinding,event)
     end,
-    canRecover=function(c) return c and (c.owner:sub(1,5)=='menu.' or c.owner=='game.build' or c.owner=='game.status') end,
+    canRecover=function(c)
+      return c and (c.owner:sub(1,5)=='menu.' or (scene.current.paused~=1
+        and (c.owner=='game.build' or c.owner=='game.status')))
+    end,
     recover=function() return view:open() end,
     cancelLocalHold=function(id)
       if catalog.actions[id].extension then extensionAction(id,'release')

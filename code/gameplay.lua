@@ -35,17 +35,18 @@ end
 function M.resolve(s,ownedModal)
   local options=ownedModal~=nil and ownedModal==s.modal and Dialog.owns(s)
   local load=ownedModal==9 and Load.owns(s)
+  local pausedMap=s.paused==1 and s.modal==-1 and s.sliding==0
   if ((ownedModal==5 or ownedModal==2025) and not options) or (ownedModal==9 and not load)
-      or not M.live(s,options or load,s.screen==14 and not options and not load)
+      or not M.live(s,options or load or pausedMap,s.screen==14 and not options and not load)
       or (s.modal~=-1 and (ownedModal==nil or s.modal~=ownedModal))
       or not require('code/modal_context').background(s)
       or (s.textModal~=0 and not options and not load) or s.textEditor~=0 then return nil end
 
+  local viewOnly=pausedMap or s.playerDead~=0 or s.playerDisabled~=0
   return {owner=options and 'game.options' or load and 'game.load'
       or (s.screen==14 and (s.sliding==1 and 'game.build.slide' or 'game.build') or 'game.status'),
-    -- A defeated player watches the game: camera and view actions only.
-    state=(s.playerDead~=0 or s.playerDisabled~=0) and 'spectator' or s.synchronyMode==1 and 'live-mp' or 'live-sp',
-    authority=s.playerDead==0 and s.playerDisabled==0,
+    state=viewOnly and 'spectator' or s.synchronyMode==1 and 'live-mp' or 'live-sp',
+    authority=not viewOnly,
     selection=load and Load.identity(s) or table.concat({s.player,s.building,s.unit,s.tribe,s.selectedCount,s.selectedLast},':')..':'..s.selectionBits,
     -- Camera position changes during a local pan hold. Queued world clicks
     -- carry their own projection guard; a pan must not cancel itself.

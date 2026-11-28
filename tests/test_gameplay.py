@@ -30,11 +30,11 @@ def test_gameplay_requires_all_native_facts_and_rejects_finished_sessions(lua):
 def test_gameplay_text_pause_authority_and_transition_gates(lua):
     setup(lua)
     lua.execute('''
-      for _,field in ipairs({'paused','halted','syncStatus','saveRelated',
+      for _,field in ipairs({'halted','syncStatus','saveRelated',
         'textModal','textEditor','newPlayer'}) do
         s[field]=1;assert(not Gameplay.resolve(s),field);s[field]=0
       end
-      for _,field in ipairs({'playerDead','playerDisabled'}) do
+      for _,field in ipairs({'paused','playerDead','playerDisabled'}) do
         s[field]=1;local c=assert(Gameplay.resolve(s),field)
         assert(c.state=='spectator' and not c.authority,field);s[field]=0
       end
@@ -92,10 +92,17 @@ def test_multiplayer_catalog_and_text_ownership_keep_native_save_load_restrictio
           'unit.stance.defensive','menu.build.industry'}) do
         assert(Context.allows(catalog.actions[id],context),id)
       end
-      for _,field in ipairs({'textModal','textEditor','paused','halted','syncStatus',
+      for _,field in ipairs({'textModal','textEditor','halted','syncStatus',
           'newPlayer'}) do
         s[field]=1;assert(not Gameplay.resolve(s),field);s[field]=0
       end
+      s.paused=1
+      local paused=assert(Gameplay.resolve(s))
+      local raw=facts(paused.owner,paused.state);raw.authority=paused.authority
+      context=Context.resolve(raw)
+      assert(Context.allows(catalog.actions['camera.pan.up'],context))
+      assert(not Context.allows(catalog.actions['target.confirm'],context))
+      s.paused=0
       s.focused=false;assert(not Gameplay.resolve(s));s.focused=true
       s.modal=2041;assert(not Gameplay.resolve(s))
     ''')

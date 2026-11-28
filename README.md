@@ -110,7 +110,9 @@ Use a lowercase ID such as `ext.my-overlay.toggle`. Label and category tables
 use `en, de, fr, ru, hu, tr, ch, es, fa` with UTF-8 values. `registerAction` returns true and raises on
 invalid, duplicate or late registration. Registration lasts for the process.
 
-- `context={kind='world'}` selects the live game map. Use
+- `context={kind='world'}` selects the live game map. Set `view=true` for
+  local camera or view actions that should also work after defeat and while
+  the map is paused. These actions must only change the local view. Use
   `{kind='panel',tab=number}` for a narrower native toolbar tab or
   `{kind='editor'}` for the map editor canvas. `{kind='modal',id=number}`
   matches a verified native Options or Load modal. The modal owner checks its
