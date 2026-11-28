@@ -16,7 +16,8 @@ function M.live(s,allowPaused,allowBuildSlide)
       or s.halted~=0 or (s.sliding~=0 and not (allowBuildSlide and s.sliding==1))
       or s.newPlayer~=0 or s.delay~=-1
       or s.focused~=true or s.composing~=false
-      or not integer(s.player,1,8) or s.playerDead~=0 or s.playerDisabled~=0
+      or not integer(s.player,1,8)
+      or not integer(s.playerDead,-2147483648,2147483647) or not integer(s.playerDisabled,-2147483648,2147483647)
       or not integer(s.selectedCount,0,A.unitCapacity) or not integer(s.selectedLast,0,(A.unitCapacity-1))
       or not integer(s.tribe,0,(A.tribeCapacity-1))
       or type(s.selectionBits)~='string' or #s.selectionBits~=A.selectionBytes
@@ -42,7 +43,9 @@ function M.resolve(s,ownedModal)
 
   return {owner=options and 'game.options' or load and 'game.load'
       or (s.screen==14 and (s.sliding==1 and 'game.build.slide' or 'game.build') or 'game.status'),
-    state=s.synchronyMode==1 and 'live-mp' or 'live-sp',authority=true,
+    -- A defeated player watches the game: camera and view actions only.
+    state=(s.playerDead~=0 or s.playerDisabled~=0) and 'spectator' or s.synchronyMode==1 and 'live-mp' or 'live-sp',
+    authority=s.playerDead==0 and s.playerDisabled==0,
     selection=load and Load.identity(s) or table.concat({s.player,s.building,s.unit,s.tribe,s.selectedCount,s.selectedLast},':')..':'..s.selectionBits,
     -- Camera position changes during a local pan hold. Queued world clicks
     -- carry their own projection guard; a pan must not cancel itself.

@@ -31,8 +31,12 @@ def test_gameplay_text_pause_authority_and_transition_gates(lua):
     setup(lua)
     lua.execute('''
       for _,field in ipairs({'paused','halted','syncStatus','saveRelated',
-        'textModal','textEditor','newPlayer','playerDead','playerDisabled'}) do
+        'textModal','textEditor','newPlayer'}) do
         s[field]=1;assert(not Gameplay.resolve(s),field);s[field]=0
+      end
+      for _,field in ipairs({'playerDead','playerDisabled'}) do
+        s[field]=1;local c=assert(Gameplay.resolve(s),field)
+        assert(c.state=='spectator' and not c.authority,field);s[field]=0
       end
       s.sliding=1
       assert(Gameplay.resolve(s).owner=='game.build.slide')
@@ -89,7 +93,7 @@ def test_multiplayer_catalog_and_text_ownership_keep_native_save_load_restrictio
         assert(Context.allows(catalog.actions[id],context),id)
       end
       for _,field in ipairs({'textModal','textEditor','paused','halted','syncStatus',
-          'playerDead','playerDisabled','newPlayer'}) do
+          'newPlayer'}) do
         s[field]=1;assert(not Gameplay.resolve(s),field);s[field]=0
       end
       s.focused=false;assert(not Gameplay.resolve(s));s.focused=true

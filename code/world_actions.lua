@@ -33,6 +33,8 @@ function M:dispatch(id,context,nativeBinding,event)
   if not context or not Context.same(context,Context.resolve(a.resolve())) then return false end
   if context.owner=='editor.map' then
     if context.state~='editor' or not editorView[id] then return false end
+  elseif context.state=='spectator' then
+    if not editorView[id] or (context.owner~='game.build' and context.owner~='game.status') then return false end
   elseif (context.state~='live-sp' and context.state~='live-mp') or not context.authority
       or (context.owner~='game.build' and context.owner~='game.status') then return false end
   local s=a.snapshot()
