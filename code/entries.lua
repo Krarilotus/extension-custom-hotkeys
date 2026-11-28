@@ -6,7 +6,7 @@ end
 all[#all+1]='game.build';all[#all+1]='game.status'
 local world={'game.build','game.status'}
 local cameraContexts={'game.build','game.status','editor.map'}
-local cameraStates={'live-sp','live-mp','editor'}
+local cameraStates={'editor',(table.unpack or unpack)(require('code/context').worldViewStates)}
 parents[#parents+1]='menu.options';parents[#parents+1]='menu.load'
 local navigation={'game.build','game.status','game.options','game.load'}
 for _,owner in ipairs(parents) do navigation[#navigation+1]=owner end
@@ -57,8 +57,8 @@ for _,direction in ipairs({'next','previous'}) do
   entries[#entries+1]={id='unit.group.'..direction,contexts=world,states={'live-sp','live-mp'},
     command=true,default=false}
 end
-for _,dialog in ipairs({{'save',59},{'load',60}}) do
-  entries[#entries+1]={id='game.'..dialog[1]..'.open',contexts=world,states={'live-sp'},
+for _,dialog in ipairs({{'save',59,{'live-sp','live-mp'}},{'load',60,{'live-sp'}}}) do
+  entries[#entries+1]={id='game.'..dialog[1]..'.open',contexts=world,states=dialog[3],
     command=false,default={scan=dialog[2],extended=false,mods=2}}
 end
 for _,view in ipairs({{'rotate-left',45},{'rotate-right',46},{'toggle-zoom',44}}) do

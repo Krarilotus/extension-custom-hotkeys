@@ -108,9 +108,14 @@ def test_save_load_dialog_owner_and_native_session_restrictions(lua):
       assert(not world:dispatch('game.save.open',c))
       assert(world:dispatch('game.load.open',c));assert(calls[3]==9)
       s.sessionHost=1;assert(world:dispatch('game.save.open',c));assert(calls[4]==10)
+      raw.state='live-mp';c=Context.resolve(raw);s.synchronyMode=1
+      assert(world:dispatch('game.save.open',c));assert(calls[5]==10)
+      assert(not world:dispatch('game.load.open',c))
+      s.sessionHost=0;assert(not world:dispatch('game.save.open',c))
+      s.sessionHost=1;s.synchronyMode=99;raw.state='live-sp';c=Context.resolve(raw)
       for _,id in ipairs({'game.save.open','game.load.open'}) do
         for _,case in ipairs({{'mode',1},{'mode',4},{'mode',6},
-            {'scenarioRestriction',1},{'playerDead',1},{'synchronyMode',1},
+            {'scenarioRestriction',1},{'playerDead',1},
             {'synchronyMode',666},{'textModal',10},{'modal',5}}) do
           local key,value=case[1],case[2];local old=s[key];s[key]=value
           assert(not world:dispatch(id,c));s[key]=old
@@ -121,7 +126,7 @@ def test_save_load_dialog_owner_and_native_session_restrictions(lua):
           assert(not world:dispatch(id,c));raw[field]=old
         end
       end
-      assert(#calls==4)
+      assert(#calls==5)
       local catalog=Catalog.new(require('code/entries'),require('code/originals'))
       local defaults=assert(Catalog.validate(catalog,Catalog.defaults(catalog)))
       assert(defaults['game.save.open'].scan==59 and defaults['game.save.open'].mods==2)

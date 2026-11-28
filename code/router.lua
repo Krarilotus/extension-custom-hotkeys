@@ -306,6 +306,11 @@ function M:handle(event)
     self.dispatching = false
     if not ok then self:block(chosen.id,result);self:barrier();break end
   end
+  if ok and result=='pass' and chosen.extension then
+    held.consumed=false
+    if event.wheel then self.wheelPending=nil end
+    return false
+  end
   -- Set after dispatch: an action's own barrier must not end its gesture.
   if event.wheel and ok then self.wheelGesture=key end
   if ok and result=='native' and nativeBinding then held.consumed=false;return false end

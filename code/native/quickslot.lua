@@ -23,7 +23,8 @@ function M.new(scene,view,world,cursor,reader)
   local function snapshot(token)
     local s=NativeGameplay.snapshot(scene:snapshot())
     if not s or s.inputGeneration~=token.inputGeneration
-        or not Gameplay.live(s,true) or s.screen~=token.screen or s.mode~=token.mode
+        or not Gameplay.live(s,true) or s.playerDead~=0 or s.playerDisabled~=0
+        or s.screen~=token.screen or s.mode~=token.mode
         or s.player~=token.player or s.synchronyMode~=token.synchronyMode
         or s.platformGeneration~=token.platformGeneration or s.width~=token.width or s.height~=token.height
         or not require('code/modal_context').background(s) or s.textEditor~=0

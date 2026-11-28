@@ -5,9 +5,9 @@ def setup(lua):
         paused=0,halted=0,sliding=0,modal=-1,modal2=-1,modal3=-1,textModal=0,
         textEditor=0,newPlayer=0,delay=-1,focused=true,composing=false,player=1,
         playerDead=0,playerDisabled=0,selectedCount=0,selectedLast=0,
-        selectionBits=string.rep(string.char(0),400),building=0,nextBuilding=0,
-        unit=0,nextUnit=0,tribe=0,placement=0,rotation=0,cameraX=0,cameraY=0,zoom=0,patrol=0,
-        unitMode=1,unitModeAux=1,pendingRotation=8}
+        selectionBits=string.rep(string.char(0),400),building=0,
+        unit=0,tribe=0,placement=0,rotation=0,cameraX=0,cameraY=0,zoom=0,patrol=0,
+        unitMode=1,unitModeAux=1}
     ''')
 
 
@@ -30,9 +30,13 @@ def test_gameplay_requires_all_native_facts_and_rejects_finished_sessions(lua):
 def test_gameplay_text_pause_authority_and_transition_gates(lua):
     setup(lua)
     lua.execute('''
-      for _,field in ipairs({'paused','halted','syncStatus','saveRelated',
-        'textModal','textEditor','newPlayer','playerDead','playerDisabled'}) do
+      for _,field in ipairs({'halted','syncStatus','saveRelated',
+        'textModal','textEditor','newPlayer'}) do
         s[field]=1;assert(not Gameplay.resolve(s),field);s[field]=0
+      end
+      for _,field in ipairs({'paused','playerDead','playerDisabled'}) do
+        s[field]=1;local c=assert(Gameplay.resolve(s),field)
+        assert(c.state=='spectator' and not c.authority,field);s[field]=0
       end
       s.sliding=1
       assert(Gameplay.resolve(s).owner=='game.build.slide')
@@ -40,12 +44,12 @@ def test_gameplay_text_pause_authority_and_transition_gates(lua):
       s.screen=16;assert(not Gameplay.resolve(s))
       s.screen=14;s.sliding=2;assert(not Gameplay.resolve(s))
       s.sliding=0
-      s.nextBuilding=1;assert(not Gameplay.resolve(s));s.nextBuilding=0
-      s.nextUnit=1;assert(not Gameplay.resolve(s));s.nextUnit=0
+      s.nextBuilding=1;assert(Gameplay.resolve(s));s.nextBuilding=nil
+      s.nextUnit=1;assert(Gameplay.resolve(s));s.nextUnit=nil
       for _,pending in ipairs({0,2,4,6,-1,9}) do
-        s.pendingRotation=pending;assert(not Gameplay.resolve(s))
+        s.pendingRotation=pending;assert(Gameplay.resolve(s))
       end
-      s.pendingRotation=8
+      s.pendingRotation=nil
       s.modal=2041;assert(not Gameplay.resolve(s))
       assert(Gameplay.resolve(s,2041));s.modal2=2;assert(not Gameplay.resolve(s,2041))
       s.modal2=-1;s.screen=17;assert(not Gameplay.resolve(s,2041))
@@ -78,7 +82,7 @@ def test_multiplayer_catalog_and_text_ownership_keep_native_save_load_restrictio
       local context=Context.resolve(facts(resolved.owner,resolved.state));context.panel='61:0'
       local catalog=Catalog.production()
       local singlePlayer={['game.quicksave']=true,['game.quickload']=true,
-        ['game.save.open']=true,['game.load.open']=true}
+        ['game.load.open']=true}
       for id,action in pairs(catalog.actions) do
         if action.states['live-sp'] then
           assert((action.states['live-mp']==true)==not singlePlayer[id],id)
@@ -88,10 +92,17 @@ def test_multiplayer_catalog_and_text_ownership_keep_native_save_load_restrictio
           'unit.stance.defensive','menu.build.industry'}) do
         assert(Context.allows(catalog.actions[id],context),id)
       end
-      for _,field in ipairs({'textModal','textEditor','paused','halted','syncStatus',
-          'playerDead','playerDisabled','newPlayer'}) do
+      for _,field in ipairs({'textModal','textEditor','halted','syncStatus',
+          'newPlayer'}) do
         s[field]=1;assert(not Gameplay.resolve(s),field);s[field]=0
       end
+      s.paused=1
+      local paused=assert(Gameplay.resolve(s))
+      local raw=facts(paused.owner,paused.state);raw.authority=paused.authority
+      context=Context.resolve(raw)
+      assert(Context.allows(catalog.actions['camera.pan.up'],context))
+      assert(not Context.allows(catalog.actions['target.confirm'],context))
+      s.paused=0
       s.focused=false;assert(not Gameplay.resolve(s));s.focused=true
       s.modal=2041;assert(not Gameplay.resolve(s))
     ''')

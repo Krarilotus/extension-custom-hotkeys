@@ -45,9 +45,20 @@ def test_registration_lifecycle_and_all_translations(actions):
         assert(not pcall(r.register,extra))
       end
       assert(not pcall(r.register,spec('view.toggle-zoom',{kind='world'})))
+      local view='ext.example.view'
+      assert(not pcall(r.register,spec(view,{kind='world',view='true'})))
+      assert(not pcall(r.register,spec(view,{kind='editor',view=true})))
+      assert(r.register(spec(view,{kind='world',view=true})))
       base.label.en='Edited by the caller'
       local defs=r.freeze()
       local catalog=Catalog.production(defs)
+      local camera=catalog.actions['view.toggle-zoom']
+      local action=catalog.actions[view]
+      assert(not action.command)
+      for state in pairs(camera.states) do
+        assert(action.states[state] == (state~='editor' and true or nil),state)
+      end
+      assert(not catalog.actions[id].states.spectator)
       local localized=require('code/locale').new('chinese',nil,catalog.extensionLabels)
       assert(localized(id)=='Zoom')
       assert(localized('group.'..catalog.actions[id].group)=='Zoom')

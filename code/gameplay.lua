@@ -16,15 +16,16 @@ function M.live(s,allowPaused,allowBuildSlide)
       or s.halted~=0 or (s.sliding~=0 and not (allowBuildSlide and s.sliding==1))
       or s.newPlayer~=0 or s.delay~=-1
       or s.focused~=true or s.composing~=false
-      or not integer(s.player,1,8) or s.playerDead~=0 or s.playerDisabled~=0
+      or not integer(s.player,1,8)
+      or not integer(s.playerDead,-2147483648,2147483647) or not integer(s.playerDisabled,-2147483648,2147483647)
       or not integer(s.selectedCount,0,A.unitCapacity) or not integer(s.selectedLast,0,(A.unitCapacity-1))
       or not integer(s.tribe,0,(A.tribeCapacity-1))
       or type(s.selectionBits)~='string' or #s.selectionBits~=A.selectionBytes
-      or not integer(s.building,0,1999) or s.building~=s.nextBuilding
-      or not integer(s.unit,0,(A.unitCapacity-1)) or s.unit~=s.nextUnit
+      or not integer(s.building,0,1999)
+      or not integer(s.unit,0,(A.unitCapacity-1))
       or not integer(s.placement,0,65535) or not integer(s.rotation,0,6) or s.rotation%2~=0
       or not integer(s.cameraX,-1000000,1000000) or not integer(s.cameraY,-1000000,1000000)
-      or s.pendingRotation~=8 or not integer(s.zoom,0,1) or not integer(s.patrol,0,1)
+      or not integer(s.zoom,0,1) or not integer(s.patrol,0,1)
       or not integer(s.unitMode,-2147483648,2147483647)
       or not integer(s.unitModeAux,-2147483648,2147483647) then return false end
   return true
@@ -34,15 +35,18 @@ end
 function M.resolve(s,ownedModal)
   local options=ownedModal~=nil and ownedModal==s.modal and Dialog.owns(s)
   local load=ownedModal==9 and Load.owns(s)
+  local pausedMap=s.paused==1 and s.modal==-1 and s.sliding==0
   if ((ownedModal==5 or ownedModal==2025) and not options) or (ownedModal==9 and not load)
-      or not M.live(s,options or load,s.screen==14 and not options and not load)
+      or not M.live(s,options or load or pausedMap,s.screen==14 and not options and not load)
       or (s.modal~=-1 and (ownedModal==nil or s.modal~=ownedModal))
       or not require('code/modal_context').background(s)
       or (s.textModal~=0 and not options and not load) or s.textEditor~=0 then return nil end
 
+  local viewOnly=pausedMap or s.playerDead~=0 or s.playerDisabled~=0
   return {owner=options and 'game.options' or load and 'game.load'
       or (s.screen==14 and (s.sliding==1 and 'game.build.slide' or 'game.build') or 'game.status'),
-    state=s.synchronyMode==1 and 'live-mp' or 'live-sp',authority=true,
+    state=viewOnly and 'spectator' or s.synchronyMode==1 and 'live-mp' or 'live-sp',
+    authority=not viewOnly,
     selection=load and Load.identity(s) or table.concat({s.player,s.building,s.unit,s.tribe,s.selectedCount,s.selectedLast},':')..':'..s.selectionBits,
     -- Camera position changes during a local pan hold. Queued world clicks
     -- carry their own projection guard; a pan must not cancel itself.

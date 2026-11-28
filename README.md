@@ -110,7 +110,9 @@ Use a lowercase ID such as `ext.my-overlay.toggle`. Label and category tables
 use `en, de, fr, ru, hu, tr, ch, es, fa` with UTF-8 values. `registerAction` returns true and raises on
 invalid, duplicate or late registration. Registration lasts for the process.
 
-- `context={kind='world'}` selects the live game map. Use
+- `context={kind='world'}` selects the live game map. Set `view=true` for
+  local camera or view actions that should also work after defeat and while
+  the map is paused. These actions must only change the local view. Use
   `{kind='panel',tab=number}` for a narrower native toolbar tab or
   `{kind='editor'}` for the map editor canvas. `{kind='modal',id=number}`
   matches a verified native Options or Load modal. The modal owner checks its
@@ -121,7 +123,8 @@ invalid, duplicate or late registration. Registration lasts for the process.
   Modifier flags are Ctrl=1, Shift=2 and Alt=4. Windows shortcuts and the
   recovery chord remain reserved.
 - `callback(context,event)` runs the action. Return true for a successful
-  action. The callback owns any feedback, such as a sound. Optional
+  action. An action without `release` can return `'pass'` to leave this
+  input to the game. The callback owns any feedback, such as a sound. Optional
   `release()` pairs with a keyboard or mouse-button hold and runs after
   key-up, focus loss, a context transition or a binding change.
   Bare modifiers and wheel holds are outside this API.

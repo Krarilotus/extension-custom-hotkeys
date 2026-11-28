@@ -1,5 +1,6 @@
 local M = {}
-local states = {menu=true, ['live-sp']=true, ['live-mp']=true, editor=true, replay=true}
+M.worldViewStates = {'live-sp','live-mp','spectator'}
+local states = {menu=true, ['live-sp']=true, ['live-mp']=true, spectator=true, editor=true, replay=true}
 local identityFields = {'owner','screen','panel','modal','focus','selection',
   'targeting','state','authority','generation','modalReady'}
 
@@ -11,7 +12,7 @@ local identityFields = {'owner','screen','panel','modal','focus','selection',
 ---@field focus string
 ---@field selection string
 ---@field targeting string
----@field state 'menu'|'live-sp'|'live-mp'|'editor'|'replay'
+---@field state 'menu'|'live-sp'|'live-mp'|'spectator'|'editor'|'replay'
 ---@field authority boolean
 ---@field generation integer
 

@@ -24,8 +24,9 @@ function M.start(language)
   local function extensionAction(id,phase,context,event)
     local info=context and {owner=context.owner,panel=context.panel,modal=context.modal,
       screen=context.screen,state=context.state,authority=context.authority}
-    local _,problem=remote.interface.dispatchExtension(id,phase,info,event)
+    local result,problem=remote.interface.dispatchExtension(id,phase,info,event)
     if problem then remote.interface.logWarning(id..': '..problem) end
+    if result=='pass' then return 'pass' end
   end
   local selectors=require('code/controls')
   local controls={}
@@ -48,7 +49,8 @@ function M.start(language)
       if id=='menu.previous' then return navigation:move(-1,context) end
       if id=='menu.decrease' then return navigation:adjust(-1,context) end
       if id=='menu.increase' then return navigation:adjust(1,context) end
-      if id=='menu.activate' or id=='game.menu.activate' then return navigation:activate(context) end
+      if id=='menu.activate' then return navigation:activate(context) end
+      if id=='game.menu.activate' then return navigation:activate(context) or (nativeBinding and 'native') end
       if id:sub(1,10)=='grid.slot.' then
         return navigation:activateGrid(tonumber(id:sub(11)),selectors,context)
       end
@@ -60,7 +62,10 @@ function M.start(language)
           or id=='game.save.open' or id=='game.load.open' then cursor:cancel() end
       return worldActions:dispatch(id,context,nativeBinding,event)
     end,
-    canRecover=function(c) return c and (c.owner:sub(1,5)=='menu.' or c.owner=='game.build' or c.owner=='game.status') end,
+    canRecover=function(c)
+      return c and (c.owner:sub(1,5)=='menu.' or (scene.current.paused~=1
+        and (c.owner=='game.build' or c.owner=='game.status')))
+    end,
     recover=function() return view:open() end,
     cancelLocalHold=function(id)
       if catalog.actions[id].extension then extensionAction(id,'release')

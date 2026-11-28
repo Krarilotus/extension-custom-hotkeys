@@ -33,6 +33,8 @@ function M:dispatch(id,context,nativeBinding,event)
   if not context or not Context.same(context,Context.resolve(a.resolve())) then return false end
   if context.owner=='editor.map' then
     if context.state~='editor' or not editorView[id] then return false end
+  elseif context.state=='spectator' then
+    if not editorView[id] or (context.owner~='game.build' and context.owner~='game.status') then return false end
   elseif (context.state~='live-sp' and context.state~='live-mp') or not context.authority
       or (context.owner~='game.build' and context.owner~='game.status') then return false end
   local s=a.snapshot()
@@ -110,10 +112,12 @@ function M:dispatch(id,context,nativeBinding,event)
     return true
   end
   if id=='game.save.open' or id=='game.load.open' then
+    local allowedMode=s.synchronyMode==0 or s.synchronyMode==99
+      or (id=='game.save.open' and s.synchronyMode==1)
     if not integer(s.mode,0,5) or s.mode==1 or s.mode==4 or s.scenarioRestriction~=0
-        or s.playerDead~=0 or (s.synchronyMode~=0 and s.synchronyMode~=99)
+        or s.playerDead~=0 or not allowedMode
         or s.textModal~=0 or s.modal~=-1 then return false end
-    if id=='game.save.open' and s.synchronyMode==99 and s.sessionHost~=1 then return false end
+    if id=='game.save.open' and s.synchronyMode~=0 and s.sessionHost~=1 then return false end
     a.saveLoadDialog(id=='game.save.open' and 10 or 9)
     return true
   end

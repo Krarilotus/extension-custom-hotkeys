@@ -1,5 +1,6 @@
 local Binding=require('code/binding')
 local Catalog=require('code/catalog')
+local Context=require('code/context')
 local Text=require('code/text_edit')
 local M={}
 
@@ -46,7 +47,8 @@ function M.new()
       local scope=context[kind=='panel' and 'tab' or 'id']
       for field in pairs(context) do
         assert(field=='kind' or (kind=='panel' and field=='tab')
-          or (kind=='modal' and field=='id'),'action.context-field')
+          or (kind=='modal' and field=='id')
+          or (kind=='world' and field=='view' and type(context.view)=='boolean'),'action.context-field')
       end
       if kind=='panel' or kind=='modal' then
         assert(type(scope)=='number' and scope>=0 and scope%1==0 and scope<=2147483647,'action.context-id')
@@ -58,7 +60,8 @@ function M.new()
         binding=assert(Binding.validate(binding))
         assert(not binding.wheel or not spec.release,'binding.unsupported')
       end
-      definitions[#definitions+1]={id=spec.id,contexts=owners[kind],states=states[kind],
+      definitions[#definitions+1]={id=spec.id,contexts=owners[kind],
+        states=kind=='world' and context.view==true and Context.worldViewStates or states[kind],
         panels=kind=='panel' and {tostring(scope)} or nil,
         modals=kind=='modal' and {tostring(scope)} or nil,
         command=false,behavior=spec.release and 'hold-local' or 'press',
@@ -98,6 +101,7 @@ function M.new()
         handler.failed=true
         return false,tostring(result)
       end
+      if result=='pass' and phase=='press' and not handler.release then return 'pass' end
       return ok and result==true
     end,
   }
